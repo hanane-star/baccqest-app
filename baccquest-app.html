@@ -2263,6 +2263,9 @@ hr{border-color:rgba(212,163,97,.2)!important}
 </style>
 </head>
 <body>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <canvas id="vfx"></canvas>
 <div class="co" id="congrats">
@@ -5607,12 +5610,35 @@ function addEvent(){plAddEvent();}
 function renderProfile(){let sc='';for(let i=27;i>=0;i--){const active=Math.random()>.35,today=i===0;sc+=`<div class="sday ${today?'today':active?'active':''}" title="قبل ${i} يوم"></div>`;}const el=document.getElementById('streak-cal');if(el)el.innerHTML=sc;const ag=document.getElementById('ach-grid');if(ag)ag.innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach-card ${a.unlocked?'unlocked':''}"><div style="font-size:26px;margin-bottom:4px">${a.icon}</div><div style="font-size:10px;font-weight:700;color:var(--tx)">${a.name}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${a.desc}</div>${!a.unlocked?'<div style="font-size:8px;color:var(--tx3);margin-top:2px">🔒 مقفل</div>':''}</div>`).join('');}
 
 // ══ TEACHER ══
-function renderUnits(){document.getElementById('units-list').innerHTML=UNITS.map(u=>`<div class="unit-item"><div class="unit-hd" onclick="document.getElementById('ub${u.n}').classList.toggle('open')"><div class="unit-num">${u.n}</div><div style="flex:1"><div style="font-size:12px;font-weight:700">${u.title}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${u.qs.length} سؤال</div></div><div style="display:flex;gap:4px"><span class="ubadge ${u.pub?'ub-pub':'ub-d'}">${u.pub?'✅':'📝'}</span><span class="ubadge ub-q">🧩${u.qs.length}</span></div><span style="color:var(--tx3);font-size:10px;margin-right:4px">▼</span></div><div class="unit-body" id="ub${u.n}"><div style="padding-top:10px"><div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap"><button class="btn-icon" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">➕ سؤال</button><button class="btn-icon" onclick="showToast('📄 رفع PDF...')">📄 PDF</button><button class="btn-icon" onclick="showToast('${u.pub?'⏸ إيقاف':'🚀 نشر'}...')">${u.pub?'⏸':'🚀 نشر'}</button></div>${u.qs.length?u.qs.map(q=>`<div class="uq-row"><div class="qdot" style="background:${q.col}"></div><div style="flex:1"><div style="font-size:11px;font-weight:600">${q.text}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.type}·${q.diff}·🪙${q.coins}${q.video?' · 📹':''}</div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="showToast('✏️ تعديل...')">✏️</button><button class="btn-icon" onclick="showToast('🗑️ حذف')">🗑️</button></div></div>`).join(''):`<div style="text-align:center;padding:15px;color:var(--tx2);font-size:11px">لا أسئلة — <span style="color:var(--p);cursor:pointer" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">أضف ➕</span></div>`}</div></div></div>`).join('');}
+function renderUnits(){document.getElementById('units-list').innerHTML=UNITS.map(u=>`<div class="unit-item"><div class="unit-hd" onclick="document.getElementById('ub${u.n}').classList.toggle('open')"><div class="unit-num">${u.n}</div><div style="flex:1"><div style="font-size:12px;font-weight:700">${u.title}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${u.qs.length} سؤال</div></div><div style="display:flex;gap:4px"><span class="ubadge ${u.pub?'ub-pub':'ub-d'}">${u.pub?'✅':'📝'}</span><span class="ubadge ub-q">🧩${u.qs.length}</span></div><span style="color:var(--tx3);font-size:10px;margin-right:4px">▼</span></div><div class="unit-body" id="ub${u.n}"><div style="padding-top:10px"><div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap"><button class="btn-icon" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">➕ سؤال</button><button class="btn-icon" onclick="teacherUploadPDF('${u.title}')">📄 PDF</button><button class="btn-icon" onclick="showToast('${u.pub?'⏸ إيقاف':'🚀 نشر'}...')">${u.pub?'⏸':'🚀 نشر'}</button></div>${u.qs.length?u.qs.map(q=>`<div class="uq-row"><div class="qdot" style="background:${q.col}"></div><div style="flex:1"><div style="font-size:11px;font-weight:600">${q.text}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.type}·${q.diff}·🪙${q.coins}${q.video?' · 📹':''}</div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="showToast('✏️ تعديل...')">✏️</button><button class="btn-icon" onclick="showToast('🗑️ حذف')">🗑️</button></div></div>`).join(''):`<div style="text-align:center;padding:15px;color:var(--tx2);font-size:11px">لا أسئلة — <span style="color:var(--p);cursor:pointer" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">أضف ➕</span></div>`}</div></div></div>`).join('');}
 function renderStudents(){const er=[{text:'∫sin(x)dx = ?',rate:68,sub:'الرياضيات'},{text:'وحدة الطاقة',rate:45,sub:'الفيزياء'},{text:'الحرية — سارتر',rate:82,sub:'الفلسفة'}];document.getElementById('students-tbody').innerHTML=STUDENTS.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.branch}</td><td>${s.unit}</td><td><span class="ppct">${s.acc}%</span></td><td style="font-weight:700;color:var(--a)">🪙${s.coins}</td><td style="font-weight:700;color:var(--p)">🤖${s.ai}</td></tr>`).join('');document.getElementById('error-qs').innerHTML=er.map(q=>`<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:9px"><div style="width:42px;height:42px;border-radius:10px;background:var(--rl);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--r);flex-shrink:0">${q.rate}%</div><div style="flex:1"><div style="font-size:11px;font-weight:700">${q.text}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.sub}</div></div><div style="font-size:9px;background:var(--rl);color:var(--r);padding:2px 6px;border-radius:20px;font-weight:600">خطأ ${q.rate}%</div></div>`).join('');}
 function pickQType(el,type){document.querySelectorAll('.qb-type-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');document.getElementById('qb-mcq-area').style.display=type==='mcq'?'block':'none';}
 function addQBOpt(){const c=document.getElementById('qb-opts'),r=document.createElement('div');r.className='qb-opt-row';r.innerHTML=`<input type="radio" name="correct"><input class="finput" placeholder="خيار..." style="margin-bottom:0">`;c.appendChild(r);}
 function pickDiff(el){document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
 const SUBJ_MAP={'الرياضيات':{id:'math',icon:'📐',label:'الرياضيات'},'الفيزياء والكيمياء':{id:'phy',icon:'⚗️',label:'الفيزياء'},'علوم الطبيعة':{id:'nat',icon:'🌿',label:'علوم الطبيعة'},'التاريخ والجغرافيا':{id:'hist',icon:'🗺️',label:'التاريخ'},'اللغة العربية':{id:'arab',icon:'✍️',label:'اللغة العربية'},'الفلسفة':{id:'phil',icon:'🦉',label:'الفلسفة'},'اللغة الفرنسية':{id:'fr',icon:'🇫🇷',label:'الفرنسية'},'اللغة الإنجليزية':{id:'en',icon:'🇬🇧',label:'الإنجليزية'}};
+
+/* ═══════════════════════════════════════════════════════════
+   ☁️ FIREBASE — real teacher↔student sync (cross-device)
+   ═══════════════════════════════════════════════════════════ */
+const firebaseConfig={
+  apiKey:"AIzaSyDh5nvFhsHJW-_cNbOdpd-rm_eDj6tsya0",
+  authDomain:"funbac-33d3f.firebaseapp.com",
+  projectId:"funbac-33d3f",
+  storageBucket:"funbac-33d3f.firebasestorage.app",
+  messagingSenderId:"222997505368",
+  appId:"1:222997505368:web:0caaceafceaa09b0ecf12d",
+  measurementId:"G-ZCTMNFF66J"
+};
+let _fbDb=null,_fbStorage=null,_fbReady=false;
+try{
+  if(typeof firebase!=='undefined'){
+    firebase.initializeApp(firebaseConfig);
+    _fbDb=firebase.firestore();
+    _fbStorage=firebase.storage();
+    _fbReady=true;
+  }
+}catch(e){console.warn('Firebase init failed — falling back to local-only mode',e);}
+
 function _persistTeacherQuestions(){
   try{
     const custom=QUIZ_BANK.filter(q=>q.custom);
@@ -5626,6 +5652,27 @@ function _persistTeacherQuestions(){
     saved.forEach(q=>{if(!QUIZ_BANK.find(x=>x.id===q.id))QUIZ_BANK.unshift(q);});
   }catch(e){}
 })();
+// Real-time listener — any question a teacher publishes (from ANY device) appears
+// for every student live, without reload.
+if(_fbReady){
+  _fbDb.collection('questions').orderBy('createdAt','desc').onSnapshot(snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='added'||ch.type==='modified'){
+        const q=ch.doc.data();q.id=ch.doc.id;
+        const idx=QUIZ_BANK.findIndex(x=>x.id===q.id);
+        if(idx>=0)QUIZ_BANK[idx]=q;else QUIZ_BANK.unshift(q);
+      }
+    });
+    _persistTeacherQuestions();
+    if(document.getElementById('qbank-list'))try{renderQBank();}catch(e){}
+  },err=>console.warn('Firestore questions listener error',err));
+  _fbDb.collection('examPdfs').orderBy('uploadedAt','desc').onSnapshot(snap=>{
+    const list=[];
+    snap.forEach(doc=>list.push({...doc.data(),id:doc.id}));
+    try{localStorage.setItem('bq_teacher_pdfs_fb',JSON.stringify(list));}catch(e){}
+    if(document.getElementById('pdf-exam-list'))try{renderPDFBank();}catch(e){}
+  },err=>console.warn('Firestore examPdfs listener error',err));
+}
 function publishQuestion(){
   const txt=document.getElementById('qb-text').value.trim();
   if(!txt){alert('اكتب نص السؤال');return;}
@@ -5650,7 +5697,7 @@ function publishQuestion(){
     }).filter(o=>o.t);
   }
   const newQ={
-    id:'tq-'+Date.now(),subject:subj.id,icon:subj.icon,subjectLabel:subj.label,unit:unit||'وحدة جديدة',
+    subject:subj.id,icon:subj.icon,subjectLabel:subj.label,unit:unit||'وحدة جديدة',
     type,typeLabel:TYPE_MAP[type]||type,text:txt,difficulty,coins,teacher:teacherName,
     video:document.getElementById('vid-url')?.value||'',videoTs:0,custom:true,
     ...(options&&options.length?{options}:{}),
@@ -5660,12 +5707,28 @@ function publishQuestion(){
     document.getElementById('qb-text').value='';
     return;
   }
-  QUIZ_BANK.unshift(newQ);
-  _persistTeacherQuestions();
-  if(typeof renderQBank==='function')try{renderQBank();}catch(e){}
   document.getElementById('qb-text').value='';
-  showCongrats('تم النشر! 🚀','"رفيق: السؤال وصل للطلاب فوراً!"',0,true);
-  showToast('✅ تم نشر السؤال — ظاهر الآن في بنك الطلاب');
+  if(_fbReady){
+    // Write to Firestore — appears live for every student on every device via the onSnapshot listener above
+    _fbDb.collection('questions').add({...newQ,createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+      .then(()=>{
+        showCongrats('تم النشر! 🚀','"رفيق: السؤال وصل لكل الطلاب فوراً!"',0,true);
+        showToast('✅ تم نشر السؤال — متزامن مع كل الأجهزة');
+      })
+      .catch(e=>{
+        console.warn('Firestore publish failed, saving locally instead',e);
+        newQ.id='tq-'+Date.now();QUIZ_BANK.unshift(newQ);_persistTeacherQuestions();
+        if(typeof renderQBank==='function')try{renderQBank();}catch(err){}
+        showToast('⚠️ تعذّرت المزامنة السحابية — تم الحفظ محلياً فقط');
+      });
+  }else{
+    newQ.id='tq-'+Date.now();
+    QUIZ_BANK.unshift(newQ);
+    _persistTeacherQuestions();
+    if(typeof renderQBank==='function')try{renderQBank();}catch(e){}
+    showCongrats('تم النشر! 🚀','"رفيق: السؤال وصل للطلاب!"',0,true);
+    showToast('✅ تم نشر السؤال (محلياً فقط — Firebase غير متاح)');
+  }
 }
 function sendNotification(){const txt=document.getElementById('notif-text').value.trim();const type=document.getElementById('notif-type').value;if(!txt){alert('اكتب نص الإشعار');return;}ST.notifLog.unshift({type,text:txt,ts:new Date().toLocaleString('ar')});document.getElementById('notif-text').value='';renderNotifLog();showToast('📤 تم الإرسال!');playSound('win');}
 function renderNotifLog(){document.getElementById('notif-log').innerHTML=ST.notifLog.length?ST.notifLog.map(n=>`<div class="card" style="padding:10px 12px;margin-bottom:8px"><div style="font-size:10px;color:var(--p);font-weight:700;margin-bottom:2px">${n.type}</div><div style="font-size:12px;color:var(--tx)">${n.text}</div><div style="font-size:9px;color:var(--tx3);margin-top:3px">🕒 ${n.ts}</div></div>`).join(''):`<div style="text-align:center;padding:22px;color:var(--tx2)"><div style="font-size:30px;margin-bottom:6px">📭</div><p style="font-size:11px">لم ترسل إشعارات بعد</p></div>`;}
@@ -5687,14 +5750,19 @@ function playSound(type){const ac=getAC();if(!ac)return;const o=ac.createOscilla
 function renderPDFBank(){
   const yEl=document.getElementById('pdf-year-filters'),sEl=document.getElementById('pdf-subj-filters'),listEl=document.getElementById('pdf-exam-list');
   if(!listEl)return;
-  /* merge teacher-uploaded PDFs from localStorage */
+  /* merge teacher-uploaded PDFs — from Firestore (cross-device) with localStorage fallback */
   let teacherPDFs=[];
-  try{teacherPDFs=(JSON.parse(localStorage.getItem('bq_teacher_pdfs')||'[]')).map(p=>({
-    id:p.id,title:p.title,year:p.year||'2024',subj:'teacher',
-    subjectLabel:p.subject||'متنوع',typeLabel:'🎓 من الأستاذ',
-    type:'teacher',icon:'📄',pages:'—',size:p.size||'—',
-    pdfUrl:p.url,teacher:p.teacher||'',
-  }));}catch(e){}
+  try{
+    const fbList=JSON.parse(localStorage.getItem('bq_teacher_pdfs_fb')||'[]');
+    const localList=JSON.parse(localStorage.getItem('bq_teacher_pdfs')||'[]');
+    const merged=fbList.length?fbList:localList;
+    teacherPDFs=merged.map(p=>({
+      id:p.id,title:p.title,year:p.year||'2024',subj:'teacher',
+      subjectLabel:p.subject||'متنوع',typeLabel:'🎓 من الأستاذ',
+      type:'teacher',icon:'📄',pages:'—',size:p.size||'—',
+      pdfUrl:p.url,teacher:p.teacher||'',
+    }));
+  }catch(e){}
   const ALL_PDFS=[...teacherPDFs,...PDF_EXAMS];
   const allYears=['الكل',...new Set(ALL_PDFS.map(p=>p.year))].filter((v,i,a)=>a.indexOf(v)===i);
   if(yEl)yEl.innerHTML=allYears.map(y=>`<div class="pdf-pill ${y===pdfYearF?'active':''}" onclick="setPDFYear('${y}')">${y==='الكل'?'🗂️ الكل':'📅 '+y}</div>`).join('');
@@ -5731,6 +5799,36 @@ function downloadPDF(url,name){
   if(!url||url.length<4){showToast('🔒 الملف غير متاح بعد — سيُضاف قريباً!');return;}
   const a=document.createElement('a');a.href=url;a.download=(name||'موضوع-بكالوريا')+'.pdf';a.target='_blank';a.rel='noopener noreferrer';
   document.body.appendChild(a);a.click();a.remove();showToast('⬇️ بدء تحميل PDF...');
+}
+function teacherUploadPDF(unitTitle){
+  if(!_fbReady){showToast('⚠️ رفع الملفات يتطلب اتصال Firebase — غير متاح حالياً');return;}
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='application/pdf';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];
+    if(!f)return;
+    if(f.type!=='application/pdf'){showToast('⚠️ يرجى اختيار ملف PDF فقط');return;}
+    showToast('⏳ جاري رفع الملف...');
+    const path='examPdfs/'+Date.now()+'-'+f.name;
+    const ref=_fbStorage.ref(path);
+    ref.put(f).then(snap=>snap.ref.getDownloadURL()).then(url=>{
+      const sizeMB=(f.size/1024/1024).toFixed(1)+' MB';
+      const teacherName='أ. '+((typeof ST!=='undefined'&&ST.authData&&ST.authData.name)||'المعلم');
+      return _fbDb.collection('examPdfs').add({
+        title:f.name.replace(/\.pdf$/i,'')||unitTitle,
+        subject:unitTitle||'متنوع',year:String(new Date().getFullYear()),
+        teacher:teacherName,url,size:sizeMB,
+        uploadedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }).then(()=>{
+      showToast('✅ تم رفع الملف — ظاهر الآن في مخزن الامتحانات لكل الطلاب');
+      playSound('win');
+    }).catch(e=>{
+      console.warn('PDF upload failed',e);
+      showToast('❌ فشل الرفع: '+(e.message||'خطأ غير معروف'));
+    });
+  };
+  inp.click();
 }
 
 // ══ VIDEO PLAYER ══
