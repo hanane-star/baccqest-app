@@ -801,6 +801,29 @@ select.finput{appearance:none;cursor:pointer}
 .lesson-item.done .lname{text-decoration:line-through;color:var(--tx2)}
 .lcb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;transition:all .2s}
 
+/* ── PLAN: BAC Planner Assistant (gate / onboarding / dynamic plan) ── */
+.pg-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 16px;}
+.pg-ico{font-size:52px;margin-bottom:10px;animation:float 3s ease-in-out infinite}
+.pg-title{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:6px}
+.pg-sub{font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:18px;max-width:280px}
+.pg-btn{background:linear-gradient(135deg,var(--p),var(--cy));color:#fff;border:none;border-radius:13px;padding:13px 28px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(108,60,225,.3)}
+.pob-step{margin-bottom:16px}
+.pob-q{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.pob-chips{display:flex;flex-wrap:wrap;gap:7px}
+.pob-chip{background:var(--sur);border:1.5px solid var(--bd);border-radius:20px;padding:7px 14px;font-size:11px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s}
+.pob-chip:hover{border-color:var(--p)}
+.pob-chip.sel{background:var(--pl);border-color:var(--p);color:var(--p)}
+.pob-days-badge{display:inline-flex;align-items:center;gap:6px;background:var(--pl);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--p)}
+.pob-next{width:100%;background:var(--p);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;margin-top:6px;opacity:.4;pointer-events:none;transition:opacity .2s}
+.pob-next.on{opacity:1;pointer-events:auto}
+.pln-clean-hd{background:linear-gradient(135deg,#EDE9FF,#CFFAFE);border:2px solid var(--bd2);border-radius:18px;padding:18px;margin-bottom:14px;text-align:center}
+.pln-pct-num{font-size:38px;font-weight:900;line-height:1}
+.pln-ascii{font-family:monospace;font-size:13px;letter-spacing:1px;color:var(--p);margin:6px 0 2px;direction:ltr}
+.pln-days-lbl{font-size:11px;color:var(--tx2);margin-top:4px}
+.pln-today-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.pln-edit-link{font-size:10px;color:var(--p);cursor:pointer;font-weight:700}
+.pln-empty{text-align:center;padding:24px;color:var(--tx2);font-size:12px}
+
 /* ── QUIZ ── */
 .qz-prog{height:5px;background:var(--bg2);border-radius:4px;overflow:hidden;margin-bottom:7px}
 .qz-bar{height:100%;background:linear-gradient(90deg,var(--p),var(--cy));border-radius:4px;transition:width .4s}
@@ -2806,21 +2829,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
     <!-- PLAN -->
     <div class="pane" id="sp-plan">
-      <div class="plan-hd">
-        <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
-          <span style="font-size:30px;animation:float 3s ease-in-out infinite">✒️</span>
-          <div><div style="font-size:10px;color:var(--p);font-weight:700;margin-bottom:2px">رفيق يقول:</div>
-          <div style="font-size:12px;color:var(--tx);font-weight:600">"كل درس تشطبه يقربك من الحلم!" ✒️</div></div>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:7px">
-          <div class="plan-days-num grad-txt" id="plan-days">—</div>
-          <div style="font-size:11px;color:var(--tx2)">يوم · بكالوريا 18 جوان 2025</div>
-        </div>
-        <div class="global-bar"><div class="global-fill" id="global-fill" style="width:0%"></div></div>
-        <div style="font-size:11px;color:var(--tx2)" id="global-pct">0% مُنجز</div>
-      </div>
-      <div class="sec-title">📖 الدروس</div>
-      <div id="subjects-plan"></div>
+      <div id="plan-root"></div>
     </div>
 
     <!-- QUIZ — Hierarchical puzzle system -->
@@ -3273,12 +3282,13 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
 <script>
 // ══ STATE ══
-const BAC=new Date('2025-06-18'),DL=Math.max(0,Math.ceil((BAC-new Date())/86400000));
+const BAC=new Date('2027-06-18'),DL=Math.max(0,Math.ceil((BAC-new Date())/86400000));
 const VC={'BACC-TCHR-2891':{s:'a'},'BACC-DEMO-0000':{s:'a'}};
 const ST={coins:350,streak:7,level:5,selOpt:null,mSel:null,mMatched:[],mInit:false,aiTyping:false,currentSubj:'math',qbFilter:'all',calM:5,calY:2025,
   todos:[{id:1,text:'مراجعة درس التكامل',done:false},{id:2,text:'حل 5 أسئلة فيزياء',done:false},{id:3,text:'قراءة الفصل الأول فلسفة',done:true}],nextTodoId:4,
   notifLog:[],events:[{day:5,title:'اختبار الفصل',type:'exam'},{day:18,title:'بكالوريا 2025',type:'exam'}],
   authData:{},branch:localStorage.getItem('bq_branch')||'علوم',subBranch:localStorage.getItem('bq_sub_branch')||'',wizardDone:true,
+  planFocus:(function(){try{return JSON.parse(localStorage.getItem('bq_plan_focus')||'[]');}catch(e){return [];}})(),
   notifs:[
     {icon:'✒️',title:'رفيق بانتظارك!',msg:'لغز الفيزياء ينتظرك اليوم 🔬',unread:true,time:'الآن'},
     {icon:'🪙',title:'رصيدك في خطر!',msg:'لم تحل أي تمرين منذ يوم',unread:true,time:'منذ ساعة'},
@@ -4161,6 +4171,7 @@ function stab(id,el){
     if(id==='quiz')initMatch();
     if(id==='tasks')setTimeout(_renderNotebook,50);
     if(id==='calendar')setTimeout(renderCalendar,50);
+    if(id==='plan')setTimeout(renderStudyPlan,50);
   }
 }
 function ttab(id,el){document.querySelectorAll('.t-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.t-pane').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('tp-'+id).classList.add('active');}
@@ -4228,18 +4239,93 @@ function delTodo(id){ST.todos=ST.todos.filter(x=>x.id!==id);renderTodos();}
 // ══ BOOKSHELF ══
 function renderBookshelf(){document.getElementById('bookshelf').innerHTML=WINGS.map(shelf=>`<div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px;padding-right:7px;border-right:3px solid var(--p)">${shelf.shelf}</div><div class="shelf"><div class="books-row">${shelf.books.map(b=>`<div class="book-3d" onclick="${b.locked?'document.getElementById(\'lock-modal\').classList.add(\'on\');playSound(\'wrong\')':'stab(\'quiz\',document.querySelectorAll(\'.tab\')[2]);playSound(\'check\')'}" title="${b.name}"><div class="book-spine" style="background:linear-gradient(160deg,${b.c1},${b.c2})"><div class="book-ridge"></div><div style="font-size:20px;z-index:2">${b.icon}</div>${b.locked?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.38);border-radius:4px 10px 10px 4px;display:flex;align-items:center;justify-content:center;font-size:20px">🔒</div>':''}<div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(0,0,0,.18);border-radius:0 0 10px 4px;overflow:hidden"><div style="height:100%;background:rgba(255,255,255,.7);width:${b.pct}%"></div></div></div><div class="b-shadow"></div><div style="font-size:8px;font-weight:700;color:var(--tx);text-align:center;margin-top:4px;line-height:1.3">${b.name}</div><div style="font-size:9px;color:var(--tx2);text-align:center">${b.locked?'—':b.pct+'%'}</div></div>`).join('')}<div class="add-book" onclick="showToast('➕ وحدة جديدة...')">+</div></div></div>`).join('');}
 
-// ══ STUDY PLAN ══
+// ══ STUDY PLAN — مستشار البكالوريا الذكي (BAC Planner Assistant) ══
+const PLAN_BRANCHES=['تقني رياضي','علوم تجريبية','تسيير واقتصاد','آداب وفلسفة','لغات أجنبية','رياضيات'];
 function rsch(lessons,dl){const rem=lessons.filter(l=>!l.done);const ppd=Math.max(1,Math.ceil(rem.length/Math.max(1,dl)));return lessons.map(l=>{if(l.done)return l;const idx=rem.indexOf(l);return{...l,sd:Math.floor(idx/ppd)+1};});}
-function calcG(){const all=SUBJECTS_PLAN.flatMap(s=>s.lessons);return all.length?Math.round(all.filter(l=>l.done).length/all.length*100):0;}
+function _planFocusSubjects(){const ids=(ST.planFocus&&ST.planFocus.length)?ST.planFocus:SUBJECTS_PLAN.map(s=>s.id);return SUBJECTS_PLAN.filter(s=>ids.includes(s.id));}
+function calcG(){const all=_planFocusSubjects().flatMap(s=>s.lessons);return all.length?Math.round(all.filter(l=>l.done).length/all.length*100):0;}
+function _planActivated(){return (localStorage.getItem('bq_sub_status')||'free')!=='free';}
+function _planOnboarded(){return !!ST.branch&&!!(ST.planFocus&&ST.planFocus.length);}
 function renderStudyPlan(){
-  const pct=calcG();document.getElementById('global-fill').style.width=pct+'%';document.getElementById('global-pct').textContent=pct+'% مُنجز';
-  document.getElementById('subjects-plan').innerHTML=SUBJECTS_PLAN.map(s=>{
-    const done=s.lessons.filter(l=>l.done).length,total=s.lessons.length,spct=Math.round(done/total*100),rem=total-done;
-    const sched=rsch(s.lessons,DL),dpp=rem>0?Math.ceil(rem/Math.max(1,DL)):0;
-    return`<div class="subj-row"><div class="subj-hd" onclick="document.getElementById('sl-${s.id}').classList.toggle('open')"><span style="font-size:19px">${s.icon}</span><span style="flex:1;font-size:12px;font-weight:700;color:var(--tx)">${s.name}</span><span style="font-size:11px;font-weight:700;color:var(--p)">${done}/${total} · ${spct}%</span><span style="color:var(--tx3);font-size:11px">▼</span></div><div class="subj-bar"><div class="subj-fill" style="width:${spct}%;background:${s.col}"></div></div><div class="lessons-list" id="sl-${s.id}">${sched.map(l=>`<div class="lesson-item ${l.done?'done':''}" onclick="toggleLesson('${s.id}','${l.id}')"><div class="lcb" style="${l.done?`background:${s.col};border-color:${s.col};color:#fff`:''}">${l.done?'✓':''}</div><span class="lname" style="flex:1;font-size:11px;font-weight:500;color:${l.done?'var(--tx2)':'var(--tx)'}">${l.name}</span><span style="font-size:9px;color:var(--tx3);white-space:nowrap">${l.done?'✅':l.sd?`يوم ${l.sd}`:''}</span></div>`).join('')}${rem>0?`<div style="font-size:10px;color:var(--a);padding:4px 0;text-align:center;font-weight:600">✒️ ${rem} درس · ${dpp}/يوم</div>`:'<div style="font-size:10px;color:var(--s);padding:4px 0;text-align:center;font-weight:600">🎉 مكتملة!</div>'}</div></div>`;
-  }).join('');
+  const root=document.getElementById('plan-root');
+  if(!root)return;
+  if(!_planActivated()){root.innerHTML=_planGateHtml();return;}
+  if(!_planOnboarded()){root.innerHTML=_planOnboardHtml();return;}
+  root.innerHTML=_planCleanHtml();
 }
-function toggleLesson(sId,lId){const s=SUBJECTS_PLAN.find(x=>x.id===sId);const l=s?.lessons.find(x=>x.id===lId);if(!l)return;l.done=!l.done;if(l.done){addCoins(15);playSound('check');updateRafiq(true);showToast('📖 درس مُنجز! +15🪙');}renderStudyPlan();if(l.done&&s.lessons.every(x=>x.done))showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);}
+function _planGateHtml(){
+  return`<div class="pg-wrap">
+    <div class="pg-ico">🔒</div>
+    <div class="pg-title">فعّل خطتك الذكية للبكالوريا</div>
+    <div class="pg-sub">مستشار البكالوريا الذكي يبني لك برنامجاً يومياً مخصصاً حسب شعبتك والوقت المتبقي — فعّل الاشتراك عبر CCP أو BaridiMob للبدء 💳</div>
+    <button class="pg-btn" onclick="openPayment()">💳 تفعيل الآن</button>
+  </div>`;
+}
+function _planOnboardHtml(){
+  const selBranch=ST.branch||'';
+  const canGo=selBranch&&(ST.planFocus&&ST.planFocus.length>0);
+  return`<div class="pg-wrap" style="text-align:right;align-items:stretch;padding:18px 14px">
+    <div style="text-align:center;margin-bottom:6px">
+      <div class="pg-ico" style="font-size:36px;margin-bottom:2px">📝</div>
+      <div class="pg-title" style="font-size:14px">لنبنِ خطتك المخصصة</div>
+    </div>
+    <div class="pob-step">
+      <div class="pob-q">🎓 ما هي شعبتك؟</div>
+      <div class="pob-chips">${PLAN_BRANCHES.map(b=>`<div class="pob-chip${b===selBranch?' sel':''}" onclick="planPickBranch('${b}')">${b}</div>`).join('')}</div>
+    </div>
+    <div class="pob-step" style="text-align:center">
+      <div class="pob-q" style="justify-content:center">⏳ الوقت المتبقي للبكالوريا</div>
+      <div class="pob-days-badge">📆 ${DL} يوم</div>
+    </div>
+    <div class="pob-step">
+      <div class="pob-q">📚 أي مواد تريد التركيز عليها الآن؟</div>
+      <div class="pob-chips">${SUBJECTS_PLAN.map(s=>`<div class="pob-chip${(ST.planFocus||[]).includes(s.id)?' sel':''}" onclick="planToggleFocus('${s.id}')">${s.icon} ${s.name}</div>`).join('')}</div>
+    </div>
+    <button class="pob-next${canGo?' on':''}" onclick="planFinishOnboard()">🚀 ابدأ خطتي الآن</button>
+  </div>`;
+}
+function planPickBranch(b){ST.branch=b;localStorage.setItem('bq_branch',b);renderStudyPlan();}
+function planToggleFocus(id){
+  ST.planFocus=ST.planFocus||[];
+  const i=ST.planFocus.indexOf(id);
+  if(i>=0)ST.planFocus.splice(i,1);else ST.planFocus.push(id);
+  localStorage.setItem('bq_plan_focus',JSON.stringify(ST.planFocus));
+  renderStudyPlan();
+}
+function planFinishOnboard(){
+  if(!ST.branch||!(ST.planFocus&&ST.planFocus.length)){showToast('يرجى اختيار الشعبة ومادة واحدة على الأقل');return;}
+  playSound('win');renderStudyPlan();
+}
+function planEditFocus(){document.getElementById('plan-root').innerHTML=_planOnboardHtml();}
+function _planTodayItems(){
+  const items=[];
+  _planFocusSubjects().forEach(s=>{
+    rsch(s.lessons,DL).filter(l=>!l.done&&l.sd===1).forEach(l=>items.push({...l,subjName:s.name,subjIcon:s.icon,subjId:s.id,col:s.col}));
+  });
+  return items;
+}
+function _planCleanHtml(){
+  const pct=calcG(),filled=Math.round(pct/10),ascii='█'.repeat(filled)+'░'.repeat(10-filled);
+  const today=_planTodayItems();
+  const allDone=_planFocusSubjects().flatMap(s=>s.lessons).every(l=>l.done);
+  return`<div class="pln-clean-hd">
+    <div class="pln-pct-num grad-txt">${pct}%</div>
+    <div class="pln-ascii">[${ascii}] ${pct}%</div>
+    <div class="pln-days-lbl">📆 باقي ${DL} يوم على البكالوريا</div>
+  </div>
+  <div class="pln-today-hd">
+    <div class="sec-title" style="margin:0">📖 برنامج اليوم</div>
+    <span class="pln-edit-link" onclick="planEditFocus()">✏️ تعديل التركيز</span>
+  </div>
+  <div id="plan-today-list">${allDone?`<div class="pln-empty">🎉 أنجزت كل دروس تركيزك! اضغط "تعديل التركيز" لإضافة مواد جديدة</div>`:today.length?today.map(l=>`<div class="lesson-item" onclick="toggleLesson('${l.subjId}','${l.id}')" style="margin-bottom:7px"><div class="lcb"></div><span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.subjIcon} ${l.name}</span><span style="font-size:9px;color:var(--tx3)">${l.subjName}</span></div>`).join(''):`<div class="pln-empty">لا مهام لليوم — أحسنت! 🎉</div>`}</div>`;
+}
+function toggleLesson(sId,lId){
+  const s=SUBJECTS_PLAN.find(x=>x.id===sId);const l=s?.lessons.find(x=>x.id===lId);if(!l)return;
+  l.done=!l.done;
+  if(l.done){addCoins(15);playSound('check');updateRafiq(true);showToast('📖 درس مُنجز! +15🪙 — أُعيد توزيع باقي دروسك تلقائياً');}
+  renderStudyPlan();
+  if(l.done&&s.lessons.every(x=>x.done))showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);
+}
 function updateRafiq(ok){const msg=document.getElementById('rafiq-msg'),mood=document.getElementById('rafiq-mood');if(ok){msg.innerHTML='رائع! ✒️ رفيق فخور بك!';mood.textContent='🔥 واصل!';}else{msg.textContent='😟 رفيق ينتظرك...';mood.textContent='💙 تعال نكمل...';}setTimeout(()=>{msg.innerHTML=`صباح الخير! باقي <strong>${DL}</strong> يوم 💪`;mood.textContent='🔥 على المسار!';},4000);}
 
 // ══ QUIZ (legacy helpers kept for qbank) ══
@@ -6172,6 +6258,7 @@ function simulateApprove(){
   localStorage.setItem('bq_sub_plan',plan?.id||'plus');
   localStorage.setItem('bq_sub_activated',Date.now().toString());
   renderPayment();
+  if(typeof renderStudyPlan==='function')try{renderStudyPlan();}catch(e){}
   showToast('⭐ تم تفعيل الاشتراك!');
 }
 
@@ -6902,28 +6989,6 @@ function _renderTchrStudents(){
   </div>`;
 }
 
-window.checkPaymentStatus=function(ref){
-  return localStorage.getItem('bq_pay_ref_'+ref)==='confirmed';
-};
-window.confirmMockPayment=function(){
-  if(typeof PAY==='undefined'||!PAY.ref)return;
-  localStorage.setItem('bq_pay_ref_'+PAY.ref,'confirmed');
-  localStorage.setItem('bq_sub_status',PAY.plan||'plus');
-  if(typeof PAY!=='undefined')PAY.subStatus=PAY.plan||'plus';
-  try{
-    const s=JSON.parse(localStorage.getItem('bq_session')||'null');
-    if(s){const u=JSON.parse(localStorage.getItem('bq_users')||'{}');if(u[s.email]){u[s.email].sub=PAY.plan;localStorage.setItem('bq_users',JSON.stringify(u));}}
-  }catch{}
-  // Render success in pay body
-  const body=document.getElementById('pay-box');
-  if(body){body.innerHTML=`<div class="pay-success-box">
-    <div class="pay-success-ico">🎉</div>
-    <div class="pay-success-title">تم تفعيل الاشتراك!</div>
-    <div class="pay-success-sub">مبروك! اشتراكك نشط الآن.<br>يمكنك الوصول إلى جميع الميزات.</div>
-    <button class="auth-submit" style="margin-top:16px" onclick="closePayment()">عودة إلى المكتبة 📚</button>
-  </div>`;}
-  _showToast('تم تفعيل الاشتراك 🎉');
-};
 
 </script>
 
