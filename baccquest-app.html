@@ -391,9 +391,10 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
 }
 
 /* ═══════════════════════════════════════════
-   9 HOTSPOTS — INVISIBLE by default
-   Glow + label appear ONLY on hover
+   9 HOTSPOTS — ALWAYS VISIBLE (mobile-friendly)
+   Permanent icon + label badge; hover only adds extra glow
    ═══════════════════════════════════════════ */
+@keyframes hs2Breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.07);opacity:1}}
 .lib-hs2{
   position:absolute;
   left:var(--hx);top:var(--hy);
@@ -403,9 +404,8 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:none;background:transparent;padding:0;
   -webkit-tap-highlight-color:transparent;
-  /* No transition — instant cursor change */
 }
-/* Full-area radial glow — invisible until hover */
+/* Full-area radial glow — soft always-on hint, stronger on hover/tap */
 .hs2-glow{
   position:absolute;inset:-35%;border-radius:50%;
   background:radial-gradient(circle,
@@ -413,42 +413,42 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
     rgba(255,180,40,.3) 40%,
     transparent 68%
   );
-  opacity:0;
-  transition:opacity .45s ease;
+  opacity:.22;
+  transition:opacity .3s ease;
   pointer-events:none;
   filter:blur(20px);
   mix-blend-mode:screen;
+  animation:hs2Breathe 3.2s ease-in-out infinite;
 }
-.lib-hs2:hover .hs2-glow{opacity:.65}
-/* Icon container — completely invisible */
+.lib-hs2:hover .hs2-glow,.lib-hs2:active .hs2-glow{opacity:.7}
+/* Icon badge — always visible, small circular chip matching accent color */
 .hs2-ico{
-  display:none; /* emoji icons hidden entirely */
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:50%;
+  font-size:15px;position:relative;z-index:2;
+  background:radial-gradient(circle,var(--hc,#F59E0B) 0%,rgba(16,5,0,.85) 78%);
+  border:1.5px solid rgba(248,234,197,.55);
+  box-shadow:0 3px 10px rgba(0,0,0,.55),0 0 10px var(--hc,rgba(255,200,80,.5));
+  margin-bottom:3px;
 }
-/* Label — parchment tooltip, only on hover */
+/* Label — always-visible parchment pill under the icon */
 .hs2-lbl{
   font-family:'Amiri','Traditional Arabic',Georgia,serif;
-  font-size:12px;font-weight:700;letter-spacing:.3px;
+  font-size:10.5px;font-weight:700;letter-spacing:.2px;
   color:#F8EAC5;
-  background:rgba(16,5,0,.92);
-  border:1px solid rgba(190,145,48,.45);
+  background:rgba(16,5,0,.88);
+  border:1px solid rgba(190,145,48,.5);
   border-radius:5px;
-  padding:4px 13px;white-space:nowrap;
-  backdrop-filter:blur(12px);
+  padding:3px 10px;white-space:nowrap;
+  backdrop-filter:blur(10px);
   text-shadow:0 1px 4px rgba(0,0,0,.8);
-  /* Hidden by default */
-  opacity:0;
-  position:absolute;
-  top:calc(100% + 6px);
-  left:50%;
-  transform:translateX(-50%) translateY(8px);
-  transition:opacity .3s ease, transform .3s ease;
+  position:relative;
   z-index:3;
-  box-shadow:0 4px 14px rgba(0,0,0,.5);
-  pointer-events:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);
 }
-.lib-hs2:hover .hs2-lbl{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
+.lib-hs2:hover .hs2-lbl,.lib-hs2:active .hs2-lbl{
+  border-color:var(--hc,rgba(190,145,48,.5));
+  color:#fff;
 }
 
 /* ── HUD — anchored just above the desk ── */
@@ -1033,6 +1033,11 @@ select.finput{appearance:none;cursor:pointer}
 .pdf-dload:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(108,60,225,.3)}
 .pdf-dload:disabled{background:var(--bg3);color:var(--tx3);cursor:not-allowed;transform:none;box-shadow:none}
 .pdf-info{display:flex;align-items:center;gap:7px;font-size:9.5px;color:var(--tx2);margin-top:7px;flex-wrap:wrap}
+.pdf-year-grp{margin-bottom:20px}
+.pdf-year-hd{font-size:15px;font-weight:900;color:#3D200A;background:linear-gradient(135deg,#F0D9A8,#D4A361);border:1px solid rgba(212,163,97,.6);box-shadow:0 3px 10px rgba(0,0,0,.35);border-radius:10px;padding:8px 16px;margin-bottom:12px;display:inline-block}
+.pdf-subj-grp{margin-bottom:14px;padding-right:10px;border-right:3px solid rgba(212,163,97,.4)}
+.pdf-subj-hd{font-size:12px;font-weight:800;color:#D4A361;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.pdf-subj-ct{background:rgba(212,163,97,.18);color:#D4A361;font-size:9px;font-weight:700;border-radius:20px;padding:1px 8px;border:1px solid rgba(212,163,97,.3)}
 .pdf-sep{width:1px;height:10px;background:var(--bd);flex-shrink:0}
 
 /* ── VIDEO MODAL ── */
@@ -2544,9 +2549,9 @@ hr{border-color:rgba(212,163,97,.2)!important}
   <div style="font-size:70px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));margin-bottom:12px;position:relative;z-index:1">✒️</div>
   <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.92);margin-bottom:5px;position:relative;z-index:1;text-shadow:0 1px 6px rgba(0,0,0,.4)">مرحباً، أنا رفيق — قلمك الذكي 👋</p>
   <h1 style="font-size:36px;font-weight:900;margin-bottom:6px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.3)" class="grad-txt">funbac</h1>
-  <p style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:38px;line-height:1.6;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.3)">منصتك التفاعلية للنجاح في البكالوريا 🇩🇿</p>
+  <p id="daily-quote" style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:38px;line-height:1.6;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.3);max-width:280px">منصتك التفاعلية للنجاح في البكالوريا 🇩🇿</p>
   <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1">
-    <div class="role-card" onclick="goStudent()" style="min-width:220px"><div style="font-size:44px;margin-bottom:9px">🎒</div><div class="grad-txt" style="font-size:16px;font-weight:800" id="role-student-lbl">ابدأ رحلتك — Élève</div><div style="font-size:11px;color:var(--tx2);margin-top:3px" id="role-student-sub">ادخل مع رفيق</div></div>
+    <div class="role-card" onclick="goStudent()" style="min-width:220px"><div style="font-size:44px;margin-bottom:9px">👋</div><div class="grad-txt" style="font-size:16px;font-weight:800" id="role-student-lbl">ابدأ رحلتك الآن 🚀</div><div style="font-size:11px;color:var(--tx2);margin-top:3px" id="role-student-sub">اضغط للدخول مع رفيق</div></div>
   </div>
 </div>
 
@@ -2689,7 +2694,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:8%;--hy:49%;--hc:#F59E0B;--hw:90px;--hh:100px"
              onclick="showFeat('bank')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">🏦</div>
           <div class="hs2-lbl">البنك</div>
         </div>
 
@@ -2698,7 +2703,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:19%;--hy:53%;--hc:#EC4899;--hw:80px;--hh:80px"
              onclick="showFeat('puzzles')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">🧩</div>
           <div class="hs2-lbl">الألغاز</div>
         </div>
 
@@ -2707,16 +2712,16 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:37%;--hy:34%;--hc:#F472B6;--hw:100px;--hh:110px"
              onclick="showFeat('profile')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">👤</div>
           <div class="hs2-lbl">ملفي</div>
         </div>
 
         <!-- المواضيع — book stack, desk -->
         <div class="lib-hs2" data-feat="topics"
-             style="--hx:40%;--hy:66%;--hc:#A78BFA;--hw:90px;--hh:90px"
+             style="--hx:40%;--hy:58%;--hc:#A78BFA;--hw:90px;--hh:90px"
              onclick="showFeat('topics')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">📦</div>
           <div class="hs2-lbl">المواضيع</div>
         </div>
 
@@ -2725,7 +2730,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:26%;--hy:81%;--hc:#D97706;--hw:100px;--hh:80px"
              onclick="showFeat('planning')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">📊</div>
           <div class="hs2-lbl">الخطة</div>
         </div>
 
@@ -2734,7 +2739,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:58%;--hy:79%;--hc:#EF4444;--hw:110px;--hh:90px"
              onclick="showFeat('tasks')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">📋</div>
           <div class="hs2-lbl">المهام</div>
         </div>
 
@@ -2743,7 +2748,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:65%;--hy:44%;--hc:#06B6D4;--hw:90px;--hh:110px"
              onclick="showFeat('calendar')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">📆</div>
           <div class="hs2-lbl">الرزنامة</div>
         </div>
 
@@ -2752,7 +2757,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:79%;--hy:44%;--hc:#10B981;--hw:95px;--hh:110px"
              onclick="showFeat('store')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">🛒</div>
           <div class="hs2-lbl">المتجر</div>
         </div>
 
@@ -2761,7 +2766,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:91%;--hy:44%;--hc:#A78BFA;--hw:80px;--hh:100px"
              onclick="showFeat('companion')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico"></div>
+          <div class="hs2-ico">✒️</div>
           <div class="hs2-lbl">رفيق</div>
         </div>
 
@@ -5210,28 +5215,29 @@ stab=function(id,el){
    LANGUAGE SWITCHER
    ═══════════════════════════════════════════════════════════ */
 const LANG_DATA={
-  ar:{
-    dir:'rtl',
-    studentLbl:'طالب — Élève', studentSub:'ادخل مع رفيق',
-    teacherLbl:'أستاذ — Prof', teacherSub:'يتطلب كود تفعيل',
-    appSub:'منصتك التفاعلية للنجاح في البكالوريا 🇩🇿',
-    rafiqSub:'مرحباً، أنا رفيق — قلمك الذكي 👋',
-  },
-  fr:{
-    dir:'ltr',
-    studentLbl:'Élève', studentSub:'Entrer avec Rafiq',
-    teacherLbl:'Professeur', teacherSub:'Requiert un code d\'activation',
-    appSub:'Votre plateforme interactive pour réussir le BAC 🇩🇿',
-    rafiqSub:'Bonjour, je suis Rafiq — ton stylo intelligent 👋',
-  },
-  en:{
-    dir:'ltr',
-    studentLbl:'Student', studentSub:'Enter with Rafiq',
-    teacherLbl:'Teacher', teacherSub:'Requires activation code',
-    appSub:'Your interactive BAC success platform 🇩🇿',
-    rafiqSub:'Hello, I\'m Rafiq — your smart pen 👋',
-  },
+  ar:{dir:'rtl',studentLbl:'ابدأ رحلتك الآن 🚀',studentSub:'اضغط للدخول مع رفيق'},
+  fr:{dir:'ltr',studentLbl:'Commence ton parcours 🚀',studentSub:'Appuie pour entrer avec Rafiq'},
+  en:{dir:'ltr',studentLbl:'Start your journey 🚀',studentSub:'Tap to enter with Rafiq'},
 };
+/* ── Daily motivational quote — same quote all day, rotates automatically each day ── */
+const DAILY_QUOTES=[
+  {ar:'كل يوم تذاكر فيه، أنت أقرب لحلمك 🌟',fr:'Chaque jour d\'étude te rapproche de ton rêve 🌟',en:'Every day you study brings you closer to your dream 🌟'},
+  {ar:'النجاح يبدأ بخطوة صغيرة اليوم 👣',fr:'La réussite commence par un petit pas aujourd\'hui 👣',en:'Success starts with one small step today 👣'},
+  {ar:'أنت أقوى مما تتخيل — واصل! 💪',fr:'Tu es plus fort que tu ne le penses — continue ! 💪',en:'You\'re stronger than you think — keep going! 💪'},
+  {ar:'التعب مؤقت، والنجاح يبقى للأبد 🏆',fr:'La fatigue est temporaire, la réussite est éternelle 🏆',en:'Tiredness is temporary, success lasts forever 🏆'},
+  {ar:'لا تقارن نفسك بغيرك، قارن نفسك بالأمس 📈',fr:'Ne te compare pas aux autres, compare-toi à hier 📈',en:'Don\'t compare yourself to others, compare to yesterday 📈'},
+  {ar:'كل درس تنهيه هو انتصار صغير 🎯',fr:'Chaque leçon terminée est une petite victoire 🎯',en:'Every lesson finished is a small victory 🎯'},
+  {ar:'رفيقك هنا معك في كل خطوة ✒️',fr:'Rafiq est avec toi à chaque étape ✒️',en:'Rafiq is with you every step of the way ✒️'},
+  {ar:'ابدأ الآن، فالوقت لا ينتظر أحداً ⏳',fr:'Commence maintenant, le temps n\'attend personne ⏳',en:'Start now, time waits for no one ⏳'},
+  {ar:'النجاح صناعة يومية، لا لحظة واحدة 🔨',fr:'La réussite se construit jour après jour 🔨',en:'Success is built daily, not in a single moment 🔨'},
+  {ar:'أنت لست وحدك — نحن معك حتى البكالوريا 🇩🇿',fr:'Tu n\'es pas seul — on est avec toi jusqu\'au BAC 🇩🇿',en:'You\'re not alone — we\'re with you until the BAC 🇩🇿'},
+];
+function _dailyQuoteIdx(){const start=new Date(new Date().getFullYear(),0,0);const diff=new Date()-start;const dayOfYear=Math.floor(diff/86400000);return dayOfYear%DAILY_QUOTES.length;}
+function _applyDailyQuote(lang){
+  const el=document.getElementById('daily-quote');if(!el)return;
+  const q=DAILY_QUOTES[_dailyQuoteIdx()];
+  el.textContent=q[lang]||q.ar;
+}
 window.setLang=function(lang){
   localStorage.setItem('bq_lang',lang);
   const d=LANG_DATA[lang]||LANG_DATA.ar;
@@ -5240,8 +5246,7 @@ window.setLang=function(lang){
   // Update role screen labels
   const sl=document.getElementById('role-student-lbl');if(sl)sl.textContent=d.studentLbl;
   const ss=document.getElementById('role-student-sub');if(ss)ss.textContent=d.studentSub;
-  const tl=document.getElementById('role-teacher-lbl');if(tl)tl.textContent=d.teacherLbl;
-  const ts=document.getElementById('role-teacher-sub');if(ts)ts.textContent=d.teacherSub;
+  _applyDailyQuote(lang);
   // Update home screen lang buttons
   ['ar','fr','en'].forEach(l=>{
     const btn=document.getElementById('lang-'+l);if(btn)btn.classList.toggle('on',l===lang);
@@ -5854,30 +5859,51 @@ function renderPDFBank(){
   if(yEl)yEl.innerHTML=allYears.map(y=>`<div class="pdf-pill ${y===pdfYearF?'active':''}" onclick="setPDFYear('${y}')">${y==='الكل'?'🗂️ الكل':'📅 '+y}</div>`).join('');
   if(sEl)sEl.innerHTML=PDF_SUBJS.map(s=>`<div class="pdf-pill ${s.id===pdfSubjF?'active':''}" onclick="setPDFSubj('${s.id}')">${s.label}</div>`).join('');
   const fl=ALL_PDFS.filter(p=>(pdfYearF==='الكل'||p.year===pdfYearF)&&(pdfSubjF==='all'||p.subj===pdfSubjF||p.subj==='teacher'));
-  listEl.innerHTML=fl.length?fl.map(p=>{
-    const bc=p.type==='main'?'pdf-main':p.type==='solution'?'pdf-sol':'pdf-draft';
-    const hasUrl=p.pdfUrl&&p.pdfUrl.length>3;
-    return`<div class="pdf-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:180px">
-          <span style="font-size:24px;flex-shrink:0">${p.icon}</span>
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:3px;line-height:1.4">${p.title}</div>
-            <span class="pdf-badge ${bc}">${p.typeLabel}</span>
-          </div>
-        </div>
-        <button class="pdf-dload" onclick="downloadPDF('${p.pdfUrl}','${p.title}')" ${hasUrl?'':'disabled'}>
-          ${hasUrl?'⬇️ تحميل PDF':'🔒 قريباً'}
-        </button>
-      </div>
-      <div class="pdf-info">
-        <span>📅 ${p.year}</span><span class="pdf-sep"></span>
-        <span>📄 ${p.pages} صفحات</span><span class="pdf-sep"></span>
-        <span>💾 ${p.size}</span><span class="pdf-sep"></span>
-        <span style="color:var(--p);font-weight:600">${p.subjectLabel}</span>
-      </div>
+  if(!fl.length){
+    listEl.innerHTML=`<div style="text-align:center;padding:36px 20px;color:var(--tx2)"><div style="font-size:44px;margin-bottom:10px">📭</div><p style="font-size:12px">لا توجد مواضيع لهذه التصفية</p><p style="font-size:10px;margin-top:4px;color:var(--tx3)">سيتم إضافة المواضيع قريباً</p></div>`;
+    return;
+  }
+  /* Group hierarchically: السنة → المادة */
+  const years=[...new Set(fl.map(p=>p.year))].sort((a,b)=>String(b).localeCompare(String(a)));
+  listEl.innerHTML=years.map(y=>{
+    const yearItems=fl.filter(p=>p.year===y);
+    const subjIds=[...new Set(yearItems.map(p=>p.subj))];
+    const subjSections=subjIds.map(sid=>{
+      const items=yearItems.filter(p=>p.subj===sid);
+      return`<div class="pdf-subj-grp">
+        <div class="pdf-subj-hd">${items[0].icon||'📄'} ${items[0].subjectLabel||'متنوع'} <span class="pdf-subj-ct">${items.length}</span></div>
+        ${items.map(p=>_pdfCardHtml(p)).join('')}
+      </div>`;
+    }).join('');
+    return`<div class="pdf-year-grp">
+      <div class="pdf-year-hd">📅 ${y}</div>
+      ${subjSections}
     </div>`;
-  }).join(''):`<div style="text-align:center;padding:36px 20px;color:var(--tx2)"><div style="font-size:44px;margin-bottom:10px">📭</div><p style="font-size:12px">لا توجد مواضيع لهذه التصفية</p><p style="font-size:10px;margin-top:4px;color:var(--tx3)">سيتم إضافة المواضيع قريباً</p></div>`;
+  }).join('');
+}
+function _pdfCardHtml(p){
+  const bc=p.type==='main'?'pdf-main':p.type==='solution'?'pdf-sol':'pdf-draft';
+  const hasUrl=p.pdfUrl&&p.pdfUrl.length>3;
+  return`<div class="pdf-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:180px">
+        <span style="font-size:24px;flex-shrink:0">${p.icon}</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:3px;line-height:1.4">${p.title}</div>
+          <span class="pdf-badge ${bc}">${p.typeLabel}</span>
+        </div>
+      </div>
+      <button class="pdf-dload" onclick="downloadPDF('${p.pdfUrl}','${p.title}')" ${hasUrl?'':'disabled'}>
+        ${hasUrl?'⬇️ تحميل PDF':'🔒 قريباً'}
+      </button>
+    </div>
+    <div class="pdf-info">
+      <span>📅 ${p.year}</span><span class="pdf-sep"></span>
+      <span>📄 ${p.pages} صفحات</span><span class="pdf-sep"></span>
+      <span>💾 ${p.size}</span><span class="pdf-sep"></span>
+      <span style="color:var(--p);font-weight:600">${p.subjectLabel}</span>
+    </div>
+  </div>`;
 }
 function setPDFYear(y){pdfYearF=y;renderPDFBank();}
 function setPDFSubj(s){pdfSubjF=s;renderPDFBank();}
