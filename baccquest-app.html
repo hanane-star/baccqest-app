@@ -453,6 +453,51 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   color:#fff;
 }
 
+/* ═══════════════════════════════════════════
+   MAGIC MENU PANEL — 3×3 illustrated cards
+   ═══════════════════════════════════════════ */
+.lib-menu-wrap{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:90%;max-width:400px;z-index:9;
+  background:linear-gradient(160deg,rgba(30,16,58,.88),rgba(12,8,28,.94));
+  border:2px solid rgba(167,139,250,.4);
+  border-radius:20px;
+  padding:14px 12px 16px;
+  box-shadow:0 20px 50px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06),0 0 40px rgba(108,60,225,.2);
+  backdrop-filter:blur(3px);
+}
+.lib-menu-hdr{
+  text-align:center;font-family:'Amiri',serif;font-size:14px;font-weight:800;
+  color:#F8EAC5;letter-spacing:.5px;margin-bottom:12px;
+  text-shadow:0 2px 8px rgba(167,139,250,.5);
+}
+.lib-menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lmn-card{
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  border:1.5px solid var(--lc,#A78BFA);border-radius:13px;
+  padding:10px 5px 8px;text-align:center;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 0 0 rgba(0,0,0,0);
+  -webkit-tap-highlight-color:transparent;
+}
+.lmn-card:hover,.lmn-card:active{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,0,0,.35),0 0 16px var(--lc,rgba(167,139,250,.5));
+  border-color:#fff;
+}
+.lmn-ico{font-size:24px;margin-bottom:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.lmn-name{
+  font-family:'Amiri',serif;font-size:11px;font-weight:800;
+  color:#F8EAC5;margin-bottom:2px;
+}
+.lmn-desc{
+  font-size:7.5px;color:rgba(248,234,197,.6);line-height:1.35;
+}
+@media (max-width:360px){
+  .lmn-desc{display:none}
+  .lmn-ico{font-size:22px}
+}
+
 /* ── HUD — anchored just above the desk ── */
 .lib-hud{
   position:absolute;
@@ -2651,161 +2696,58 @@ hr{border-color:rgba(212,163,97,.2)!important}
       <!-- ✦ REAL LIBRARY IMAGE — INTERACTIVE HUB ✦ -->
       <div class="lib-scene" id="lib-scene">
 
-        <!-- ══ ANIMATION OVERLAYS (precise over image elements) ══ -->
+        <!-- (old shape-matched animation overlays removed — replaced by card menu below) -->
 
-        <!-- Bank safe — iron safe, left wall -->
-        <div class="ae ae-bank" id="ae-bank"
-             style="left:3%;top:36%;width:11%;height:25%">
-          <div class="ae-safe">
-            <div class="ae-safe-handle"></div>
-            <div class="ae-safe-door"></div>
+        <!-- ══ MAGIC MENU PANEL — 3×3 illustrated feature cards ══ -->
+        <div class="lib-menu-wrap">
+          <div class="lib-menu-hdr">📖 قائمة رفيق السحرية</div>
+          <div class="lib-menu-grid">
+            <div class="lmn-card" style="--lc:#A78BFA" onclick="showFeat('companion')">
+              <div class="lmn-ico rafiq-avatar">🦉</div>
+              <div class="lmn-name">رفيقي</div>
+              <div class="lmn-desc">معلّمك الساحر يجيبك خطوة بخطوة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#10B981" onclick="showFeat('store')">
+              <div class="lmn-ico">🎒</div>
+              <div class="lmn-name">المتجر</div>
+              <div class="lmn-desc">بدّل عملاتك بجوائز وأدوات سحرية</div>
+            </div>
+            <div class="lmn-card" style="--lc:#06B6D4" onclick="showFeat('calendar')">
+              <div class="lmn-ico">📆</div>
+              <div class="lmn-name">الرزنامة</div>
+              <div class="lmn-desc">مواعيدك المهمة على النجمة المخيّمة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#D97706" onclick="showFeat('topics')">
+              <div class="lmn-ico">📚</div>
+              <div class="lmn-name">بنك المواضيع</div>
+              <div class="lmn-desc">مواضيع البكالوريا الرسمية كاملة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#EC4899" onclick="showFeat('puzzles')">
+              <div class="lmn-ico">🧩</div>
+              <div class="lmn-name">الأسئلة</div>
+              <div class="lmn-desc">ألغاز ذكية تشحذ فهمك بمتعة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#EF4444" onclick="showFeat('tasks')">
+              <div class="lmn-ico">📜</div>
+              <div class="lmn-name">المهام</div>
+              <div class="lmn-desc">تتبّع مذكرتك اليومية بدقة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#F59E0B" onclick="hotspotGo('arena')">
+              <div class="lmn-ico">⚔️</div>
+              <div class="lmn-name">تحدي</div>
+              <div class="lmn-desc">تحدَّ زملاءك يومياً واصعد للقمة</div>
+            </div>
+            <div class="lmn-card" style="--lc:#8B5CF6" onclick="showFeat('planning')">
+              <div class="lmn-ico">🗺️</div>
+              <div class="lmn-name">الخطة</div>
+              <div class="lmn-desc">خطة مخصصة حسب وقتك المتاح</div>
+            </div>
+            <div class="lmn-card" style="--lc:#F472B6" onclick="showFeat('profile')">
+              <div class="lmn-ico">🎓</div>
+              <div class="lmn-name">تخصصي</div>
+              <div class="lmn-desc">معلومات ملفك وتقدمك الدراسي</div>
+            </div>
           </div>
-        </div>
-
-        <!-- Puzzles — carved wooden box, left shelf -->
-        <div class="ae ae-puzzles" id="ae-puzzles"
-             style="left:13%;top:43%;width:10%;height:20%">
-          <div class="ae-pz ae-pz1">🧩</div>
-          <div class="ae-pz ae-pz2">🧩</div>
-          <div class="ae-pz ae-pz3">🧩</div>
-          <div class="ae-pz ae-pz4">🧩</div>
-        </div>
-
-        <!-- Profile — portrait frame, left-center wall -->
-        <div class="ae ae-profile" id="ae-profile"
-             style="left:30%;top:23%;width:14%;height:26%">
-          <div class="ae-portrait-frame"></div>
-          <div class="ae-profile-shine"></div>
-        </div>
-
-        <!-- Topics — book stack, desk center-left -->
-        <div class="ae ae-topics" id="ae-topics"
-             style="left:34%;top:56%;width:13%;height:20%">
-          <div class="ae-book-wrap">
-            <div class="ae-page"></div>
-            <div class="ae-page"></div>
-            <div class="ae-page"></div>
-          </div>
-        </div>
-
-        <!-- Planning — map/scroll, desk left -->
-        <div class="ae ae-planning" id="ae-planning"
-             style="left:14%;top:67%;width:22%;height:26%">
-          <!-- zoom handled on lib-scene itself -->
-        </div>
-
-        <!-- Tasks — open book + feather, desk right-center -->
-        <div class="ae ae-tasks" id="ae-tasks"
-             style="left:46%;top:65%;width:24%;height:28%">
-          <span class="ae-feather-ico">🪶</span>
-        </div>
-
-        <!-- Calendar — antique wall clock, center-right wall -->
-        <div class="ae ae-calendar" id="ae-calendar"
-             style="left:60%;top:30%;width:11%;height:28%">
-          <div class="ae-clock-face">
-            <div class="ae-hand ae-hour-hand" style="--start:90deg"></div>
-            <div class="ae-hand ae-min-hand"  style="--start:180deg"></div>
-          </div>
-        </div>
-
-        <!-- Store — glass display cabinet, right wall -->
-        <div class="ae ae-store" id="ae-store"
-             style="left:72%;top:26%;width:14%;height:32%">
-          <div class="ae-cabinet-glow"></div>
-          <div class="ae-store-item ae-si1">⚗️</div>
-          <div class="ae-store-item ae-si2">🏺</div>
-          <div class="ae-store-item ae-si3">🔭</div>
-        </div>
-
-        <!-- Companion — leather book, far-right shelf -->
-        <div class="ae ae-companion" id="ae-companion"
-             style="left:85%;top:30%;width:12%;height:24%">
-          <span class="ae-comp-book">📓</span>
-          <div class="ae-chat-bubble">مرحباً! 👋</div>
-        </div>
-
-        <!-- ══ 9 INVISIBLE HOTSPOTS — glow on hover only ══ -->
-
-        <!-- البنك — iron safe, left wall -->
-        <div class="lib-hs2" data-feat="bank"
-             style="--hx:8%;--hy:88%;--hc:#F59E0B;--hw:90px;--hh:100px"
-             onclick="showFeat('bank')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">🏦</div>
-          <div class="hs2-lbl">البنك</div>
-        </div>
-
-        <!-- الألغاز — carved wooden box, left shelf -->
-        <div class="lib-hs2" data-feat="puzzles"
-             style="--hx:40%;--hy:63%;--hc:#EC4899;--hw:80px;--hh:80px"
-             onclick="showFeat('puzzles')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">🧩</div>
-          <div class="hs2-lbl">الألغاز</div>
-        </div>
-
-        <!-- ملفي — portrait frame, left-center wall -->
-        <div class="lib-hs2" data-feat="profile"
-             style="--hx:18%;--hy:66%;--hc:#F472B6;--hw:100px;--hh:110px"
-             onclick="showFeat('profile')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">👤</div>
-          <div class="hs2-lbl">ملفي</div>
-        </div>
-
-        <!-- المواضيع — book stack, desk -->
-        <div class="lib-hs2" data-feat="topics"
-             style="--hx:24%;--hy:84%;--hc:#A78BFA;--hw:90px;--hh:90px"
-             onclick="showFeat('topics')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">📦</div>
-          <div class="hs2-lbl">المواضيع</div>
-        </div>
-
-        <!-- الخطة — map scroll, desk left -->
-        <div class="lib-hs2" data-feat="planning"
-             style="--hx:70%;--hy:87%;--hc:#D97706;--hw:100px;--hh:80px"
-             onclick="showFeat('planning')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">📊</div>
-          <div class="hs2-lbl">الخطة</div>
-        </div>
-
-        <!-- المهام — open book + feather, desk center -->
-        <div class="lib-hs2" data-feat="tasks"
-             style="--hx:50%;--hy:92%;--hc:#EF4444;--hw:110px;--hh:90px"
-             onclick="showFeat('tasks')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">📋</div>
-          <div class="hs2-lbl">المهام</div>
-        </div>
-
-        <!-- الرزنامة — antique wall clock, center-right -->
-        <div class="lib-hs2" data-feat="calendar"
-             style="--hx:45%;--hy:38%;--hc:#06B6D4;--hw:90px;--hh:110px"
-             onclick="showFeat('calendar')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">📆</div>
-          <div class="hs2-lbl">الرزنامة</div>
-        </div>
-
-        <!-- المتجر — glass display cabinet, right wall -->
-        <div class="lib-hs2" data-feat="store"
-             style="--hx:88%;--hy:20%;--hc:#10B981;--hw:95px;--hh:110px"
-             onclick="showFeat('store')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico">🛒</div>
-          <div class="hs2-lbl">المتجر</div>
-        </div>
-
-        <!-- رفيق — leather book, far-right shelf -->
-        <div class="lib-hs2" data-feat="companion"
-             style="--hx:82%;--hy:88%;--hc:#A78BFA;--hw:80px;--hh:100px"
-             onclick="showFeat('companion')" onmouseenter="_libPlaySound('hover')">
-          <div class="hs2-glow"></div>
-          <div class="hs2-ico rafiq-avatar">👦</div>
-          <div class="hs2-lbl">رفيق</div>
         </div>
 
         <!-- Secret teacher seal (hidden, bottom-left corner) -->
