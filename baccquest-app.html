@@ -50,6 +50,8 @@ body{scrollbar-width:none}
 .screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}
 input,textarea,select,button{font-family:inherit}button{cursor:pointer}
 @keyframes float{0%,100%{transform:translateY(0)rotate(-3deg)}50%{transform:translateY(-12px)rotate(3deg)}}
+@keyframes rafiqWave{0%,100%{transform:rotate(0deg)}15%{transform:rotate(-12deg)}30%{transform:rotate(10deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}75%{transform:rotate(0deg)}}
+.rafiq-avatar{display:inline-block;animation:rafiqWave 2.2s ease-in-out 1}
 @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes sIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes blink{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
@@ -902,6 +904,31 @@ select.finput{appearance:none;cursor:pointer}
 .room-reward{background:var(--al);color:var(--a);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
 .live-pill{display:inline-flex;align-items:center;gap:5px;background:var(--sl);border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;color:var(--s)}
 .ldot{width:6px;height:6px;border-radius:50%;background:var(--s);animation:pulse 1.5s ease-in-out infinite}
+
+/* ── DAILY CHALLENGE ROOM (immersive) ── */
+.dcr-room{position:relative;border-radius:20px;padding:22px 16px;text-align:center;overflow:hidden;background:radial-gradient(circle at 50% 0%,#3B2A6B,#1A1030 75%);box-shadow:0 10px 30px rgba(59,42,107,.35);margin-bottom:14px}
+.dcr-room::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(167,139,250,.25),transparent 40%),radial-gradient(circle at 80% 70%,rgba(6,182,212,.2),transparent 45%);pointer-events:none}
+.dcr-glow-ico{font-size:44px;margin-bottom:6px;animation:float 3s ease-in-out infinite;position:relative;z-index:1;filter:drop-shadow(0 0 18px rgba(167,139,250,.6))}
+.dcr-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:3px;position:relative;z-index:1}
+.dcr-sub{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:14px;position:relative;z-index:1}
+.dcr-timer-wrap{position:relative;z-index:1;display:inline-flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 22px;margin-bottom:14px}
+.dcr-timer-lbl{font-size:9px;color:rgba(255,255,255,.55);font-weight:700;letter-spacing:.5px;margin-bottom:2px}
+.dcr-timer-num{font-size:24px;font-weight:900;color:#fff;font-family:monospace;letter-spacing:1px;direction:ltr}
+.dcr-btn{position:relative;z-index:1;background:linear-gradient(135deg,#A78BFA,#06B6D4);color:#fff;border:none;border-radius:13px;padding:12px 30px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(167,139,250,.4)}
+.dcr-btn.locked{background:rgba(255,255,255,.12);color:rgba(255,255,255,.5);cursor:default;box-shadow:none}
+.dcr-mini-board{position:relative;z-index:1;margin-top:16px;background:rgba(255,255,255,.06);border-radius:13px;padding:10px 12px;text-align:right}
+.dcr-mini-hd{font-size:9px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.5px;margin-bottom:6px;text-align:center}
+.dcr-mini-row{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:11px;color:#fff}
+.dcr-mini-row.me{background:rgba(167,139,250,.2);border-radius:8px;font-weight:700}
+.dcr-mini-name{flex:1}
+.dcr-mini-score{font-weight:700;color:#FCD34D}
+.dcr-q-card{background:var(--sur);border-radius:16px;padding:16px;border:1.5px solid var(--bd);margin-bottom:14px}
+.dcr-q-progress{font-size:10px;color:var(--tx2);font-weight:700;margin-bottom:8px}
+.dcr-q-text{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;line-height:1.6}
+.dcr-opt{background:var(--bg2);border:1.5px solid var(--bd);border-radius:11px;padding:11px 13px;margin-bottom:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.dcr-opt:hover{border-color:var(--p);background:var(--pl)}
+.dcr-opt.correct{background:var(--sl);border-color:var(--s);color:var(--s)}
+.dcr-opt.wrong{background:var(--rl);border-color:var(--r);color:var(--r)}
 .book-card{background:var(--sur);border-radius:13px;border:1.5px solid var(--bd);overflow:hidden;cursor:pointer;transition:all .2s}
 .book-card:hover{transform:translateY(-3px);box-shadow:var(--sh);border-color:var(--p)}
 .book-cov{height:80px;display:flex;align-items:center;justify-content:center;font-size:34px}
@@ -2298,7 +2325,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
 <canvas id="vfx"></canvas>
 <div class="co" id="congrats">
   <div class="cc">
-    <div class="cc-av">✒️</div>
+    <div class="cc-av rafiq-avatar">👦</div>
     <div class="cc-title" id="cc-title">أحسنت! 🎉</div>
     <div class="cc-rafiq" id="cc-rafiq">"رفيق فخور بك!"</div>
     <div class="cc-reward" id="cc-reward" style="display:none">🪙 +20</div>
@@ -2311,7 +2338,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
   <div class="wz-card">
     <div class="wz-prog"><div class="wz-dot active" id="wd1"></div><div class="wz-dot" id="wd2"></div><div class="wz-dot" id="wd3"></div></div>
     <div class="wz-step on" id="ws1">
-      <div style="font-size:60px;margin-bottom:10px;animation:float 3s ease-in-out infinite">✒️</div>
+      <div class="rafiq-avatar" style="font-size:60px;margin-bottom:10px;animation:float 3s ease-in-out infinite">👦</div>
       <h2 style="font-size:22px;font-weight:900;margin-bottom:6px" class="grad-txt">أهلاً في funbac!</h2>
       <p style="font-size:13px;color:var(--tx2);margin-bottom:24px;line-height:1.6">أنا رفيق، قلمك الذكي 🌟<br>سأرافقك في رحلة البكالوريا خطوة بخطوة!</p>
       <button class="btn-p" onclick="wzNext(2)">لنبدأ! 🚀</button>
@@ -2355,6 +2382,17 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
     <div class="set-divider"></div>
 
+    <!-- Avatar / gender -->
+    <div class="settings-grp">
+      <div class="settings-grp-lbl">🧑 شخصية رفيق — Avatar</div>
+      <div class="settings-row">
+        <div class="set-opt" id="sl-gender-boy" onclick="settingsGender('boy')">👦 ولد</div>
+        <div class="set-opt" id="sl-gender-girl" onclick="settingsGender('girl')">👧 بنت</div>
+      </div>
+    </div>
+
+    <div class="set-divider"></div>
+
     <!-- Subscription -->
     <div class="settings-grp">
       <div class="settings-grp-lbl">💳 الاشتراك — Subscription</div>
@@ -2380,7 +2418,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
       <div class="wz-branch-top-title">📚 اختر شعبتك</div>
       <div class="wz-branch-top-sub">حتى يخصّص رفيق محتواك لك</div>
     </div>
-    <div style="font-size:28px;animation:float 3s ease-in-out infinite">✒️</div>
+    <div class="rafiq-avatar" style="font-size:28px;animation:float 3s ease-in-out infinite">👦</div>
   </div>
 
   <!-- 6-card grid -->
@@ -2546,7 +2584,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
   <div class="blob" style="width:140px;height:140px;background:#EDE9FF;top:8%;left:4%;--d:8s"></div>
   <div class="blob" style="width:100px;height:100px;background:#CFFAFE;top:22%;left:58%;--d:10s;--dl:1.5s"></div>
   <div class="blob" style="width:180px;height:180px;background:#D1FAE5;top:58%;left:15%;--d:7s;--dl:.5s"></div>
-  <div style="font-size:70px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));margin-bottom:12px;position:relative;z-index:1">✒️</div>
+  <div class="rafiq-avatar" style="font-size:70px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));margin-bottom:12px;position:relative;z-index:1">👦</div>
   <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.92);margin-bottom:5px;position:relative;z-index:1;text-shadow:0 1px 6px rgba(0,0,0,.4)">مرحباً، أنا رفيق — قلمك الذكي 👋</p>
   <h1 style="font-size:36px;font-weight:900;margin-bottom:6px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.3)" class="grad-txt">funbac</h1>
   <p id="daily-quote" style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:38px;line-height:1.6;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.3);max-width:280px">منصتك التفاعلية للنجاح في البكالوريا 🇩🇿</p>
@@ -2766,7 +2804,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
              style="--hx:91%;--hy:44%;--hc:#A78BFA;--hw:80px;--hh:100px"
              onclick="showFeat('companion')" onmouseenter="_libPlaySound('hover')">
           <div class="hs2-glow"></div>
-          <div class="hs2-ico">✒️</div>
+          <div class="hs2-ico rafiq-avatar">👦</div>
           <div class="hs2-lbl">رفيق</div>
         </div>
 
@@ -2793,7 +2831,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
       <!-- Scrollable content below -->
       <div style="padding:15px">
       <div class="rafiq-ban">
-        <div style="text-align:center;flex-shrink:0"><div class="rafiq-char">✒️</div><div style="font-size:9px;font-weight:800;color:var(--p);margin-top:2px">رفيق</div></div>
+        <div style="text-align:center;flex-shrink:0"><div class="rafiq-char rafiq-avatar">👦</div><div style="font-size:9px;font-weight:800;color:var(--p);margin-top:2px">رفيق</div></div>
         <div class="rafiq-speech">
           <div style="font-size:9px;font-weight:800;color:var(--p);margin-bottom:2px">رَفيق — قلمك الذكي 🌟</div>
           <div id="rafiq-msg" style="font-size:12px;font-weight:600;color:var(--tx);line-height:1.5">صباح الخير! باقي <strong id="days-ct">—</strong> يوم على البكالوريا 💪</div>
@@ -2854,7 +2892,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
       <div class="ai-subj-bar" id="ai-subj-bar"></div>
       <div class="chat-area" id="chat-area">
         <div class="ai-intro-card">
-          <div style="font-size:38px;animation:float 3s ease-in-out infinite;flex-shrink:0">✒️</div>
+          <div class="rafiq-avatar" style="font-size:38px;animation:float 3s ease-in-out infinite;flex-shrink:0">👦</div>
           <div><strong style="font-size:12px;color:var(--tx);display:block;margin-bottom:3px">رفيق — قلمك السقراطي</strong>
           <p style="font-size:11px;color:var(--tx2);line-height:1.6">لن أعطيك الحل مباشرة — سأوجّهك خطوة بخطوة 💪</p>
           <span id="ai-ctx-badge" style="display:inline-block;background:var(--pl);border-radius:20px;padding:2px 9px;font-size:9px;font-weight:700;margin-top:5px;color:var(--p);border:1px solid var(--bd)">📐 الرياضيات</span></div>
@@ -2870,7 +2908,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
           <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px">
-        <p style="font-size:9px;color:var(--tx3)">✒️ رفيق يوجّهك سقراطياً — لن يعطيك الحل</p>
+        <p style="font-size:9px;color:var(--tx3)" class="rafiq-avatar-txt"><span class="rafiq-avatar">👦</span> رفيق يوجّهك سقراطياً — لن يعطيك الحل</p>
         <button onclick="openAPISettings()" title="إعدادات AI" style="background:transparent;border:1px solid var(--bd);border-radius:6px;padding:2px 7px;font-size:9px;color:var(--tx2);cursor:pointer;flex-shrink:0">⚙️ API</button>
       </div>
       </div>
@@ -2878,16 +2916,8 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
     <!-- ARENA -->
     <div class="pane" id="sp-arena">
-      <div class="card" style="background:linear-gradient(135deg,#EDE9FF,#CFFAFE);border-color:var(--bd2);text-align:center;padding:16px">
-        <h2 style="font-size:18px;font-weight:800;margin-bottom:4px" class="grad-txt">⚔️ Arena التحديات</h2>
-        <p style="font-size:11px;color:var(--tx2);margin-bottom:11px">تنافس مع الطلاب في الوقت الفعلي</p>
-        <div class="live-pill"><div class="ldot"></div>142 طالب متصل</div>
-      </div>
-      <div class="sec-title">🏆 الغرف النشطة</div>
-      <div class="room" onclick="joinRoom('الرياضيات',80)"><span style="font-size:22px">📐</span><div style="flex:1"><div style="font-size:12px;font-weight:700">تحدي الرياضيات</div><div style="font-size:10px;color:var(--tx2)">👥 4/6 · Limites</div></div><div class="room-reward">🪙 +80</div></div>
-      <div class="room" onclick="joinRoom('التاريخ',60)"><span style="font-size:22px">📜</span><div style="flex:1"><div style="font-size:12px;font-weight:700">تحدي التاريخ</div><div style="font-size:10px;color:var(--tx2)">👥 2/6 · الثورة</div></div><div class="room-reward">🪙 +60</div></div>
-      <div class="room" style="opacity:.55;cursor:default"><span style="font-size:22px">⚡</span><div style="flex:1"><div style="font-size:12px;font-weight:700">تحدي الفيزياء</div><div style="font-size:10px;color:var(--tx2)">👥 6/6 ممتلئة</div></div><div style="background:var(--rl);color:var(--r);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">🔒</div></div>
-      <div class="sec-title" style="margin-top:12px">🥇 المتصدرون</div>
+      <div id="dcr-root"></div>
+      <div class="sec-title" style="margin-top:12px">🥇 المتصدرون العام</div>
       <div class="card" id="lboard"></div>
     </div>
 
@@ -3267,7 +3297,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
 <!-- Lock Modal -->
 <div class="overlay" id="lock-modal">
   <div class="mbox">
-    <div style="font-size:50px;margin-bottom:8px;animation:float 2s ease-in-out infinite">✒️</div>
+    <div class="rafiq-avatar" style="font-size:50px;margin-bottom:8px;animation:float 2s ease-in-out infinite">👦</div>
     <h3 style="font-size:16px;font-weight:800;color:var(--p);margin-bottom:5px">وحدة مقفلة 🔒</h3>
     <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.6">رفيق يقول: أنهِ الوحدة السابقة أولاً.</p>
     <div style="background:var(--al);border-radius:10px;padding:9px;margin-bottom:12px;font-size:12px;font-weight:700;color:#92400E">🪙 تحتاج 100 نقطة لفتح هذه الوحدة</div>
@@ -3295,7 +3325,7 @@ const ST={coins:350,streak:7,level:5,selOpt:null,mSel:null,mMatched:[],mInit:fal
   authData:{},branch:localStorage.getItem('bq_branch')||'علوم',subBranch:localStorage.getItem('bq_sub_branch')||'',wizardDone:true,
   planFocus:(function(){try{return JSON.parse(localStorage.getItem('bq_plan_focus')||'[]');}catch(e){return [];}})(),
   notifs:[
-    {icon:'✒️',title:'رفيق بانتظارك!',msg:'لغز الفيزياء ينتظرك اليوم 🔬',unread:true,time:'الآن'},
+    {icon:'👦',title:'رفيق بانتظارك!',msg:'لغز الفيزياء ينتظرك اليوم 🔬',unread:true,time:'الآن'},
     {icon:'🪙',title:'رصيدك في خطر!',msg:'لم تحل أي تمرين منذ يوم',unread:true,time:'منذ ساعة'},
     {icon:'🔥',title:'سلسلة 7 أيام!',msg:'أنجزت 7 أيام متتالية — رائع!',unread:false,time:'أمس'},
   ]
@@ -3317,7 +3347,7 @@ const WINGS=[
 ];
 
 const NUDGES=[
-  {type:'normal',icon:'✒️',title:'رفيق بانتظارك في جناح الفيزياء!',msg:'"لغز الكهرباء ينتظرك!"',cta:'ادخل'},
+  {type:'normal',icon:'👦',title:'رفيق بانتظارك في جناح الفيزياء!',msg:'"لغز الكهرباء ينتظرك!"',cta:'ادخل'},
   {type:'warn',icon:'🪙',title:'رصيدك في خطر! ⚠️',msg:'"لم تحل أي تمرين منذ يوم!"',cta:'حل الآن'},
   {type:'info',icon:'☀️',title:'معركة اليوم من رفيق',msg:'"3 ألغاز + مراجعة التكامل. أنجز قبل المغرب!"',cta:'ابدأ'},
 ];
@@ -3849,8 +3879,8 @@ const FEAT_DATA={
     tabId:'ai',
     body:()=>`
       <div style="text-align:center;margin-bottom:12px">
-        <div style="font-size:48px;animation:float 3s ease-in-out infinite">✒️</div>
-        <div style="font-size:14px;font-weight:800;color:#A78BFA;margin:6px 0">رَفيق — قلمك الذكي</div>
+        <div style="font-size:48px;animation:float 3s ease-in-out infinite">${_rafiqEmoji()}</div>
+        <div style="font-size:14px;font-weight:800;color:#A78BFA;margin:6px 0">رَفيق — رفيقك الذكي</div>
       </div>
       <div style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:12px;font-size:12px;color:#EDEAE3;line-height:1.8">
         💬 اسألني عن أي درس<br>
@@ -4152,6 +4182,7 @@ function goHome(){
   if(lc)lc.textContent=ST.coins;if(ls)ls.textContent=ST.streak;if(ll)ll.textContent=ST.level;
 }
 function stab(id,el){
+  if(id!=='arena'&&typeof _dcrTimerHandle!=='undefined'&&_dcrTimerHandle){clearInterval(_dcrTimerHandle);_dcrTimerHandle=null;}
   document.querySelectorAll('#s-student .tab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   document.querySelectorAll('#s-student > .pane').forEach(p=>{p.classList.remove('active');p.style.display='none';p.style.flex='';});
@@ -4177,6 +4208,7 @@ function stab(id,el){
     if(id==='tasks')setTimeout(_renderNotebook,50);
     if(id==='calendar')setTimeout(renderCalendar,50);
     if(id==='plan')setTimeout(renderStudyPlan,50);
+    if(id==='arena'){setTimeout(renderDailyChallenge,50);if(typeof renderLeaderboard==='function')setTimeout(renderLeaderboard,50);}
   }
 }
 function ttab(id,el){document.querySelectorAll('.t-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.t-pane').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('tp-'+id).classList.add('active');}
@@ -4331,7 +4363,7 @@ function toggleLesson(sId,lId){
   renderStudyPlan();
   if(l.done&&s.lessons.every(x=>x.done))showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);
 }
-function updateRafiq(ok){const msg=document.getElementById('rafiq-msg'),mood=document.getElementById('rafiq-mood');if(ok){msg.innerHTML='رائع! ✒️ رفيق فخور بك!';mood.textContent='🔥 واصل!';}else{msg.textContent='😟 رفيق ينتظرك...';mood.textContent='💙 تعال نكمل...';}setTimeout(()=>{msg.innerHTML=`صباح الخير! باقي <strong>${DL}</strong> يوم 💪`;mood.textContent='🔥 على المسار!';},4000);}
+function updateRafiq(ok){const msg=document.getElementById('rafiq-msg'),mood=document.getElementById('rafiq-mood');if(ok){msg.innerHTML=`رائع! ${_rafiqEmoji()} رفيق فخور بك!`;mood.textContent='🔥 واصل!';}else{msg.textContent='😟 رفيق ينتظرك...';mood.textContent='💙 تعال نكمل...';}setTimeout(()=>{msg.innerHTML=`صباح الخير! باقي <strong>${DL}</strong> يوم 💪`;mood.textContent='🔥 على المسار!';},4000);}
 
 // ══ QUIZ (legacy helpers kept for qbank) ══
 function pickOpt(el,v){document.querySelectorAll('#opts1 .opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');ST.selOpt=v;}
@@ -4905,7 +4937,7 @@ function pzShowSubjects(){
   }).join('')}
   </div>
   <div class="card" style="margin-top:4px;padding:10px 12px;display:flex;align-items:center;gap:9px">
-    <div style="font-size:22px">✒️</div>
+    <div style="font-size:22px">${_rafiqEmoji()}</div>
     <div style="font-size:11px;color:var(--tx)">"كل لغزة تحلها تُضيء شمعة في دربك نحو البكالوريا!"</div>
   </div>`;
   view.innerHTML=html;
@@ -5045,14 +5077,14 @@ function _pzRenderQuestion(subj,unit,stg){
     </div>
     <div class="pz-feedback" id="pz-fb"></div>
     <div class="pz-action-row" style="margin-top:10px">
-      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">✒️ رفيق</button>
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">${_rafiqEmoji()} رفيق</button>
       <button class="pz-btn pz-btn-p" id="pz-confirm-btn" onclick="pzConfirmMCQ()">تأكيد</button>
     </div>`;
   } else if(q.type==='fill'){
     qBody=`<input class="pz-fill-inp" id="pz-fill" placeholder="اكتب إجابتك..." onkeydown="if(event.key==='Enter')pzConfirmFill()">
     <div class="pz-feedback" id="pz-fb"></div>
     <div class="pz-action-row" style="margin-top:10px">
-      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">✒️ رفيق</button>
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">${_rafiqEmoji()} رفيق</button>
       <button class="pz-btn pz-btn-p" onclick="pzConfirmFill()">تأكيد</button>
     </div>`;
   } else if(q.type==='match'){
@@ -5227,7 +5259,7 @@ const DAILY_QUOTES=[
   {ar:'التعب مؤقت، والنجاح يبقى للأبد 🏆',fr:'La fatigue est temporaire, la réussite est éternelle 🏆',en:'Tiredness is temporary, success lasts forever 🏆'},
   {ar:'لا تقارن نفسك بغيرك، قارن نفسك بالأمس 📈',fr:'Ne te compare pas aux autres, compare-toi à hier 📈',en:'Don\'t compare yourself to others, compare to yesterday 📈'},
   {ar:'كل درس تنهيه هو انتصار صغير 🎯',fr:'Chaque leçon terminée est une petite victoire 🎯',en:'Every lesson finished is a small victory 🎯'},
-  {ar:'رفيقك هنا معك في كل خطوة ✒️',fr:'Rafiq est avec toi à chaque étape ✒️',en:'Rafiq is with you every step of the way ✒️'},
+  {ar:'رفيقك هنا معك في كل خطوة 👦',fr:'Rafiq est avec toi à chaque étape 👦',en:'Rafiq is with you every step of the way 👦'},
   {ar:'ابدأ الآن، فالوقت لا ينتظر أحداً ⏳',fr:'Commence maintenant, le temps n\'attend personne ⏳',en:'Start now, time waits for no one ⏳'},
   {ar:'النجاح صناعة يومية، لا لحظة واحدة 🔨',fr:'La réussite se construit jour après jour 🔨',en:'Success is built daily, not in a single moment 🔨'},
   {ar:'أنت لست وحدك — نحن معك حتى البكالوريا 🇩🇿',fr:'Tu n\'es pas seul — on est avec toi jusqu\'au BAC 🇩🇿',en:'You\'re not alone — we\'re with you until the BAC 🇩🇿'},
@@ -5268,10 +5300,24 @@ window.settingsOpen=function(){
   const bon=document.getElementById('sl-snd-on'),boff=document.getElementById('sl-snd-off');
   if(bon)bon.classList.toggle('on',!sndOff);
   if(boff)boff.classList.toggle('on',sndOff);
+  const gender=localStorage.getItem('bq_gender')||'boy';
+  const gb=document.getElementById('sl-gender-boy'),gg=document.getElementById('sl-gender-girl');
+  if(gb)gb.classList.toggle('on',gender==='boy');
+  if(gg)gg.classList.toggle('on',gender==='girl');
   ov.classList.add('on');
 };
 window.settingsClose=function(){document.getElementById('settings-ov')?.classList.remove('on');};
 window.settingsLang=function(lang){setLang(lang);};
+window.settingsGender=function(g){
+  localStorage.setItem('bq_gender',g);
+  const gb=document.getElementById('sl-gender-boy'),gg=document.getElementById('sl-gender-girl');
+  if(gb)gb.classList.toggle('on',g==='boy');
+  if(gg)gg.classList.toggle('on',g==='girl');
+  _refreshRafiqAvatars();
+  _showToast(g==='boy'?'👦 تم اختيار شخصية الولد':'👧 تم اختيار شخصية البنت');
+};
+function _rafiqEmoji(){return(localStorage.getItem('bq_gender')||'boy')==='girl'?'👧':'👦';}
+function _refreshRafiqAvatars(){document.querySelectorAll('.rafiq-avatar').forEach(el=>el.textContent=_rafiqEmoji());}
 window.settingsSound=function(on){
   if(on){localStorage.removeItem('bq_sound_off');if(typeof _libUnmute==='function')_libUnmute();}
   else{localStorage.setItem('bq_sound_off','1');if(typeof _libMute==='function')_libMute();}
@@ -5285,6 +5331,8 @@ window.settingsSound=function(on){
   const lang=localStorage.getItem('bq_lang')||'ar';
   setTimeout(()=>setLang(lang),200);
 })();
+// Restore رفيق avatar (boy/girl) on load
+(function(){setTimeout(()=>{if(typeof _refreshRafiqAvatars==='function')_refreshRafiqAvatars();},200);})();
 
 /* ═══════════════════════════════════════════════════════════
    TEACHER CONTENT BUILDER — Subjects / Units / Stages
@@ -5555,14 +5603,14 @@ function qmFlip(el){if(el.classList.contains('done'))return;const pairs=QBA.q.pa
 // ══ AI CHAT ══
 function renderSubjectPills(){document.getElementById('ai-subj-bar').innerHTML=SUBJECTS_AI.map(s=>`<div class="subj-pill ${s.id===ST.currentSubj?'active':''}" onclick="switchSubj('${s.id}','${s.label}','${s.ctx}')">${s.icon} ${s.label}</div>`).join('');}
 function switchSubj(id,label,ctx){ST.currentSubj=id;renderSubjectPills();document.getElementById('ai-ctx-badge').textContent=SUBJECTS_AI.find(s=>s.id===id)?.icon+' '+label;document.getElementById('messages').innerHTML='';addBotMsg(`انتقلنا إلى <strong>${label}</strong>! رفيق جاهز. ما سؤالك؟`,[]);}
-function addBotMsg(html,qr=[],step=''){const m=document.getElementById('messages'),d=document.createElement('div');d.className='msg bot';const qrH=qr.length?`<div class="qr-row">${qr.map(r=>`<div class="qr-chip" onclick="sendQuick('${r}')">${r}</div>`).join('')}</div>`:'';const sH=step?`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--pl);color:var(--p);border-radius:20px;padding:2px 8px;font-size:9px;font-weight:700;margin-bottom:5px;border:1px solid var(--bd)">📍 ${step}</span><br>`:'';d.innerHTML=`<div class="msg-av" style="background:linear-gradient(135deg,#EDE9FF,#CFFAFE);font-size:16px">✒️</div><div><div class="bubble bot">${sH}${html}${qrH}</div><div style="font-size:9px;color:var(--tx3);margin-top:2px">${getTime()}</div></div>`;m.appendChild(d);scrollChat();}
+function addBotMsg(html,qr=[],step=''){const m=document.getElementById('messages'),d=document.createElement('div');d.className='msg bot';const qrH=qr.length?`<div class="qr-row">${qr.map(r=>`<div class="qr-chip" onclick="sendQuick('${r}')">${r}</div>`).join('')}</div>`:'';const sH=step?`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--pl);color:var(--p);border-radius:20px;padding:2px 8px;font-size:9px;font-weight:700;margin-bottom:5px;border:1px solid var(--bd)">📍 ${step}</span><br>`:'';d.innerHTML=`<div class="msg-av" style="background:linear-gradient(135deg,#EDE9FF,#CFFAFE);font-size:16px">${_rafiqEmoji()}</div><div><div class="bubble bot">${sH}${html}${qrH}</div><div style="font-size:9px;color:var(--tx3);margin-top:2px">${getTime()}</div></div>`;m.appendChild(d);scrollChat();}
 function addUserMsg(txt){const m=document.getElementById('messages'),d=document.createElement('div');d.className='msg user';d.innerHTML=`<div><div class="bubble user">${txt}</div><div style="font-size:9px;color:var(--tx3);margin-top:2px;text-align:left">${getTime()}</div></div><div class="msg-av" style="background:linear-gradient(135deg,var(--cy),var(--s));color:#fff">🎒</div>`;m.appendChild(d);scrollChat();}
-function showTypingInd(){const m=document.getElementById('messages'),d=document.createElement('div');d.className='msg bot';d.id='typ';d.innerHTML=`<div class="msg-av" style="background:linear-gradient(135deg,#EDE9FF,#CFFAFE);font-size:16px">✒️</div><div class="typing"><span></span><span></span><span></span></div>`;m.appendChild(d);scrollChat();}
+function showTypingInd(){const m=document.getElementById('messages'),d=document.createElement('div');d.className='msg bot';d.id='typ';d.innerHTML=`<div class="msg-av" style="background:linear-gradient(135deg,#EDE9FF,#CFFAFE);font-size:16px">${_rafiqEmoji()}</div><div class="typing"><span></span><span></span><span></span></div>`;m.appendChild(d);scrollChat();}
 function hideTyping(){const t=document.getElementById('typ');if(t)t.remove();}
 function scrollChat(){const c=document.getElementById('chat-area');c.scrollTop=c.scrollHeight;}
 function getTime(){return new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});}
 function loadSampleConv(){
-  const flow=[{b:true,h:`مرحباً! أنا رفيق ✒️ أخبرني بسؤالك أو ارفع صورة التمرين!`,qr:['مسألة فيزياء 🔬','حد رياضي 📐','مقالة فلسفية 🦉'],s:''},{b:false,t:'جسم 2kg سقط من 10m. أحسب سرعته.'},{b:true,h:`رائع! قبل الحل:<div class="hint-card"><strong>✒️ الخطوة الأولى</strong>أي قانون مناسب هنا؟</div>`,qr:['قانون حفظ الطاقة','قانون نيوتن','لا أعرف'],s:'الخطوة 1/4'},{b:false,t:'قانون حفظ الطاقة!'},{b:true,h:`🎉 ممتاز! <span class="math-expr">mgh = ½mv²</span><div class="hint-card"><strong>✒️ رفيق:</strong>ماذا يحدث للـ m؟</div>`,qr:['تُشطب','لا تتغير'],s:'الخطوة 2/4'},{b:false,t:'تُشطب! يبقى: v = √(2gh)'},{b:true,h:`بالضبط! طبّق: g=10, h=10<div class="hint-card"><strong>✒️ رفيق:</strong>النتيجة؟</div>`,qr:['v ≈ 14.14 m/s','v = 10 m/s'],s:'الخطوة 3/4'},{b:false,t:'v = √200 ≈ 14.14 m/s'},{b:true,h:`🏆 <strong>وصلت بنفسك!</strong><br><span class="math-expr">v ≈ 14.14 m/s</span><div class="hint-card" style="background:var(--sl);border-color:rgba(16,185,129,.3)"><strong style="color:var(--s)">✒️ ملخص رفيق:</strong>معطيات → قانون → تبسيط → تطبيق</div>`,qr:['سؤال آخر 🔄'],s:'✅ مكتمل'},];
+  const flow=[{b:true,h:`مرحباً! أنا رفيق ${_rafiqEmoji()} أخبرني بسؤالك أو ارفع صورة التمرين!`,qr:['مسألة فيزياء 🔬','حد رياضي 📐','مقالة فلسفية 🦉'],s:''},{b:false,t:'جسم 2kg سقط من 10m. أحسب سرعته.'},{b:true,h:`رائع! قبل الحل:<div class="hint-card"><strong>${_rafiqEmoji()} الخطوة الأولى</strong>أي قانون مناسب هنا؟</div>`,qr:['قانون حفظ الطاقة','قانون نيوتن','لا أعرف'],s:'الخطوة 1/4'},{b:false,t:'قانون حفظ الطاقة!'},{b:true,h:`🎉 ممتاز! <span class="math-expr">mgh = ½mv²</span><div class="hint-card"><strong>${_rafiqEmoji()} رفيق:</strong>ماذا يحدث للـ m؟</div>`,qr:['تُشطب','لا تتغير'],s:'الخطوة 2/4'},{b:false,t:'تُشطب! يبقى: v = √(2gh)'},{b:true,h:`بالضبط! طبّق: g=10, h=10<div class="hint-card"><strong>${_rafiqEmoji()} رفيق:</strong>النتيجة؟</div>`,qr:['v ≈ 14.14 m/s','v = 10 m/s'],s:'الخطوة 3/4'},{b:false,t:'v = √200 ≈ 14.14 m/s'},{b:true,h:`🏆 <strong>وصلت بنفسك!</strong><br><span class="math-expr">v ≈ 14.14 m/s</span><div class="hint-card" style="background:var(--sl);border-color:rgba(16,185,129,.3)"><strong style="color:var(--s)">${_rafiqEmoji()} ملخص رفيق:</strong>معطيات → قانون → تبسيط → تطبيق</div>`,qr:['سؤال آخر 🔄'],s:'✅ مكتمل'},];
   let d=0;flow.forEach(msg=>{setTimeout(()=>{if(msg.b)addBotMsg(msg.h,msg.qr||[],msg.s||'');else addUserMsg(msg.t);},d);d+=msg.b?700:400;});
 }
 function sendMsg(){const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt||ST.aiTyping)return;inp.value='';inp.style.height='auto';addUserMsg(txt);ST.aiTyping=true;document.getElementById('send-btn').disabled=true;showTypingInd();
@@ -5626,7 +5674,86 @@ function insertMath(){const syms=['∑','∫','√','π','∞','≈','∂','Δ',
 
 // ══ ARENA + STORE ══
 function renderLeaderboard(){const d=[{n:'أمير بن علي',s:1840,f:'🥇'},{n:'سارة مزروع',s:1720,f:'🥈'},{n:'أنت',s:1580,f:'🥉',me:true},{n:'يوسف',s:1430,f:'4️⃣'}];document.getElementById('lboard').innerHTML=d.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:${i<d.length-1?'1px solid var(--bd)':'none'};${p.me?'background:var(--pl);border-radius:7px':''}"><span>${p.f}</span><span style="flex:1;font-size:11px;font-weight:${p.me?700:500};color:${p.me?'var(--p)':'var(--tx)'}">${p.n}</span><span style="font-size:11px;font-weight:700;color:var(--a)">🪙 ${p.s}</span></div>`).join('');}
-function joinRoom(name,coins){showCongrats(`⚔️ Arena — ${name}`,'"رفيق يراقبك!"',0,false);showToast(`⚔️ جاري الانضمام لـ ${name}...`);}
+// ══ DAILY GROUP CHALLENGE ROOM ══
+const DCR_BOTS=[{n:'أمير بن علي',s:92},{n:'سارة مزروع',s:85},{n:'يوسف قاسم',s:78},{n:'لينا حمزة',s:70}];
+function _dcrTodayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function _dcrDone(){return localStorage.getItem('bq_dcr_date')===_dcrTodayKey();}
+function _dcrMsToMidnight(){const n=new Date();const mid=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,0);return mid-n;}
+function _dcrFmtMs(ms){const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function _dcrBoard(){
+  try{return JSON.parse(localStorage.getItem('bq_dcr_board')||'null')||DCR_BOTS.map(b=>({...b}));}
+  catch(e){return DCR_BOTS.map(b=>({...b}));}
+}
+let _dcrTimerHandle=null;
+function renderDailyChallenge(){
+  const root=document.getElementById('dcr-root');
+  if(!root)return;
+  if(_dcrTimerHandle)clearInterval(_dcrTimerHandle);
+  const done=_dcrDone();
+  const board=_dcrBoard().slice().sort((a,b)=>b.s-a.s).slice(0,5);
+  const boardHtml=`<div class="dcr-mini-board">
+    <div class="dcr-mini-hd">🏆 متصدرو تحدي اليوم</div>
+    ${board.map(p=>`<div class="dcr-mini-row${p.me?' me':''}"><span>${p.f||'🎓'}</span><span class="dcr-mini-name">${p.n}</span><span class="dcr-mini-score">${p.s}%</span></div>`).join('')}
+  </div>`;
+  root.innerHTML=`<div class="dcr-room">
+    <div class="dcr-glow-ico">⚔️</div>
+    <div class="dcr-title">التحدي اليومي الجماعي</div>
+    <div class="dcr-sub">${done?'أنجزت تحدي اليوم — عد غداً لتحدٍ جديد!':'3 أسئلة سريعة — مرة واحدة يومياً فقط'}</div>
+    <div class="dcr-timer-wrap">
+      <div class="dcr-timer-lbl">${done?'⏳ يُعاد فتح الغرفة بعد':'⏳ ينتهي التحدي بعد'}</div>
+      <div class="dcr-timer-num" id="dcr-timer-num">--:--:--</div>
+    </div><br>
+    <button class="dcr-btn${done?' locked':''}" ${done?'disabled':''} onclick="${done?'':'dcrEnter()'}">${done?'🔒 مغلقة حتى الغد':'🚀 ادخل التحدي الآن'}</button>
+    ${boardHtml}
+  </div>`;
+  const tick=()=>{const el=document.getElementById('dcr-timer-num');if(el)el.textContent=_dcrFmtMs(_dcrMsToMidnight());};
+  tick();_dcrTimerHandle=setInterval(tick,1000);
+}
+let DCR={idx:0,score:0,questions:[]};
+function dcrEnter(){
+  if(_dcrDone())return;
+  const pool=QUIZ_BANK.filter(q=>q.type==='mcq'&&q.options&&q.options.length);
+  const shuffled=pool.slice().sort(()=>Math.random()-.5);
+  DCR={idx:0,score:0,questions:shuffled.slice(0,Math.min(3,shuffled.length))};
+  if(!DCR.questions.length){showToast('⚠️ لا توجد أسئلة متاحة حالياً');return;}
+  _dcrRenderQ();
+}
+function _dcrRenderQ(){
+  const root=document.getElementById('dcr-root');
+  const q=DCR.questions[DCR.idx];
+  if(!q){dcrFinish();return;}
+  root.innerHTML=`<div class="dcr-room" style="padding:16px 14px">
+    <div class="dcr-glow-ico" style="font-size:30px;margin-bottom:4px">⚔️</div>
+    <div class="dcr-title" style="font-size:13px">سؤال ${DCR.idx+1} من ${DCR.questions.length}</div>
+  </div>
+  <div class="dcr-q-card">
+    <div class="dcr-q-progress">📍 ${q.subjectLabel||''}</div>
+    <div class="dcr-q-text">${fmth(q.text)}</div>
+    <div id="dcr-opts">${q.options.map((o,i)=>`<div class="dcr-opt" onclick="dcrAnswer(${i})">${o.l}) ${o.t}</div>`).join('')}</div>
+  </div>`;
+}
+function dcrAnswer(i){
+  const q=DCR.questions[DCR.idx];
+  const opts=document.querySelectorAll('#dcr-opts .dcr-opt');
+  const chosen=q.options[i];
+  opts.forEach((el,idx)=>{
+    if(q.options[idx].ok)el.classList.add('correct');
+    else if(idx===i&&!chosen.ok)el.classList.add('wrong');
+  });
+  if(chosen.ok){DCR.score++;playSound('check');}else{playSound('wrong');}
+  setTimeout(()=>{DCR.idx++;_dcrRenderQ();},900);
+}
+function dcrFinish(){
+  const pct=Math.round(DCR.score/Math.max(1,DCR.questions.length)*100);
+  localStorage.setItem('bq_dcr_date',_dcrTodayKey());
+  const coins=10+DCR.score*10;
+  addCoins(coins);
+  const board=_dcrBoard().filter(p=>!p.me);
+  board.push({n:'أنت',s:pct,f:'🎯',me:true});
+  localStorage.setItem('bq_dcr_board',JSON.stringify(board));
+  showCongrats('أنهيت التحدي اليومي! 🎉',`"رفيق فخور بك — نتيجتك ${pct}%!"`,coins);
+  renderDailyChallenge();
+}
 function renderBooks(f=''){document.getElementById('books-grid').innerHTML=BOOKS.filter(b=>!f||b.t.includes(f)).map(b=>`<div class="book-card" onclick="showToast('🛒 جاري الإضافة...');playSound('check')"><div class="book-cov" style="background:${b.bg}">${b.icon}</div><div style="padding:9px"><div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:2px">${b.t}</div><div style="font-size:9px;color:var(--tx2)">${b.tp}</div><div style="font-size:11px;font-weight:700;color:var(--p)">${b.p}</div></div></div>`).join('');}
 function filterBooks(v){renderBooks(v);}
 
@@ -6095,18 +6222,18 @@ function testAPIKey(){
 function getLocalAIResponse(msg,subj){
   const lower=msg.toLowerCase();
   const greet=['مرحبا','اهلا','هاي','hi','hello','السلام','صباح','مساء'];
-  if(greet.some(g=>lower.includes(g)))return`مرحباً! أنا رفيق ✒️ سعيد بلقائك 😊<br>أنا هنا لمساعدتك في <strong>${subj.label}</strong> خطوة بخطوة.<br>ما هو سؤالك أو التمرين الذي يُشكّل عليك؟`;
+  if(greet.some(g=>lower.includes(g)))return`مرحباً! أنا رفيق ${_rafiqEmoji()} سعيد بلقائك 😊<br>أنا هنا لمساعدتك في <strong>${subj.label}</strong> خطوة بخطوة.<br>ما هو سؤالك أو التمرين الذي يُشكّل عليك؟`;
   if(lower.includes('لا أعرف')||lower.includes('ما أعرف')||lower.includes('لا عارف')||lower.includes('مش عارف'))return`لا بأس أبداً 💙 كل خبير كان مبتدئاً!<br>دعنا نبدأ من الصفر.<br>ماذا تتذكر عن <strong>${subj.ctx}</strong>؟ أي فكرة ولو صغيرة ستفيد.`;
   if(lower.includes('شكر')||lower.includes('برافو')||lower.includes('ممتاز')||lower.includes('merci'))return`رفيق سعيد بمجهودك! 🎉<br>هذا ما يميّزك — لا تتوقف!<br>هل لديك سؤال آخر في <strong>${subj.label}</strong>؟`;
   if(lower.includes('صعب')||lower.includes('مش فاهم')||lower.includes('ما فهمت')||lower.includes('confus'))return`أفهمك تماماً 💪 هذه المواضيع تحتاج صبراً.<br>أخبرني <strong>بالجزء المحدد</strong> الذي أربكك وسنحله معاً خطوة خطوة.<br>أنا هنا ولن أتركك!`;
-  if(lower.includes('حل')||lower.includes('احل')||lower.includes('أعطني')||lower.includes('نتيجة'))return`✒️ رفيق لن يعطيك الحل مباشرة — هذا هو سرّ النجاح!<br>بدلاً من ذلك:<br>• ما هي <strong>المعطيات</strong> في المسألة؟<br>• ما هو <strong>المطلوب إيجاده</strong>؟<br>أجب على هذين وسنكمل معاً 🎯`;
+  if(lower.includes('حل')||lower.includes('احل')||lower.includes('أعطني')||lower.includes('نتيجة'))return`${_rafiqEmoji()} رفيق لن يعطيك الحل مباشرة — هذا هو سرّ النجاح!<br>بدلاً من ذلك:<br>• ما هي <strong>المعطيات</strong> في المسألة؟<br>• ما هو <strong>المطلوب إيجاده</strong>؟<br>أجب على هذين وسنكمل معاً 🎯`;
   const socrResponses=[
-    `سؤال ممتاز! ✒️ قبل الإجابة: ما هو <strong>القانون الأساسي</strong> الذي يتعلق بهذه المسألة في ${subj.label}؟`,
+    `سؤال ممتاز! ${_rafiqEmoji()} قبل الإجابة: ما هو <strong>القانون الأساسي</strong> الذي يتعلق بهذه المسألة في ${subj.label}؟`,
     `رفيق يسألك: ما هي <strong>الخطوة الأولى</strong> التي يجب اتخاذها هنا؟ فكّر بصوت عالٍ 🤔`,
     `جيد جداً! الآن: ما هي <strong>المعطيات</strong> المتوفرة في المسألة؟ استخرجها أولاً.`,
-    `✒️ رفيق هنا! بالنسبة لـ <strong>${subj.ctx}</strong>: ما الذي يقوله التعريف الأساسي في هذا الموضوع؟`,
+    `${_rafiqEmoji()} رفيق هنا! بالنسبة لـ <strong>${subj.ctx}</strong>: ما الذي يقوله التعريف الأساسي في هذا الموضوع؟`,
     `قبل أن نحل: هل جربت رسم <strong>مخطط أو خطاطة</strong> للمسألة؟ أحياناً الرسم يوضح كل شيء 📐`,
-    `✒️ سؤال سقراطي: إذا كانت النتيجة صحيحة، كيف ستتحقق منها؟ ما المعيار الذي ستستخدم؟`,
+    `${_rafiqEmoji()} سؤال سقراطي: إذا كانت النتيجة صحيحة، كيف ستتحقق منها؟ ما المعيار الذي ستستخدم؟`,
   ];
   return socrResponses[Math.floor(Math.random()*socrResponses.length)];
 }
