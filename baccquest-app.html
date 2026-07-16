@@ -3391,24 +3391,26 @@ const SUBJECTS_AI=[{id:'math',icon:'📐',label:'الرياضيات',ctx:'الح
 const BOOKS=[{icon:'📐',bg:'#EDE9FF',t:'رياضيات الباك',p:'350 دج',tp:'PDF'},{icon:'⚗️',bg:'#CFFAFE',t:'فيزياء وكيمياء',p:'400 دج',tp:'ورقي+PDF'},{icon:'🗺️',bg:'#FEF3C7',t:'تاريخ وجغرافيا',p:'500 دج',tp:'ورقي'},{icon:'🦉',bg:'#FCE7F3',t:'الفلسفة',p:'320 دج',tp:'PDF'},{icon:'✍️',bg:'#EDE9FF',t:'اللغة العربية',p:'380 دج',tp:'PDF'},{icon:'🌍',bg:'#D1FAE5',t:'اللغات الأجنبية',p:'450 دج',tp:'ورقي+PDF'}];
 
 const PDF_EXAMS=[
-  /* 2024 */
-  {id:'pe1',year:'2024',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع بكالوريا الرياضيات — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.8 MB',pages:4},
-  {id:'pe2',year:'2024',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2024',type:'solution',typeLabel:'التصحيح',pdfUrl:'',size:'2.4 MB',pages:7},
-  {id:'pe3',year:'2024',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'2.1 MB',pages:5},
-  {id:'pe4',year:'2024',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'التصحيح النموذجي — الفيزياء 2024',type:'solution',typeLabel:'التصحيح',pdfUrl:'',size:'2.8 MB',pages:8},
-  {id:'pe5',year:'2024',subj:'hist',icon:'🗺️',subjectLabel:'التاريخ والجغرافيا',title:'موضوع التاريخ والجغرافيا — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.5 MB',pages:4},
-  {id:'pe6',year:'2024',subj:'phil',icon:'🦉',subjectLabel:'الفلسفة',title:'موضوع الفلسفة — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.2 MB',pages:3},
-  {id:'pe7',year:'2024',subj:'arab',icon:'✍️',subjectLabel:'اللغة العربية',title:'موضوع اللغة العربية — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.3 MB',pages:3},
+  /* 2024 — روابط حقيقية موثّقة من eddirasa.com (تحقّقت من صلاحيتها) */
+  {id:'pe1',year:'2024',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع بكالوريا الرياضيات — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-maths-2024/',size:'خارجي',pages:'—'},
+  {id:'pe2',year:'2024',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2024',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-maths-2024/',size:'خارجي',pages:'—'},
+  {id:'pe3',year:'2024',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-physique-2024/',size:'خارجي',pages:'—'},
+  {id:'pe4',year:'2024',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'التصحيح النموذجي — الفيزياء 2024',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-physique-2024/',size:'خارجي',pages:'—'},
+  {id:'pe5',year:'2024',subj:'hist',icon:'🗺️',subjectLabel:'التاريخ والجغرافيا',title:'موضوع التاريخ والجغرافيا — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-sci-his-geo-2024/',size:'خارجي',pages:'—'},
+  {id:'pe6',year:'2024',subj:'phil',icon:'🦉',subjectLabel:'الفلسفة',title:'موضوع الفلسفة — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-sc-philosophy-2024/',size:'خارجي',pages:'—'},
+  {id:'pe7',year:'2024',subj:'arab',icon:'✍️',subjectLabel:'اللغة العربية',title:'موضوع اللغة العربية — 2024',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-arabe-2024-se/',size:'خارجي',pages:'—'},
   /* 2023 */
-  {id:'pe8',year:'2023',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع الرياضيات — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.9 MB',pages:4},
-  {id:'pe9',year:'2023',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2023',type:'solution',typeLabel:'التصحيح',pdfUrl:'',size:'2.5 MB',pages:7},
-  {id:'pe10',year:'2023',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'2.2 MB',pages:5},
-  {id:'pe11',year:'2023',subj:'hist',icon:'🗺️',subjectLabel:'التاريخ والجغرافيا',title:'موضوع التاريخ والجغرافيا — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.6 MB',pages:4},
+  {id:'pe8',year:'2023',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع الرياضيات — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-maths-2023/',size:'خارجي',pages:'—'},
+  {id:'pe9',year:'2023',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2023',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-maths-2023/',size:'خارجي',pages:'—'},
+  {id:'pe10',year:'2023',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-physique-2023/',size:'خارجي',pages:'—'},
+  {id:'pe10b',year:'2023',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'التصحيح النموذجي — الفيزياء 2023',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-physique-2023/',size:'خارجي',pages:'—'},
+  {id:'pe11',year:'2023',subj:'hist',icon:'🗺️',subjectLabel:'التاريخ والجغرافيا',title:'موضوع التاريخ والجغرافيا — 2023',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-sci-his-geo-2023/',size:'خارجي',pages:'—'},
   /* 2022 */
-  {id:'pe12',year:'2022',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع الرياضيات — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.7 MB',pages:4},
-  {id:'pe13',year:'2022',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2022',type:'solution',typeLabel:'التصحيح',pdfUrl:'',size:'2.3 MB',pages:6},
-  {id:'pe14',year:'2022',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'2.0 MB',pages:5},
-  {id:'pe15',year:'2022',subj:'phil',icon:'🦉',subjectLabel:'الفلسفة',title:'موضوع الفلسفة — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'',size:'1.1 MB',pages:3},
+  {id:'pe12',year:'2022',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'موضوع الرياضيات — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-maths-2022/',size:'خارجي',pages:'—'},
+  {id:'pe13',year:'2022',subj:'math',icon:'📐',subjectLabel:'الرياضيات',title:'التصحيح النموذجي — الرياضيات 2022',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-maths-2022/',size:'خارجي',pages:'—'},
+  {id:'pe14',year:'2022',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'موضوع الفيزياء والكيمياء — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-math-physique-2022/',size:'خارجي',pages:'—'},
+  {id:'pe14b',year:'2022',subj:'phy',icon:'⚗️',subjectLabel:'الفيزياء والكيمياء',title:'التصحيح النموذجي — الفيزياء 2022',type:'solution',typeLabel:'التصحيح',pdfUrl:'https://eddirasa.com/correction-bac-math-physique-2022/',size:'خارجي',pages:'—'},
+  {id:'pe15',year:'2022',subj:'phil',icon:'🦉',subjectLabel:'الفلسفة',title:'موضوع الفلسفة — 2022',type:'main',typeLabel:'الموضوع الرسمي',pdfUrl:'https://eddirasa.com/bac-sc-philosophy-2022/',size:'خارجي',pages:'—'},
 ];
 const PDF_YEARS=['الكل','2024','2023','2022'];
 const PDF_SUBJS=[{id:'all',label:'📚 الكل'},{id:'math',label:'📐 الرياضيات'},{id:'phy',label:'⚗️ الفيزياء'},{id:'hist',label:'🗺️ التاريخ'},{id:'phil',label:'🦉 الفلسفة'},{id:'arab',label:'✍️ العربية'},{id:'fr',label:'🇫🇷 الفرنسية'},{id:'en',label:'🇬🇧 الإنجليزية'}];
@@ -6184,13 +6186,12 @@ function _pdfCardHtml(p){
         </div>
       </div>
       <button class="pdf-dload" onclick="downloadPDF('${p.pdfUrl}','${p.title}')" ${hasUrl?'':'disabled'}>
-        ${hasUrl?'⬇️ تحميل PDF':'🔒 قريباً'}
+        ${hasUrl?'🔗 فتح الموضوع':'🔒 قريباً'}
       </button>
     </div>
     <div class="pdf-info">
       <span>📅 ${p.year}</span><span class="pdf-sep"></span>
-      <span>📄 ${p.pages} صفحات</span><span class="pdf-sep"></span>
-      <span>💾 ${p.size}</span><span class="pdf-sep"></span>
+      ${p.pages==='—'?`<span>🔗 مصدر خارجي موثّق</span>`:`<span>📄 ${p.pages} صفحات</span><span class="pdf-sep"></span><span>💾 ${p.size}</span>`}<span class="pdf-sep"></span>
       <span style="color:var(--p);font-weight:600">${p.subjectLabel}</span>
     </div>
   </div>`;
@@ -6199,8 +6200,8 @@ function setPDFYear(y){pdfYearF=y;renderPDFBank();}
 function setPDFSubj(s){pdfSubjF=s;renderPDFBank();}
 function downloadPDF(url,name){
   if(!url||url.length<4){showToast('🔒 الملف غير متاح بعد — سيُضاف قريباً!');return;}
-  const a=document.createElement('a');a.href=url;a.download=(name||'موضوع-بكالوريا')+'.pdf';a.target='_blank';a.rel='noopener noreferrer';
-  document.body.appendChild(a);a.click();a.remove();showToast('⬇️ بدء تحميل PDF...');
+  window.open(url,'_blank','noopener,noreferrer');
+  showToast('⬇️ فتح صفحة الموضوع...');
 }
 function teacherUploadPDF(unitTitle){
   if(!_fbReady){showToast('⚠️ رفع الملفات يتطلب اتصال Firebase — غير متاح حالياً');return;}
