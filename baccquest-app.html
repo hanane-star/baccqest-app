@@ -3131,10 +3131,11 @@ hr{border-color:rgba(212,163,97,.2)!important}
         <div class="t-stat"><div class="t-stat-n" style="color:var(--a)" id="tov-aisessions">—</div><div class="t-stat-l">جلسة AI اليوم</div></div>
         <div class="t-stat"><div class="t-stat-n" style="color:var(--r)" id="tov-units">—</div><div class="t-stat-l">وحدات منشورة</div></div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
         <button class="btn-p" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])" style="flex:1;margin-bottom:0">➕ سؤال جديد</button>
         <button class="btn-s" onclick="ttab('units',document.querySelectorAll('.t-tab')[1])" style="flex:1">📚 الوحدات</button>
       </div>
+      <button class="btn-s" onclick="openTchrDash()" style="width:100%">🎬 إدارة فيديوهات الشرح</button>
     </div>
     <div class="t-pane" id="tp-units"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><div class="sec-title" style="margin:0">📚 الوحدات</div><button class="btn-p" onclick="showToast('➕ وحدة جديدة...')" style="padding:6px 12px;font-size:11px;margin-bottom:0">+ وحدة</button></div><div id="units-list"></div></div>
     <div class="t-pane" id="tp-builder">
@@ -3165,7 +3166,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
       </div>
       <div class="card"><p style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:7px">③ فيديو عند الخطأ</p>
         <div style="background:var(--al);border-radius:9px;padding:7px 10px;font-size:11px;color:#92400E;margin-bottom:9px">💡 يظهر للطالب فقط إذا أخطأ</div>
-        <div style="display:flex;gap:6px;margin-bottom:8px"><input class="finput" id="vid-url" placeholder="رابط YouTube..." style="flex:1;margin-bottom:0"><button class="btn-s" onclick="showToast('▶ معاينة...')" style="padding:9px 11px">معاينة</button></div>
+        <div style="display:flex;gap:6px;margin-bottom:8px"><input class="finput" id="vid-url" placeholder="رابط YouTube..." style="flex:1;margin-bottom:0"><button class="btn-s" onclick="const u=document.getElementById('vid-url').value.trim();if(!u){showToast('⚠️ ألصق رابط الفيديو أولاً');}else{showVideoModal(u,'معاينة الفيديو');}" style="padding:9px 11px">معاينة</button></div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:9px"><input class="finput" type="number" placeholder="دق" min="0" id="vid-min" style="width:60px;margin-bottom:0"><span style="color:var(--tx2)">:</span><input class="finput" type="number" placeholder="ثا" min="0" max="59" id="vid-sec" style="width:60px;margin-bottom:0"><span style="font-size:10px;color:var(--tx2)">لحظة الشرح</span></div>
         <div class="drag-zone" onclick="showToast('📁 رفع فيديو...')"><div style="font-size:20px;margin-bottom:3px">🎬</div>أو ارفع فيديو مباشر</div>
       </div>
@@ -3189,7 +3190,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
       <div class="card">
         <select class="finput" id="notif-type"><option>🔥 تحفيزي</option><option>⚠️ تحذيري</option><option>📅 تذكير</option><option>🏆 تهنئة</option></select>
         <textarea class="finput" id="notif-text" rows="3" placeholder='"رفيق بانتظارك في جناح الفيزياء! 🔬"'></textarea>
-        <select class="finput"><option>جميع الطلاب</option><option>غير النشطين اليوم</option><option>أقل من 40%</option></select>
+        <select class="finput" id="notif-target"><option value="all">جميع الطلاب</option><option value="paid">المشتركون فقط (Plus/Pro)</option><option value="free">الحساب المجاني فقط</option></select>
         <button class="btn-p" onclick="sendNotification()" style="margin-bottom:0">📤 إرسال</button>
       </div>
       <div class="sec-title" style="margin-top:4px">📋 السجل</div>
@@ -6400,9 +6401,11 @@ if(_fbReady){
   let _notifFirstSnapshot=true;
   _fbDb.collection('notifications').orderBy('ts','desc').limit(30).onSnapshot(snap=>{
     let newCount=0;
+    let mySession=null;try{mySession=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
     snap.docChanges().forEach(ch=>{
       if(ch.type==='added'){
         const n=ch.doc.data();
+        if(n.targetEmails&&(!mySession||!n.targetEmails.includes(mySession.email)))return;
         if(!ST.notifs.find(x=>x.fbId===ch.doc.id)){
           ST.notifs.unshift({icon:n.icon||'🔔',title:n.title||'إشعار جديد',msg:n.text||'',unread:!_notifFirstSnapshot,time:'الآن',fbId:ch.doc.id});
           if(!_notifFirstSnapshot)newCount++;
@@ -6415,6 +6418,12 @@ if(_fbReady){
     if(newCount>0&&typeof _showToast==='function')_showToast('🔔 إشعار جديد من الأستاذ!');
     if(document.getElementById('notif-panel')?.classList.contains('open'))try{renderNotifPanel();}catch(e){}
   },err=>console.warn('Firestore notifications listener error',err));
+  // Teacher videos — synced across devices
+  _fbDb.collection('teacher_videos').orderBy('ts','desc').onSnapshot(snap=>{
+    const list=[];snap.forEach(doc=>list.push({id:doc.id,title:doc.data().title,url:doc.data().url,subject:doc.data().subject,ts:doc.data().ts?.toMillis?.()||Date.now()}));
+    try{localStorage.setItem('bq_tchr_vids',JSON.stringify(list));}catch(e){}
+    if(document.getElementById('tchr-dash')?.classList.contains('on'))try{tchrTab('videos');}catch(e){}
+  },err=>console.warn('Firestore teacher_videos listener error',err));
 }
 function publishQuestion(){
   const txt=document.getElementById('qb-text').value.trim();
@@ -6442,7 +6451,7 @@ function publishQuestion(){
   const newQ={
     subject:subj.id,icon:subj.icon,subjectLabel:subj.label,unit:unit||'وحدة جديدة',
     type,typeLabel:TYPE_MAP[type]||type,text:txt,difficulty,coins,teacher:teacherName,
-    video:document.getElementById('vid-url')?.value||'',videoTs:0,custom:true,
+    video:document.getElementById('vid-url')?.value||'',videoTs:(parseInt(document.getElementById('vid-min')?.value)||0)*60+(parseInt(document.getElementById('vid-sec')?.value)||0),custom:true,
     ...(options&&options.length?{options}:{}),
   };
   if(mode==='draft'){
@@ -6476,15 +6485,28 @@ function publishQuestion(){
 function sendNotification(){
   const txt=document.getElementById('notif-text').value.trim();
   const type=document.getElementById('notif-type').value;
+  const target=document.getElementById('notif-target')?.value||'all';
   if(!txt){alert('اكتب نص الإشعار');return;}
   const icon=type.split(' ')[0]||'🔔';
-  ST.notifLog.unshift({type,text:txt,ts:new Date().toLocaleString('ar')});
+  ST.notifLog.unshift({type,text:txt,target,ts:new Date().toLocaleString('ar')});
   document.getElementById('notif-text').value='';
   renderNotifLog();
   if(typeof _fbReady!=='undefined'&&_fbReady){
-    _fbDb.collection('notifications').add({icon,title:type,text:txt,ts:firebase.firestore.FieldValue.serverTimestamp()})
-      .then(()=>showToast('📤 تم الإرسال لكل الطلاب فوراً!'))
-      .catch(()=>showToast('⚠️ تعذّرت المزامنة السحابية — تحقّق من الاتصال'));
+    const payload={icon,title:type,text:txt,ts:firebase.firestore.FieldValue.serverTimestamp()};
+    const _send=(targetEmails)=>{
+      if(targetEmails)payload.targetEmails=targetEmails;
+      _fbDb.collection('notifications').add(payload)
+        .then(()=>showToast(targetEmails?`📤 أُرسل إلى ${targetEmails.length} طالب مطابق للفئة!`:'📤 تم الإرسال لكل الطلاب فوراً!'))
+        .catch(()=>showToast('⚠️ تعذّرت المزامنة السحابية — تحقّق من الاتصال'));
+    };
+    if(target==='all'){_send(null);}
+    else{
+      _fbDb.collection('students').get().then(snap=>{
+        const emails=[];
+        snap.forEach(doc=>{const sub=doc.data().sub||'free';const match=target==='paid'?sub!=='free':sub==='free';if(match)emails.push(doc.id);});
+        _send(emails);
+      }).catch(()=>_send(null));
+    }
   }else{
     showToast('📤 تم الحفظ محلياً — Firebase غير متاح فلن يصل الطلاب على أجهزة أخرى');
   }
@@ -7608,29 +7630,45 @@ function _getTchrVids(){try{return JSON.parse(localStorage.getItem(TCHR_VIDS_KEY
 function _saveTchrVids(v){localStorage.setItem(TCHR_VIDS_KEY,JSON.stringify(v));}
 window.openTchrDash=function(){document.getElementById('tchr-dash').classList.add('on');tchrTab('stats');};
 window.closeTchrDash=function(){document.getElementById('tchr-dash').classList.remove('on');};
+function _tchrStudentsSourceSync(cb){
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('students').get().then(snap=>{
+      const list=[];snap.forEach(doc=>list.push({email:doc.id,...doc.data()}));
+      cb(list);
+    }).catch(()=>{
+      let users={};try{users=JSON.parse(localStorage.getItem('bq_users')||'{}');}catch(e){}
+      cb(Object.entries(users).map(([email,u])=>({email,...u})));
+    });
+  }else{
+    let users={};try{users=JSON.parse(localStorage.getItem('bq_users')||'{}');}catch(e){}
+    cb(Object.entries(users).map(([email,u])=>({email,...u})));
+  }
+}
 function _renderTchrStats(){
-  let users={};try{users=JSON.parse(localStorage.getItem('bq_users')||'{}');}catch{}
-  const total=Object.keys(users).length;
-  const plus=Object.values(users).filter(u=>u.sub==='plus').length;
-  const pro=Object.values(users).filter(u=>u.sub==='pro').length;
   const vids=_getTchrVids().length;
-  return `<div class="tchr-stat-grid">
-    <div class="tchr-stat"><div class="tchr-stat-val">${total}</div><div class="tchr-stat-lbl">طالب مسجّل</div></div>
-    <div class="tchr-stat"><div class="tchr-stat-val">${plus+pro}</div><div class="tchr-stat-lbl">اشتراك نشط</div></div>
-    <div class="tchr-stat"><div class="tchr-stat-val">${vids}</div><div class="tchr-stat-lbl">فيديو منشور</div></div>
-  </div>
-  <div class="tchr-card"><div class="tchr-card-title">📈 توزيع الاشتراكات</div>
-  <div style="display:flex;flex-direction:column;gap:7px">
-    ${_tchrBar('مجاني',total-plus-pro,total,'#6B7280')}
-    ${_tchrBar('Plus',plus,total,'#A78BFA')}
-    ${_tchrBar('Pro',pro,total,'#34D399')}
-  </div></div>
-  <div class="tchr-card"><div class="tchr-card-title">⚡ حالة المنصة</div>
-  <div style="display:flex;flex-direction:column;gap:6px;font-family:'Amiri',serif;font-size:11px;color:rgba(200,170,100,.7)">
-    <div>✅ الخوادم تعمل بشكل طبيعي</div>
-    <div>✅ قاعدة البيانات — localStorage (وضع تجريبي)</div>
-    <div>⏳ API السحابي قريباً</div>
-  </div></div>`;
+  _tchrStudentsSourceSync(list=>{
+    const total=list.length;
+    const plus=list.filter(u=>u.sub==='plus').length;
+    const pro=list.filter(u=>u.sub==='pro').length;
+    const el=document.getElementById('tchr-stats-body');if(!el)return;
+    el.innerHTML=`<div class="tchr-stat-grid">
+      <div class="tchr-stat"><div class="tchr-stat-val">${total}</div><div class="tchr-stat-lbl">طالب مسجّل</div></div>
+      <div class="tchr-stat"><div class="tchr-stat-val">${plus+pro}</div><div class="tchr-stat-lbl">اشتراك نشط</div></div>
+      <div class="tchr-stat"><div class="tchr-stat-val">${vids}</div><div class="tchr-stat-lbl">فيديو منشور</div></div>
+    </div>
+    <div class="tchr-card"><div class="tchr-card-title">📈 توزيع الاشتراكات</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      ${_tchrBar('مجاني',total-plus-pro,total,'#6B7280')}
+      ${_tchrBar('Plus',plus,total,'#A78BFA')}
+      ${_tchrBar('Pro',pro,total,'#34D399')}
+    </div></div>
+    <div class="tchr-card"><div class="tchr-card-title">⚡ حالة المنصة</div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-family:'Amiri',serif;font-size:11px;color:rgba(200,170,100,.7)">
+      <div>✅ الخوادم تعمل بشكل طبيعي</div>
+      <div>${typeof _fbReady!=='undefined'&&_fbReady?'✅ المزامنة السحابية (Firebase) نشطة':'⏳ المزامنة السحابية غير متاحة — وضع محلي فقط'}</div>
+    </div></div>`;
+  });
+  return `<div id="tchr-stats-body"><div style="text-align:center;padding:20px;color:rgba(200,170,100,.4);font-size:11px">جاري التحميل...</div></div>`;
 }
 function _tchrBar(lbl,val,total,color){
   const pct=total>0?Math.round(val/total*100):0;
@@ -7666,24 +7704,33 @@ window.tchrAddVideo=function(){
   const subject=document.getElementById('vid-sub-inp').value;
   if(!title||!url){_showToast('يرجى ملء العنوان والرابط');return;}
   const vids=_getTchrVids();vids.unshift({title,url,subject,ts:Date.now()});_saveTchrVids(vids);
-  tchrTab('videos');_showToast('تم إضافة الفيديو ✅');
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('teacher_videos').add({title,url,subject,ts:firebase.firestore.FieldValue.serverTimestamp()})
+      .then(()=>_showToast('✅ تمت الإضافة ومزامنتها عبر كل الأجهزة'))
+      .catch(()=>_showToast('✅ أُضيف محلياً — تعذّرت المزامنة السحابية'));
+  }else{
+    _showToast('تم إضافة الفيديو ✅ (محلياً فقط)');
+  }
+  tchrTab('videos');
 };
 window.tchrDelVideo=function(i){
   if(!confirm('حذف هذا الفيديو؟'))return;
   const vids=_getTchrVids();vids.splice(i,1);_saveTchrVids(vids);tchrTab('videos');
 };
 function _renderTchrStudents(){
-  let users={};try{users=JSON.parse(localStorage.getItem('bq_users')||'{}');}catch{}
-  const list=Object.entries(users);
-  return `<div class="tchr-card"><div class="tchr-card-title">👥 الطلاب (${list.length})</div>
-  ${list.length===0?`<div style="text-align:center;color:rgba(200,170,100,.4);font-family:'Amiri',serif;padding:18px">لا يوجد طلاب بعد</div>`:''}
-  ${list.map(([email,u])=>{const sub=u.sub||'free';
-    return `<div class="std-item">
-      <div class="std-avatar">${u.name?u.name[0]:'👤'}</div>
-      <div class="std-info"><div class="std-name">${u.name||'—'}</div><div class="std-meta">${email} · ${u.branch||'—'}</div></div>
-      <span class="std-badge ${sub}">${sub==='plus'?'Plus':sub==='pro'?'Pro':'مجاني'}</span>
-    </div>`;}).join('')}
-  </div>`;
+  _tchrStudentsSourceSync(list=>{
+    const el=document.getElementById('tchr-students-body');if(!el)return;
+    el.innerHTML=`<div class="tchr-card"><div class="tchr-card-title">👥 الطلاب (${list.length})</div>
+    ${list.length===0?`<div style="text-align:center;color:rgba(200,170,100,.4);font-family:'Amiri',serif;padding:18px">لا يوجد طلاب بعد</div>`:''}
+    ${list.map(u=>{const sub=u.sub||'free';
+      return `<div class="std-item">
+        <div class="std-avatar">${u.name?u.name[0]:'👤'}</div>
+        <div class="std-info"><div class="std-name">${u.name||'—'}</div><div class="std-meta">${u.email} · ${u.branch||'—'}</div></div>
+        <span class="std-badge ${sub}">${sub==='plus'?'Plus':sub==='pro'?'Pro':'مجاني'}</span>
+      </div>`;}).join('')}
+    </div>`;
+  });
+  return `<div id="tchr-students-body"><div style="text-align:center;padding:20px;color:rgba(200,170,100,.4);font-size:11px">جاري التحميل...</div></div>`;
 }
 
 
