@@ -498,12 +498,13 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   .lmn-ico{font-size:22px}
 }
 
-/* ── HUD — anchored just above the desk ── */
+/* ── HUD — anchored at the top of the screen ── */
 .lib-hud{
   position:absolute;
-  top:66%;
+  top:14px;
   left:50%;transform:translateX(-50%);
-  display:flex;gap:5px;z-index:20;flex-wrap:nowrap;justify-content:center;
+  display:flex;gap:5px;z-index:20;flex-wrap:wrap;justify-content:center;
+  max-width:94%;
 }
 .lib-hud-chip{
   font-family:'Amiri','Traditional Arabic',Georgia,serif;
