@@ -3126,10 +3126,10 @@ hr{border-color:rgba(212,163,97,.2)!important}
     <div class="t-pane active" id="tp-overview">
       <div class="sec-title">📊 إحصائيات</div>
       <div class="t-stats">
-        <div class="t-stat"><div class="t-stat-n grad-txt">247</div><div class="t-stat-l">طالب مسجّل</div></div>
-        <div class="t-stat"><div class="t-stat-n" style="color:var(--s)">18</div><div class="t-stat-l">سؤال نشط</div></div>
-        <div class="t-stat"><div class="t-stat-n" style="color:var(--a)">342</div><div class="t-stat-l">جلسة AI اليوم</div></div>
-        <div class="t-stat"><div class="t-stat-n" style="color:var(--r)">4</div><div class="t-stat-l">وحدات منشورة</div></div>
+        <div class="t-stat"><div class="t-stat-n grad-txt" id="tov-students">—</div><div class="t-stat-l">طالب مسجّل</div></div>
+        <div class="t-stat"><div class="t-stat-n" style="color:var(--s)" id="tov-questions">—</div><div class="t-stat-l">سؤال نشط</div></div>
+        <div class="t-stat"><div class="t-stat-n" style="color:var(--a)" id="tov-aisessions">—</div><div class="t-stat-l">جلسة AI اليوم</div></div>
+        <div class="t-stat"><div class="t-stat-n" style="color:var(--r)" id="tov-units">—</div><div class="t-stat-l">وحدات منشورة</div></div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn-p" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])" style="flex:1;margin-bottom:0">➕ سؤال جديد</button>
@@ -3180,8 +3180,8 @@ hr{border-color:rgba(212,163,97,.2)!important}
     </div>
     <div class="t-pane" id="tp-students">
       <div class="sec-title">👥 تقدم الطلاب</div>
-      <div style="background:var(--sur);border-radius:13px;border:1.5px solid var(--bd);overflow:hidden;margin-bottom:13px;overflow-x:auto"><table class="prog-table"><thead><tr><th>الطالب</th><th>الشعبة</th><th>الوحدة</th><th>الدقة</th><th>🪙</th><th>AI</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
-      <div class="sec-title">📈 الأسئلة الأكثر خطأً</div>
+      <div style="background:var(--sur);border-radius:13px;border:1.5px solid var(--bd);overflow:hidden;margin-bottom:13px;overflow-x:auto"><table class="prog-table"><thead><tr><th>الطالب</th><th>الشعبة</th><th>الاشتراك</th><th>🪙</th><th>الانضمام</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
+      <div class="sec-title">🆕 أحدث الأسئلة المنشورة</div>
       <div id="error-qs"></div>
     </div>
     <div class="t-pane" id="tp-notify">
@@ -3830,6 +3830,7 @@ function realGoTeacher(){
     showScreen('s-teacher');
     try{renderUnits();}catch(e){}
     try{renderStudents();}catch(e){}
+    try{renderTeacherOverview();}catch(e){}
     try{renderNotifLog();}catch(e){}
     try{renderSchema();}catch(e){}
   }catch(e){console.error('realGoTeacher:',e);}
@@ -5870,7 +5871,15 @@ function loadSampleConv(){
   const flow=[{b:true,h:`مرحباً! أنا رفيق ${_rafiqEmoji()} أخبرني بسؤالك أو ارفع صورة التمرين!`,qr:['مسألة فيزياء 🔬','حد رياضي 📐','مقالة فلسفية 🦉'],s:''},{b:false,t:'جسم 2kg سقط من 10m. أحسب سرعته.'},{b:true,h:`رائع! قبل الحل:<div class="hint-card"><strong>${_rafiqEmoji()} الخطوة الأولى</strong>أي قانون مناسب هنا؟</div>`,qr:['قانون حفظ الطاقة','قانون نيوتن','لا أعرف'],s:'الخطوة 1/4'},{b:false,t:'قانون حفظ الطاقة!'},{b:true,h:`🎉 ممتاز! <span class="math-expr">mgh = ½mv²</span><div class="hint-card"><strong>${_rafiqEmoji()} رفيق:</strong>ماذا يحدث للـ m؟</div>`,qr:['تُشطب','لا تتغير'],s:'الخطوة 2/4'},{b:false,t:'تُشطب! يبقى: v = √(2gh)'},{b:true,h:`بالضبط! طبّق: g=10, h=10<div class="hint-card"><strong>${_rafiqEmoji()} رفيق:</strong>النتيجة؟</div>`,qr:['v ≈ 14.14 m/s','v = 10 m/s'],s:'الخطوة 3/4'},{b:false,t:'v = √200 ≈ 14.14 m/s'},{b:true,h:`🏆 <strong>وصلت بنفسك!</strong><br><span class="math-expr">v ≈ 14.14 m/s</span><div class="hint-card" style="background:var(--sl);border-color:rgba(16,185,129,.3)"><strong style="color:var(--s)">${_rafiqEmoji()} ملخص رفيق:</strong>معطيات → قانون → تبسيط → تطبيق</div>`,qr:['سؤال آخر 🔄'],s:'✅ مكتمل'},];
   let d=0;flow.forEach(msg=>{setTimeout(()=>{if(msg.b)addBotMsg(msg.h,msg.qr||[],msg.s||'');else addUserMsg(msg.t);},d);d+=msg.b?700:400;});
 }
-function sendMsg(){const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt||ST.aiTyping)return;inp.value='';inp.style.height='auto';addUserMsg(txt);ST.aiTyping=true;document.getElementById('send-btn').disabled=true;showTypingInd();
+function _bumpAiSessionCounter(){
+  const today=new Date().toISOString().slice(0,10);
+  const localKey='bq_ai_sessions_'+today;
+  localStorage.setItem(localKey,(parseInt(localStorage.getItem(localKey)||'0')+1).toString());
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    try{_fbDb.collection('stats').doc('ai_sessions_'+today).set({count:firebase.firestore.FieldValue.increment(1),date:today},{merge:true});}catch(e){}
+  }
+}
+function sendMsg(){const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt||ST.aiTyping)return;inp.value='';inp.style.height='auto';addUserMsg(txt);_bumpAiSessionCounter();ST.aiTyping=true;document.getElementById('send-btn').disabled=true;showTypingInd();
   const subj=SUBJECTS_AI.find(s=>s.id===ST.currentSubj)||SUBJECTS_AI[0];
   const sys=`أنت "رفيق"، قلم ذكي ومعلم سقراطي لطلاب بكالوريا الجزائر. المادة الحالية: ${subj.label}. السياق: ${subj.ctx}. قواعدك: 1) لا تُعطِ الحل مباشرة بل اسأل عن الخطوة الأولى 2) إذا أصاب الطالب شجّعه وانتقل للتالية 3) إذا أخطأ لمّح له دون إفشاء الحل 4) ردودك موجزة وباللغة العربية (أقل من 120 كلمة) 5) استخدم **نص** للمعادلات الرياضية 6) كن محفّزاً ومرحاً.`;
   const msgs=[];document.querySelectorAll('#messages .bubble').forEach(b=>{msgs.push({role:b.classList.contains('user')?'user':'assistant',content:b.innerText.trim().substring(0,300)});});
@@ -5930,16 +5939,36 @@ function triggerOCR(){showToast('📸 OCR: في التطبيق الكامل عب
 function insertMath(){const syms=['∑','∫','√','π','∞','≈','∂','Δ','α','β','θ','²','³','±','≠'];const inp=document.getElementById('chat-input');const mn=document.createElement('div');mn.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--sur);border:2px solid var(--bd2);border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:5px;max-width:240px;z-index:9999;box-shadow:var(--shb)';mn.innerHTML=syms.map(s=>`<button onclick="document.getElementById('chat-input').value+='${s}';this.parentElement.remove()" style="width:30px;height:30px;border-radius:7px;border:1.5px solid var(--bd);background:var(--pl);color:var(--p);font-size:13px;cursor:pointer">${s}</button>`).join('');const cl=document.createElement('button');cl.textContent='✕';cl.style.cssText='width:100%;border:none;background:transparent;color:var(--tx2);padding:4px;cursor:pointer;font-size:10px';cl.onclick=()=>mn.remove();mn.appendChild(cl);document.body.appendChild(mn);setTimeout(()=>{if(mn.parentElement)mn.remove();},5000);}
 
 // ══ ARENA + STORE ══
-function renderLeaderboard(){const d=[{n:'أمير بن علي',s:1840,f:'🥇'},{n:'سارة مزروع',s:1720,f:'🥈'},{n:'أنت',s:1580,f:'🥉',me:true},{n:'يوسف',s:1430,f:'4️⃣'}];document.getElementById('lboard').innerHTML=d.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:${i<d.length-1?'1px solid var(--bd)':'none'};${p.me?'background:var(--pl);border-radius:7px':''}"><span>${p.f}</span><span style="flex:1;font-size:11px;font-weight:${p.me?700:500};color:${p.me?'var(--p)':'var(--tx)'}">${p.n}</span><span style="font-size:11px;font-weight:700;color:var(--a)">🪙 ${p.s}</span></div>`).join('');}
+const LBOARD_FLAGS=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+function _lboardRender(list){
+  const el=document.getElementById('lboard');if(!el)return;
+  let session=null;try{session=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+  if(!list.length){el.innerHTML=`<div style="text-align:center;padding:18px;color:var(--tx2);font-size:11px">لا يوجد طلاب مصنَّفون بعد — كن أول من يظهر هنا! 🏆</div>`;return;}
+  el.innerHTML=list.slice(0,10).map((p,i)=>{
+    const isMe=session&&p.email===session.email;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:${i<list.length-1?'1px solid var(--bd)':'none'};${isMe?'background:var(--pl);border-radius:7px':''}"><span>${LBOARD_FLAGS[i]||'🎓'}</span><span style="flex:1;font-size:11px;font-weight:${isMe?700:500};color:${isMe?'var(--p)':'var(--tx)'}">${p.name}${isMe?' (أنت)':''}</span><span style="font-size:11px;font-weight:700;color:var(--a)">🪙 ${p.coins||0}</span></div>`;
+  }).join('');
+}
+function renderLeaderboard(){
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('students').orderBy('coins','desc').limit(10).get().then(snap=>{
+      const list=[];snap.forEach(doc=>list.push({email:doc.id,...doc.data()}));
+      _lboardRender(list);
+    }).catch(()=>_lboardRender([]));
+  }else{
+    _lboardRender([]);
+  }
+}
 // ══ DAILY GROUP CHALLENGE ROOM ══
-const DCR_BOTS=[{n:'أمير بن علي',s:92},{n:'سارة مزروع',s:85},{n:'يوسف قاسم',s:78},{n:'لينا حمزة',s:70}];
 function _dcrTodayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function _dcrDone(){return localStorage.getItem('bq_dcr_date')===_dcrTodayKey();}
 function _dcrMsToMidnight(){const n=new Date();const mid=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,0);return mid-n;}
 function _dcrFmtMs(ms){const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
-function _dcrBoard(){
-  try{return JSON.parse(localStorage.getItem('bq_dcr_board')||'null')||DCR_BOTS.map(b=>({...b}));}
-  catch(e){return DCR_BOTS.map(b=>({...b}));}
+function _dcrMyName(){let s=null;try{s=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}return s?.name||'طالب';}
+function _dcrBoardHtml(board){
+  if(!board.length)return`<div style="text-align:center;padding:10px;color:rgba(255,255,255,.5);font-size:10px">لا يوجد مشاركون اليوم بعد — كن الأول! 🏆</div>`;
+  const myName=_dcrMyName();
+  return board.slice(0,5).map(p=>`<div class="dcr-mini-row${p.n===myName?' me':''}"><span>${LBOARD_FLAGS[board.indexOf(p)]||'🎓'}</span><span class="dcr-mini-name">${p.n}</span><span class="dcr-mini-score">${p.s}%</span></div>`).join('');
 }
 let _dcrTimerHandle=null;
 function renderDailyChallenge(){
@@ -5947,10 +5976,9 @@ function renderDailyChallenge(){
   if(!root)return;
   if(_dcrTimerHandle)clearInterval(_dcrTimerHandle);
   const done=_dcrDone();
-  const board=_dcrBoard().slice().sort((a,b)=>b.s-a.s).slice(0,5);
   const boardHtml=`<div class="dcr-mini-board">
     <div class="dcr-mini-hd">🏆 متصدرو تحدي اليوم</div>
-    ${board.map(p=>`<div class="dcr-mini-row${p.me?' me':''}"><span>${p.f||'🎓'}</span><span class="dcr-mini-name">${p.n}</span><span class="dcr-mini-score">${p.s}%</span></div>`).join('')}
+    <div id="dcr-board-body"><div style="text-align:center;padding:10px;color:rgba(255,255,255,.4);font-size:10px">جاري التحميل...</div></div>
   </div>`;
   root.innerHTML=`<div class="dcr-room">
     <div class="dcr-glow-ico">⚔️</div>
@@ -5965,6 +5993,15 @@ function renderDailyChallenge(){
   </div>`;
   const tick=()=>{const el=document.getElementById('dcr-timer-num');if(el)el.textContent=_dcrFmtMs(_dcrMsToMidnight());};
   tick();_dcrTimerHandle=setInterval(tick,1000);
+  const todayKey=_dcrTodayKey();
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('dcr_scores').doc(todayKey).collection('entries').orderBy('score','desc').limit(5).get().then(snap=>{
+      const board=[];snap.forEach(doc=>board.push(doc.data()));
+      const body=document.getElementById('dcr-board-body');if(body)body.innerHTML=_dcrBoardHtml(board);
+    }).catch(()=>{const body=document.getElementById('dcr-board-body');if(body)body.innerHTML=_dcrBoardHtml([]);});
+  }else{
+    const body=document.getElementById('dcr-board-body');if(body)body.innerHTML=_dcrBoardHtml([]);
+  }
 }
 let DCR={idx:0,score:0,questions:[]};
 function dcrEnter(){
@@ -6005,9 +6042,13 @@ function dcrFinish(){
   localStorage.setItem('bq_dcr_date',_dcrTodayKey());
   const coins=10+DCR.score*10;
   addCoins(coins);
-  const board=_dcrBoard().filter(p=>!p.me);
-  board.push({n:'أنت',s:pct,f:'🎯',me:true});
-  localStorage.setItem('bq_dcr_board',JSON.stringify(board));
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    try{
+      let session=null;try{session=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+      const docId=session?session.email:'anon-'+Math.random().toString(36).slice(2,9);
+      _fbDb.collection('dcr_scores').doc(_dcrTodayKey()).collection('entries').doc(docId).set({n:_dcrMyName(),s:pct,ts:firebase.firestore.FieldValue.serverTimestamp()});
+    }catch(e){}
+  }
   showCongrats('أنهيت التحدي اليومي! 🎉',`"رفيق فخور بك — نتيجتك ${pct}%!"`,coins);
   renderDailyChallenge();
 }
@@ -6249,7 +6290,52 @@ function renderProfile(){let sc='';for(let i=27;i>=0;i--){const active=Math.rand
 
 // ══ TEACHER ══
 function renderUnits(){document.getElementById('units-list').innerHTML=UNITS.map(u=>`<div class="unit-item"><div class="unit-hd" onclick="document.getElementById('ub${u.n}').classList.toggle('open')"><div class="unit-num">${u.n}</div><div style="flex:1"><div style="font-size:12px;font-weight:700">${u.title}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${u.qs.length} سؤال</div></div><div style="display:flex;gap:4px"><span class="ubadge ${u.pub?'ub-pub':'ub-d'}">${u.pub?'✅':'📝'}</span><span class="ubadge ub-q">🧩${u.qs.length}</span></div><span style="color:var(--tx3);font-size:10px;margin-right:4px">▼</span></div><div class="unit-body" id="ub${u.n}"><div style="padding-top:10px"><div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap"><button class="btn-icon" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">➕ سؤال</button><button class="btn-icon" onclick="teacherUploadPDF('${u.title}')">📄 PDF</button><button class="btn-icon" onclick="showToast('${u.pub?'⏸ إيقاف':'🚀 نشر'}...')">${u.pub?'⏸':'🚀 نشر'}</button></div>${u.qs.length?u.qs.map(q=>`<div class="uq-row"><div class="qdot" style="background:${q.col}"></div><div style="flex:1"><div style="font-size:11px;font-weight:600">${q.text}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.type}·${q.diff}·🪙${q.coins}${q.video?' · 📹':''}</div></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="showToast('✏️ تعديل...')">✏️</button><button class="btn-icon" onclick="showToast('🗑️ حذف')">🗑️</button></div></div>`).join(''):`<div style="text-align:center;padding:15px;color:var(--tx2);font-size:11px">لا أسئلة — <span style="color:var(--p);cursor:pointer" onclick="ttab('builder',document.querySelectorAll('.t-tab')[2])">أضف ➕</span></div>`}</div></div></div>`).join('');}
-function renderStudents(){const er=[{text:'∫sin(x)dx = ?',rate:68,sub:'الرياضيات'},{text:'وحدة الطاقة',rate:45,sub:'الفيزياء'},{text:'الحرية — سارتر',rate:82,sub:'الفلسفة'}];document.getElementById('students-tbody').innerHTML=STUDENTS.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.branch}</td><td>${s.unit}</td><td><span class="ppct">${s.acc}%</span></td><td style="font-weight:700;color:var(--a)">🪙${s.coins}</td><td style="font-weight:700;color:var(--p)">🤖${s.ai}</td></tr>`).join('');document.getElementById('error-qs').innerHTML=er.map(q=>`<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:9px"><div style="width:42px;height:42px;border-radius:10px;background:var(--rl);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--r);flex-shrink:0">${q.rate}%</div><div style="flex:1"><div style="font-size:11px;font-weight:700">${q.text}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.sub}</div></div><div style="font-size:9px;background:var(--rl);color:var(--r);padding:2px 6px;border-radius:20px;font-weight:600">خطأ ${q.rate}%</div></div>`).join('');}
+function _realStudentsLocal(){
+  let users={};try{users=JSON.parse(localStorage.getItem('bq_users')||'{}');}catch(e){}
+  return Object.entries(users).map(([email,u])=>({email,name:u.name||'—',branch:u.branch||'—',sub:u.sub||'free',coins:u.coins||0,created:u.created||null}));
+}
+function _renderStudentsTable(list){
+  const tbody=document.getElementById('students-tbody');if(!tbody)return;
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--tx2);padding:16px;font-size:11px">لا يوجد طلاب مسجّلون بعد على هذا المتصفح/الحساب</td></tr>`;return;}
+  tbody.innerHTML=list.map(s=>{
+    const joined=s.created?new Date(s.created.seconds?s.created.seconds*1000:s.created).toLocaleDateString('ar'):'—';
+    const subLbl=s.sub==='pro'?'Pro':s.sub==='plus'?'Plus':'مجاني';
+    return `<tr><td><strong>${s.name}</strong></td><td>${s.branch}</td><td><span class="ppct">${subLbl}</span></td><td style="font-weight:700;color:var(--a)">🪙${s.coins}</td><td style="font-size:10px;color:var(--tx2)">${joined}</td></tr>`;
+  }).join('');
+}
+function _renderRecentQuestions(){
+  const el=document.getElementById('error-qs');if(!el)return;
+  const recent=QUIZ_BANK.slice(0,5);
+  el.innerHTML=recent.length?recent.map(q=>`<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:9px"><div style="width:42px;height:42px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${q.icon||'📝'}</div><div style="flex:1"><div style="font-size:11px;font-weight:700">${fmth(q.text).substring(0,50)}</div><div style="font-size:9px;color:var(--tx2);margin-top:1px">${q.subjectLabel||''} · ${q.teacher||''}</div></div></div>`).join('')
+    :`<div style="text-align:center;color:var(--tx2);padding:16px;font-size:11px">لا توجد أسئلة منشورة بعد</div>`;
+}
+function renderStudents(){
+  _renderRecentQuestions();
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('students').get().then(snap=>{
+      const list=[];snap.forEach(doc=>list.push({email:doc.id,...doc.data()}));
+      if(!list.length){_renderStudentsTable(_realStudentsLocal());}
+      else _renderStudentsTable(list.map(s=>({...s,coins:s.coins||0})));
+    }).catch(()=>_renderStudentsTable(_realStudentsLocal()));
+  }else{
+    _renderStudentsTable(_realStudentsLocal());
+  }
+}
+function renderTeacherOverview(){
+  const local=_realStudentsLocal();
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setTxt('tov-questions',QUIZ_BANK.length);
+  setTxt('tov-units',new Set(QUIZ_BANK.filter(q=>q.custom).map(q=>q.unit)).size);
+  const today=new Date().toISOString().slice(0,10);
+  const aiKey='bq_ai_sessions_'+today;
+  setTxt('tov-aisessions',localStorage.getItem(aiKey)||'0');
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('students').get().then(snap=>setTxt('tov-students',snap.size)).catch(()=>setTxt('tov-students',local.length));
+    _fbDb.collection('stats').doc('ai_sessions_'+today).get().then(doc=>{if(doc.exists)setTxt('tov-aisessions',doc.data().count||0);}).catch(()=>{});
+  }else{
+    setTxt('tov-students',local.length);
+  }
+}
 function pickQType(el,type){document.querySelectorAll('.qb-type-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');document.getElementById('qb-mcq-area').style.display=type==='mcq'?'block':'none';}
 function addQBOpt(){const c=document.getElementById('qb-opts'),r=document.createElement('div');r.className='qb-opt-row';r.innerHTML=`<input type="radio" name="correct"><input class="finput" placeholder="خيار..." style="margin-bottom:0">`;c.appendChild(r);}
 function pickDiff(el){document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
@@ -6310,6 +6396,25 @@ if(_fbReady){
     try{localStorage.setItem('bq_teacher_pdfs_fb',JSON.stringify(list));}catch(e){}
     if(document.getElementById('pdf-exam-list'))try{renderPDFBank();}catch(e){}
   },err=>console.warn('Firestore examPdfs listener error',err));
+  // Real-time teacher → student notifications (any device, delivered live)
+  let _notifFirstSnapshot=true;
+  _fbDb.collection('notifications').orderBy('ts','desc').limit(30).onSnapshot(snap=>{
+    let newCount=0;
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='added'){
+        const n=ch.doc.data();
+        if(!ST.notifs.find(x=>x.fbId===ch.doc.id)){
+          ST.notifs.unshift({icon:n.icon||'🔔',title:n.title||'إشعار جديد',msg:n.text||'',unread:!_notifFirstSnapshot,time:'الآن',fbId:ch.doc.id});
+          if(!_notifFirstSnapshot)newCount++;
+        }
+      }
+    });
+    _notifFirstSnapshot=false;
+    const nb=document.getElementById('notif-badge');
+    if(nb){const unread=ST.notifs.filter(n=>n.unread).length;nb.textContent=unread;nb.style.display=unread>0?'flex':'none';}
+    if(newCount>0&&typeof _showToast==='function')_showToast('🔔 إشعار جديد من الأستاذ!');
+    if(document.getElementById('notif-panel')?.classList.contains('open'))try{renderNotifPanel();}catch(e){}
+  },err=>console.warn('Firestore notifications listener error',err));
 }
 function publishQuestion(){
   const txt=document.getElementById('qb-text').value.trim();
@@ -6368,7 +6473,23 @@ function publishQuestion(){
     showToast('✅ تم نشر السؤال (محلياً فقط — Firebase غير متاح)');
   }
 }
-function sendNotification(){const txt=document.getElementById('notif-text').value.trim();const type=document.getElementById('notif-type').value;if(!txt){alert('اكتب نص الإشعار');return;}ST.notifLog.unshift({type,text:txt,ts:new Date().toLocaleString('ar')});document.getElementById('notif-text').value='';renderNotifLog();showToast('📤 تم الإرسال!');playSound('win');}
+function sendNotification(){
+  const txt=document.getElementById('notif-text').value.trim();
+  const type=document.getElementById('notif-type').value;
+  if(!txt){alert('اكتب نص الإشعار');return;}
+  const icon=type.split(' ')[0]||'🔔';
+  ST.notifLog.unshift({type,text:txt,ts:new Date().toLocaleString('ar')});
+  document.getElementById('notif-text').value='';
+  renderNotifLog();
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    _fbDb.collection('notifications').add({icon,title:type,text:txt,ts:firebase.firestore.FieldValue.serverTimestamp()})
+      .then(()=>showToast('📤 تم الإرسال لكل الطلاب فوراً!'))
+      .catch(()=>showToast('⚠️ تعذّرت المزامنة السحابية — تحقّق من الاتصال'));
+  }else{
+    showToast('📤 تم الحفظ محلياً — Firebase غير متاح فلن يصل الطلاب على أجهزة أخرى');
+  }
+  playSound('win');
+}
 function renderNotifLog(){document.getElementById('notif-log').innerHTML=ST.notifLog.length?ST.notifLog.map(n=>`<div class="card" style="padding:10px 12px;margin-bottom:8px"><div style="font-size:10px;color:var(--p);font-weight:700;margin-bottom:2px">${n.type}</div><div style="font-size:12px;color:var(--tx)">${n.text}</div><div style="font-size:9px;color:var(--tx3);margin-top:3px">🕒 ${n.ts}</div></div>`).join(''):`<div style="text-align:center;padding:22px;color:var(--tx2)"><div style="font-size:30px;margin-bottom:6px">📭</div><p style="font-size:11px">لم ترسل إشعارات بعد</p></div>`;}
 function renderSchema(){document.getElementById('schema-tables').innerHTML=DB_TABLES.map(t=>`<div style="background:var(--sur);border-radius:8px;padding:9px;border:1px solid var(--bd)"><div style="font-size:11px;font-weight:700;color:${t.c};margin-bottom:3px">${t.n}</div><div style="font-size:9.5px;color:var(--tx2);font-family:monospace;line-height:1.7">${t.f}</div></div>`).join('');}
 
@@ -7386,6 +7507,10 @@ function renderFeedbackList(){
     const session={email,name,branch,sub:'free',ts:Date.now()};
     localStorage.setItem(SESSION_KEY,JSON.stringify(session));
     _applySession(session);
+    // Sync student profile to Firestore so teachers on any device can see real registered students
+    if(typeof _fbReady!=='undefined'&&_fbReady){
+      try{_fbDb.collection('students').doc(email).set({name,branch,sub:'free',coins:100,createdAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}
+    }
     closeAuth();
     _showToast('أهلاً بك '+name+' 🎉 تم إنشاء حسابك');
   };
