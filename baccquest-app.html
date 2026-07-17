@@ -5313,6 +5313,22 @@ function pzShowStages(subjId,uid){
 
 function _pzLockMsg(){_showToast('🔒 أكمل المرحلة السابقة أولاً!');}
 
+/* ══ FREEMIUM GATING — free tier: 5 solved questions per subject ══ */
+const FREE_QUESTION_CAP=5;
+function _isSubscribed(){return(localStorage.getItem('bq_sub_status')||'free')!=='free';}
+function _freeSolvedKey(subjId){return'bq_free_solved_'+subjId;}
+function _freeSolvedCount(subjId){return parseInt(localStorage.getItem(_freeSolvedKey(subjId))||'0');}
+function _bumpFreeSolved(subjId){if(_isSubscribed())return;localStorage.setItem(_freeSolvedKey(subjId),(_freeSolvedCount(subjId)+1).toString());}
+function _renderUpgradeGate(subjLabel,subjIcon){
+  const view=document.getElementById('pz-view');if(!view)return;
+  view.innerHTML=`<div class="pz-q-card" style="text-align:center;padding:28px 16px">
+    <div style="font-size:48px;margin-bottom:10px">🔒</div>
+    <div style="font-size:15px;font-weight:800;color:var(--tx);margin-bottom:6px">استنفدت أسئلتك المجانية في ${subjIcon} ${subjLabel}</div>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:16px">الخطة المجانية تتيح ${FREE_QUESTION_CAP} أسئلة لكل مادة. اشترك في Plus لحل أسئلة غير محدودة في كل المواد!</div>
+    <button class="pz-btn pz-btn-p" style="width:100%;margin-bottom:8px" onclick="openPayment()">🚀 الترقية إلى Plus</button>
+    <button class="pz-btn pz-btn-s" style="width:100%" onclick="pzShowSubjects()">← عودة للمواد</button>
+  </div>`;
+}
 function pzStartStage(subjId,uid,sid){
   const subj=PUZZLE_DB[subjId];
   const unit=subj?.units.find(u=>u.id===uid);
@@ -5323,6 +5339,7 @@ function pzStartStage(subjId,uid,sid){
 }
 
 function _pzRenderQuestion(subj,unit,stg){
+  if(!_isSubscribed()&&_freeSolvedCount(PZ.subj)>=FREE_QUESTION_CAP){_renderUpgradeGate(subj.label,subj.icon);return;}
   const view=document.getElementById('pz-view');
   const q=stg.questions[PZ.qIdx];
   const pct=Math.round((PZ.qIdx/stg.questions.length)*100);
@@ -5403,6 +5420,7 @@ function pzConfirmMCQ(){
   fb.className='pz-feedback '+(ok?'ok':'bad');
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
   document.getElementById('pz-confirm-btn').style.display='none';
   setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
 }
@@ -5420,6 +5438,7 @@ function pzConfirmFill(){
   fb.className='pz-feedback '+(ok?'ok':'bad');
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ الإجابة: "'+q.correct+'" — '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
   setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
 }
 
@@ -5438,6 +5457,7 @@ function pzFlipMC(el,totalPairs){
     document.getElementById('pz-mscore').textContent=`✅ ${PZ.mMatched.length}/${totalPairs} أزواج`;
     if(PZ.mMatched.length===parseInt(totalPairs)){
       PZ.score+=100;
+      _bumpFreeSolved(PZ.subj);
       const fb=document.getElementById('pz-fb');
       fb.className='pz-feedback ok';fb.textContent='🎉 جميع الأزواج صحيحة!';
       const subj=PUZZLE_DB[PZ.subj];
@@ -5846,6 +5866,11 @@ function fmth(txt){return(txt||'').replace(/\*\*([^*]+)\*\*/g,'<span class="math
 
 let QBA={q:null,answered:false,selOpt:null,mSel2:null,mMatched2:[]};
 function openQBModal(qId){const q=QUIZ_BANK.find(x=>x.id===qId);if(!q)return;QBA={q,answered:false,selOpt:null,mSel2:null,mMatched2:[]};const tc=TC[q.type]||TC.mcq;let body='';
+  if(!_isSubscribed()){
+    document.getElementById('qb-modal-content').innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:17px">${q.icon}</span><button onclick="document.getElementById('qb-modal').classList.remove('on')" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--tx2)">✕</button></div><div style="font-size:13px;font-weight:700;line-height:1.65;color:var(--tx);margin-bottom:14px;filter:blur(2.5px);user-select:none;pointer-events:none">${fmth(q.text)}</div><div style="text-align:center;padding:12px 6px"><div style="font-size:36px;margin-bottom:8px">🔒</div><div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:6px">بنك الاختبارات حصري لمشتركي Plus</div><div style="font-size:11px;color:var(--tx2);margin-bottom:14px;line-height:1.6">يمكنك تصفّح الأسئلة، لكن حلّها يتطلب اشتراكاً نشطاً</div><button class="btn-p" style="width:100%" onclick="document.getElementById('qb-modal').classList.remove('on');openPayment();">🚀 الترقية إلى Plus</button></div>`;
+    document.getElementById('qb-modal').classList.add('on');
+    return;
+  }
   if(q.type==='mcq'){body=`<div class="opts" id="qm-opts">${q.options.map((o,i)=>`<div class="opt" onclick="qmPickOpt(this,${i})"><div class="opt-ltr">${o.l}</div>${o.t}</div>`).join('')}</div><div class="fb" id="qm-fb"></div><div id="qm-ref-wrap" style="display:none"><button class="ref-btn" style="display:block;margin-top:6px">📹 شاهد الشرح</button></div><div class="row-btns" style="margin-top:9px"><button class="btn-p" onclick="qmCheckMCQ()" style="flex:1;margin-bottom:0">تأكيد</button></div>`;}
   else if(q.type==='fill'){body=`<input class="store-srch" id="qm-fill" placeholder="إجابتك..." style="margin-bottom:8px"><div class="fb" id="qm-fb"></div><button class="btn-p" onclick="qmCheckFill('${q.correctAnswer||''}')" style="width:100%;margin-bottom:0">تأكيد</button>`;}
   else if(q.type==='match'){const sh=[...q.pairs.flatMap(p=>[{id:'L'+p.l,text:p.l,pair:p.l,side:'L'},{id:'R'+p.l,text:p.r,pair:p.l,side:'R'}])].sort(()=>Math.random()-.5);body=`<div class="match-grid" id="qm-match">${sh.map(c=>`<div class="mc" id="mc3-${c.id}" data-id="${c.id}" data-pair="${c.pair}" data-side="${c.side}" onclick="qmFlip(this)">?</div>`).join('')}</div><div class="fb" id="qm-fb"></div><div id="qm-mscore" style="text-align:center;font-size:11px;color:var(--tx2);margin-bottom:6px"></div>`;}
@@ -5880,7 +5905,18 @@ function _bumpAiSessionCounter(){
     try{_fbDb.collection('stats').doc('ai_sessions_'+today).set({count:firebase.firestore.FieldValue.increment(1),date:today},{merge:true});}catch(e){}
   }
 }
-function sendMsg(){const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt||ST.aiTyping)return;inp.value='';inp.style.height='auto';addUserMsg(txt);_bumpAiSessionCounter();ST.aiTyping=true;document.getElementById('send-btn').disabled=true;showTypingInd();
+const FREE_AI_DAILY_CAP=10;
+function _freeAiMsgKey(){return'bq_free_ai_msgs_'+new Date().toISOString().slice(0,10);}
+function _freeAiMsgCount(){return parseInt(localStorage.getItem(_freeAiMsgKey())||'0');}
+function _bumpFreeAiMsg(){if(_isSubscribed())return;localStorage.setItem(_freeAiMsgKey(),(_freeAiMsgCount()+1).toString());}
+function sendMsg(){
+  const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt||ST.aiTyping)return;
+  if(!_isSubscribed()&&_freeAiMsgCount()>=FREE_AI_DAILY_CAP){
+    inp.value='';inp.style.height='auto';addUserMsg(txt);
+    addBotMsg(`🔒 استنفدت رسائلك المجانية اليوم (${FREE_AI_DAILY_CAP} رسائل/يوم). اشترك في Plus لمحادثة غير محدودة مع رفيق! <button class="btn-p" style="margin-top:8px;width:100%" onclick="openPayment()">🚀 الترقية إلى Plus</button>`,[]);
+    return;
+  }
+  inp.value='';inp.style.height='auto';addUserMsg(txt);_bumpFreeAiMsg();_bumpAiSessionCounter();ST.aiTyping=true;document.getElementById('send-btn').disabled=true;showTypingInd();
   const subj=SUBJECTS_AI.find(s=>s.id===ST.currentSubj)||SUBJECTS_AI[0];
   const sys=`أنت "رفيق"، قلم ذكي ومعلم سقراطي لطلاب بكالوريا الجزائر. المادة الحالية: ${subj.label}. السياق: ${subj.ctx}. قواعدك: 1) لا تُعطِ الحل مباشرة بل اسأل عن الخطوة الأولى 2) إذا أصاب الطالب شجّعه وانتقل للتالية 3) إذا أخطأ لمّح له دون إفشاء الحل 4) ردودك موجزة وباللغة العربية (أقل من 120 كلمة) 5) استخدم **نص** للمعادلات الرياضية 6) كن محفّزاً ومرحاً.`;
   const msgs=[];document.querySelectorAll('#messages .bubble').forEach(b=>{msgs.push({role:b.classList.contains('user')?'user':'assistant',content:b.innerText.trim().substring(0,300)});});
@@ -6806,7 +6842,7 @@ function addCoins(n){ST.coins+=n;const c=document.getElementById('coins');if(c)c
 
 // ══ PAYMENT GATEWAY ══════════════════════════════════════════════════════════
 const PLANS=[
-  {id:'free',  label:'مجاني',  price:0,    period:'',          features:['الوصول الأساسي','5 أسئلة/يوم','رفيق (10 رسائل/يوم)'],color:'#6B7280',badge:'مجاني'},
+  {id:'free',  label:'مجاني',  price:0,    period:'',          features:['الوصول الأساسي','5 أسئلة لكل مادة','رفيق (10 رسائل/يوم)'],color:'#6B7280',badge:'مجاني'},
   {id:'plus',  label:'Plus',   price:900,  period:'شهرياً',    features:['أسئلة غير محدودة','رفيق غير محدود','فيديوهات الشرح','بنك الاختبارات'],color:'#6C3CE1',badge:'الأكثر شعبية'},
   {id:'pro',   label:'Pro',    price:7200, period:'سنوياً',    features:['كل مزايا Plus','تقارير تقدم مفصّلة','دعم الأستاذ المباشر','شهادة إتمام'],color:'#10B981',badge:'الأفضل قيمة'},
 ];
