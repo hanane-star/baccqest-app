@@ -5704,8 +5704,11 @@ function _rafiqName(){return(localStorage.getItem('bq_gender')||'boy')==='girl'?
 function _rafiqIsGirl(){return(localStorage.getItem('bq_gender')||'boy')==='girl';}
 function _refreshRafiqAvatars(){
   const g=_rafiqIsGirl();
+  const img=`<img src="./${g?'luna-fairy.png':'azur-dragon.png'}" alt="${_rafiqName()}" style="width:1em;height:1em;object-fit:contain;vertical-align:middle;display:inline-block">`;
   document.querySelectorAll('.rafiq-avatar').forEach(el=>{
-    el.textContent=_rafiqEmoji();
+    const burst=el.querySelector('.rafiq-burst');
+    el.innerHTML=img;
+    if(burst)el.appendChild(burst);
     el.classList.toggle('rafiq-girl',g);el.classList.toggle('rafiq-boy',!g);
   });
   document.querySelectorAll('.rafiq-name-tag').forEach(el=>{
