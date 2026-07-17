@@ -128,6 +128,36 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
     rgba(10,40,15,.70) 100%
   )
 }
+#s-role::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:52%;z-index:0;
+  background:linear-gradient(to bottom,#0a0518 0%,#0a0518 78%,transparent 100%)
+}
+.role-bottom-veil{
+  position:absolute;left:0;right:0;bottom:0;height:42%;z-index:0;pointer-events:none;
+  background:linear-gradient(to top,#0a0518 0%,#0a0518 68%,transparent 100%)
+}
+.role-top-logo{
+  position:absolute;top:5%;left:50%;transform:translateX(-50%);z-index:2;
+  font-size:28px;font-weight:900;letter-spacing:.5px;
+  padding:8px 26px;border-radius:999px;
+  background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.16);
+  text-shadow:0 2px 14px rgba(0,0,0,.5)
+}
+.role-center{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
+.role-enter-btn{
+  position:relative;z-index:1;margin-top:22px;
+  background:rgba(255,255,255,.10);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1.5px solid rgba(255,255,255,.4);border-radius:999px;
+  padding:15px 34px;font-size:15px;font-weight:800;color:#fff;cursor:pointer;
+  box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 24px rgba(167,139,250,.25),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:all .3s;letter-spacing:.3px
+}
+.role-enter-btn:hover{
+  background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.7);
+  transform:translateY(-3px);
+  box-shadow:0 14px 40px rgba(0,0,0,.35),0 0 36px rgba(167,139,250,.45),inset 0 1px 0 rgba(255,255,255,.3)
+}
 /* ── LIBRARY HOTSPOTS ── */
 .lib-hs{
   position:absolute;z-index:1;border-radius:16px;cursor:pointer;
@@ -2768,13 +2798,12 @@ hr{border-color:rgba(212,163,97,.2)!important}
   <div class="blob" style="width:140px;height:140px;background:#EDE9FF;top:8%;left:4%;--d:8s"></div>
   <div class="blob" style="width:100px;height:100px;background:#CFFAFE;top:22%;left:58%;--d:10s;--dl:1.5s"></div>
   <div class="blob" style="width:180px;height:180px;background:#D1FAE5;top:58%;left:15%;--d:7s;--dl:.5s"></div>
-  <div class="rafiq-avatar" style="font-size:70px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));margin-bottom:12px;position:relative;z-index:1">👦</div>
-  <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,.92);margin-bottom:5px;position:relative;z-index:1;text-shadow:0 1px 6px rgba(0,0,0,.4)">مرحباً، أنا رفيق — قلمك الذكي 👋</p>
-  <h1 style="font-size:36px;font-weight:900;margin-bottom:6px;position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.3)" class="grad-txt">funbac</h1>
-  <p id="daily-quote" style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:38px;line-height:1.6;position:relative;z-index:1;text-shadow:0 1px 4px rgba(0,0,0,.3);max-width:280px">منصتك التفاعلية للنجاح في البكالوريا 🇩🇿</p>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1">
-    <div class="role-card" onclick="goStudent()" style="min-width:220px"><div style="font-size:44px;margin-bottom:9px">👋</div><div class="grad-txt" style="font-size:16px;font-weight:800" id="role-student-lbl">ابدأ رحلتك الآن 🚀</div><div style="font-size:11px;color:var(--tx2);margin-top:3px" id="role-student-sub">اضغط للدخول مع رفيق</div></div>
+  <div class="role-top-logo grad-txt">funbac</div>
+  <div class="role-center">
+    <div class="rafiq-avatar" style="font-size:84px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));position:relative">👦</div>
+    <button class="role-enter-btn" onclick="goStudent()" id="role-student-lbl">ابدأ رحلتك الآن 🚀</button>
   </div>
+  <div class="role-bottom-veil"></div>
 </div>
 
 <!-- TEACHER AUTH -->
