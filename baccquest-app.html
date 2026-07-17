@@ -1159,6 +1159,17 @@ select.finput{appearance:none;cursor:pointer}
 .cc-rafiq{background:var(--pl);border-radius:10px;padding:8px 11px;font-size:11px;color:var(--p);font-weight:600;margin:8px 0;line-height:1.5}
 .cc-reward{background:var(--al);border:1.5px solid rgba(245,158,11,.35);border-radius:10px;padding:8px;font-size:13px;font-weight:800;color:var(--a);margin-bottom:13px}
 
+/* ── FREE-ROAMING CONGRATS MASCOT ── */
+.cc-free{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:left 2.6s cubic-bezier(.45,0,.2,1),top 2.6s cubic-bezier(.45,0,.2,1);z-index:2}
+.cc-free .cc-av{font-size:96px;margin-bottom:0;animation:ccBob 2.2s ease-in-out infinite}
+@keyframes ccBob{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-14px) rotate(5deg)}}
+.cc-bubble{position:relative;background:#fff;color:#241a35;border-radius:16px;padding:9px 14px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.4);margin-bottom:10px;max-width:60vw;white-space:nowrap;animation:chatPop .45s cubic-bezier(.34,1.56,.64,1)}
+.cc-bubble::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:9px solid #fff}
+.cc-bar{position:absolute;left:0;right:0;bottom:26px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 16px;pointer-events:all;z-index:3}
+.cc-title2{font-size:14px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);background:rgba(20,10,30,.55);backdrop-filter:blur(8px);padding:9px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.12)}
+.cc-reward2{background:rgba(245,158,11,.92);border-radius:14px;padding:9px 16px;font-size:13px;font-weight:900;color:#241a35;box-shadow:0 4px 16px rgba(245,158,11,.4)}
+.cc-btn2{border:none;border-radius:14px;padding:11px 22px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#fff;box-shadow:0 6px 18px rgba(139,92,246,.45);cursor:pointer}
+
 /* ── OVERLAYS / TOAST ── */
 .overlay{position:fixed;inset:0;background:rgba(30,27,75,.4);z-index:999;display:none;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}
 .overlay.on{display:flex}
@@ -2495,12 +2506,14 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
 <canvas id="vfx"></canvas>
 <div class="co" id="congrats">
-  <div class="cc">
+  <div class="cc-free" id="cc-free">
+    <div class="cc-bubble" id="cc-bubble"><span id="cc-rafiq">"رفيق فخور بك!"</span></div>
     <div class="cc-av rafiq-avatar">👦</div>
-    <div class="cc-title" id="cc-title">أحسنت! 🎉</div>
-    <div class="cc-rafiq" id="cc-rafiq">"رفيق فخور بك!"</div>
-    <div class="cc-reward" id="cc-reward" style="display:none">🪙 +20</div>
-    <button class="btn-p" onclick="closeCongrats()" style="margin-bottom:0">متابعة ▶</button>
+  </div>
+  <div class="cc-bar">
+    <div class="cc-title2" id="cc-title">أحسنت! 🎉</div>
+    <div class="cc-reward2" id="cc-reward" style="display:none">🪙 +20</div>
+    <button class="cc-btn2" onclick="closeCongrats()">متابعة ▶</button>
   </div>
 </div>
 
@@ -6729,8 +6742,23 @@ const canvas=document.getElementById('vfx'),ctx=canvas.getContext('2d');let part
 const VCOLS=['#6C3CE1','#06B6D4','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444'];
 function launchFW(){canvas.style.display='block';canvas.width=window.innerWidth;canvas.height=window.innerHeight;parts=[];animR=true;for(let i=0;i<160;i++){const a=Math.random()*Math.PI*2,sp=4+Math.random()*8;parts.push({x:canvas.width/2,y:canvas.height/2,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,decay:.011+Math.random()*.017,size:3+Math.random()*5.5,col:VCOLS[Math.floor(Math.random()*VCOLS.length)]});}animFW();}
 function animFW(){if(!animR)return;ctx.clearRect(0,0,canvas.width,canvas.height);parts=parts.filter(p=>p.life>0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=p.decay;ctx.save();ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.shadowBlur=9;ctx.shadowColor=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();ctx.restore();});if(parts.length>0)requestAnimationFrame(animFW);else{animR=false;canvas.style.display='none';}}
-function showCongrats(title,rafiqMsg,coins,fw=true){if(fw)launchFW();document.getElementById('cc-title').textContent=title;let _rm=rafiqMsg.replace('رفيق',_rafiqName());if(_rafiqIsGirl())_rm=_rm.replace('فخور بك','فخورة بكِ');document.getElementById('cc-rafiq').textContent=_rm;const cr=document.getElementById('cc-reward');cr.textContent='🪙 +'+coins+'!';cr.style.display=coins>0?'block':'none';document.getElementById('congrats').classList.add('on');_rafiqBurst(document.querySelector('#congrats .cc-av'));if(coins>0){addCoins(coins);playSound('win');}else if(fw)playSound('win');}
-function closeCongrats(){document.getElementById('congrats').classList.remove('on');}
+function showCongrats(title,rafiqMsg,coins,fw=true){if(fw)launchFW();document.getElementById('cc-title').textContent=title;let _rm=rafiqMsg.replace('رفيق',_rafiqName());if(_rafiqIsGirl())_rm=_rm.replace('فخور بك','فخورة بكِ');document.getElementById('cc-rafiq').textContent=_rm;const cr=document.getElementById('cc-reward');cr.textContent='🪙 +'+coins+'!';cr.style.display=coins>0?'block':'none';document.getElementById('congrats').classList.add('on');_ccStartRoam();_rafiqBurst(document.querySelector('#congrats .cc-av'));if(coins>0){addCoins(coins);playSound('win');}else if(fw)playSound('win');}
+function closeCongrats(){document.getElementById('congrats').classList.remove('on');_ccStopRoam();}
+let _ccRoamTimer=null;
+function _ccStartRoam(){
+  const el=document.getElementById('cc-free');
+  if(!el)return;
+  _ccStopRoam();
+  const move=()=>{
+    const left=12+Math.random()*66;
+    const top=14+Math.random()*38;
+    el.style.left=left+'%';
+    el.style.top=top+'%';
+  };
+  move();
+  _ccRoamTimer=setInterval(move,2600);
+}
+function _ccStopRoam(){if(_ccRoamTimer){clearInterval(_ccRoamTimer);_ccRoamTimer=null;}}
 
 // ══ SOUND ══
 let aC;function getAC(){if(!aC)try{aC=new(window.AudioContext||window.webkitAudioContext)();}catch(_){}return aC;}
