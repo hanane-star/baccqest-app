@@ -6842,7 +6842,7 @@ function _gcSetEmotion(el,emotion){
 }
 function _gcGoHome(el){
   el.classList.remove('gc-focus');
-  el.classList.toggle('gc-home-left',_rafiqIsGirl());
+  el.classList.remove('gc-home-left'); /* both Luna and Azur live on the right */
 }
 function startCompanionAmbient(){
   const el=_gcEl();if(!el)return;
