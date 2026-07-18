@@ -1196,15 +1196,36 @@ select.finput{appearance:none;cursor:pointer}
 .cc-reward2{background:rgba(245,158,11,.92);border-radius:14px;padding:9px 16px;font-size:13px;font-weight:900;color:#241a35;box-shadow:0 4px 16px rgba(245,158,11,.4)}
 .cc-btn2{border:none;border-radius:14px;padding:11px 22px;font-size:13px;font-weight:800;background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#fff;box-shadow:0 6px 18px rgba(139,92,246,.45);cursor:pointer}
 
-/* ── GLOBAL COMPANION — Luna/Azur ambient roam + focus/speech system ── */
+/* ── GLOBAL COMPANION — Luna/Azur: fixed-corner presence + focus/speech + emotions ── */
 .gc-stage{position:fixed;inset:0;z-index:850;pointer-events:none;perspective:1000px;overflow:hidden}
 .gc-wrap{
-  position:absolute;left:50%;top:45%;transform:translate(-50%,-50%) scale(1) translateZ(0);
+  position:absolute;right:2%;bottom:4%;left:auto;top:auto;
+  transform:translate(0,0) scale(1) translateZ(0);
   display:flex;flex-direction:column;align-items:center;pointer-events:none;
-  transition:left 3.2s cubic-bezier(.45,0,.2,1),top 3.2s cubic-bezier(.45,0,.2,1),transform .6s cubic-bezier(.34,1.56,.64,1);
+  transition:left .95s cubic-bezier(.34,1.56,.64,1),right .95s cubic-bezier(.34,1.56,.64,1),
+             top .95s cubic-bezier(.34,1.56,.64,1),bottom .95s cubic-bezier(.34,1.56,.64,1),
+             transform .7s cubic-bezier(.34,1.56,.64,1);
 }
-.gc-wrap .gc-av{font-size:clamp(46px,11vw,72px);animation:ccBob 2.3s ease-in-out infinite;position:relative}
-.gc-wrap.gc-focus{transform:translate(-50%,-50%) scale(1.6) translateZ(60px);transition:left .9s cubic-bezier(.34,1.56,.64,1),top .9s cubic-bezier(.34,1.56,.64,1),transform .7s cubic-bezier(.34,1.56,.64,1);z-index:9600}
+.gc-wrap.gc-home-left{left:2%;right:auto}
+.gc-wrap .gc-av{font-size:clamp(78px,22vw,140px);animation:ccBob 2.3s ease-in-out infinite;position:relative}
+.gc-wrap .gc-av img{display:block;width:1em;height:1em;object-fit:contain;animation:gcWingFlap 1.1s ease-in-out infinite}
+@keyframes gcWingFlap{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.86)}}
+.gc-wrap.gc-focus{
+  left:50%;right:auto;top:36%;bottom:auto;
+  transform:translate(-50%,-50%) scale(1.35) translateZ(60px);
+  transition:left .85s cubic-bezier(.34,1.56,.64,1),top .85s cubic-bezier(.34,1.56,.64,1),transform .7s cubic-bezier(.34,1.56,.64,1);
+  z-index:9600;
+}
+/* ── emotion states (body-language driven — single flat character art, no separate face layers) ── */
+.gc-wrap.gc-emo-joy .gc-av{animation:ccBob .9s ease-in-out infinite,gcHop .5s ease-in-out infinite}
+.gc-wrap.gc-emo-joy .gc-av img{animation-duration:.45s}
+@keyframes gcHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.gc-wrap.gc-emo-sad .gc-av{animation:gcDroop 2.8s ease-in-out infinite}
+.gc-wrap.gc-emo-sad .gc-av img{animation-duration:2.1s;filter:saturate(.55) brightness(.75)}
+@keyframes gcDroop{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(8px) rotate(-16deg)}}
+.gc-wrap.gc-emo-angry .gc-av{animation:gcShake .3s ease-in-out infinite}
+.gc-wrap.gc-emo-angry .gc-av img{animation-duration:.28s;filter:saturate(1.4) brightness(1.15) drop-shadow(0 0 10px rgba(255,80,80,.6))}
+@keyframes gcShake{0%,100%{transform:translateX(0) rotate(0deg)}25%{transform:translateX(-5px) rotate(-4deg)}75%{transform:translateX(5px) rotate(4deg)}}
 .gc-bubble{
   position:relative;background:#fff;color:#241a35;border-radius:16px;padding:9px 14px;font-size:13px;font-weight:800;
   box-shadow:0 8px 24px rgba(0,0,0,.4);margin-bottom:10px;max-width:64vw;text-align:center;
@@ -1214,6 +1235,7 @@ select.finput{appearance:none;cursor:pointer}
 .gc-bubble.on{opacity:1;transform:scale(1) translateY(0);pointer-events:all;animation:gcBubblePop .55s cubic-bezier(.34,1.56,.64,1)}
 @keyframes gcBubblePop{0%{opacity:0;transform:scale(.3) translateY(10px)}60%{opacity:1;transform:scale(1.1) translateY(-4px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 .gc-close{margin-inline-start:8px;border:none;background:rgba(0,0,0,.08);border-radius:8px;padding:2px 8px;font-size:11px;cursor:pointer;color:#241a35}
+@media (max-width:420px){.gc-wrap .gc-av{font-size:clamp(64px,26vw,110px)}}
 
 /* ── OVERLAYS / TOAST ── */
 .overlay{position:fixed;inset:0;background:rgba(30,27,75,.4);z-index:999;display:none;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(5px)}
@@ -4781,9 +4803,11 @@ function updateRafiq(ok){
     mood.textContent=girl?'🌸 فخورة بكِ!':'🔥 واصل!';
     document.querySelectorAll('.rafiq-char').forEach(c=>_rafiqBurst(c));
     playSound('win');
+    if(typeof triggerCharacterMessage==='function')triggerCharacterMessage(girl?'أحسنتِ! أنا فخورة بكِ 💞':'أحسنت! عمل رائع 💪','joy',{autoCloseMs:2600});
   }else{
     msg.textContent=girl?'😟 لونا تنتظرك بلطف...':'😤 أزور ينتظر عودتك...';
     mood.textContent=girl?'💙 تعالي نكمل...':'💙 تعال نكمل...';
+    if(typeof triggerCharacterMessage==='function')triggerCharacterMessage(girl?'لا بأس، حاولي مجدداً 🌸':'لا بأس، حاول مجدداً 💪','sad',{autoCloseMs:2600});
   }
   setTimeout(()=>{msg.innerHTML=`صباح الخير! باقي <strong>${DL}</strong> يوم 💪`;mood.textContent=girl?'✨ على المسار الصحيح!':'🔥 على المسار الصحيح!';},4000);
 }
@@ -6796,40 +6820,45 @@ function showCongrats(title,rafiqMsg,coins,fw=true){
   let _rm=rafiqMsg.replace('رفيق',_rafiqName());if(_rafiqIsGirl())_rm=_rm.replace('فخور بك','فخورة بكِ');
   const cr=document.getElementById('cc-reward');cr.textContent='🪙 +'+coins+'!';cr.style.display=coins>0?'block':'none';
   document.getElementById('congrats').classList.add('on');
-  triggerCharacterMessage(_rm.replace(/^"|"$/g,''));
+  triggerCharacterMessage(_rm.replace(/^"|"$/g,''),'joy');
   _rafiqBurst(document.querySelector('#global-companion .gc-av'));
   if(coins>0){addCoins(coins);playSound('win');}else if(fw)playSound('win');
 }
 function closeCongrats(){document.getElementById('congrats').classList.remove('on');dismissCharacterMessage();}
 
-/* ── GLOBAL COMPANION SYSTEM (Luna/Azur) ── */
-let _gcAmbientTimer=null,_gcFocused=false,_gcAutoTimer=null;
+/* ── GLOBAL COMPANION SYSTEM (Luna/Azur) ──
+   Home position: fixed corner (Azur → bottom-right, Luna → bottom-left).
+   The character only leaves its corner and flies to center when
+   triggerCharacterMessage() is called; it returns home on dismiss.
+   Emotion states (pass as 2nd arg): 'joy' | 'sad' | 'angry' — each drives
+   body-language (bounce/droop/shake) + wing-flap speed + glow, since the
+   character is single flat artwork with no separate face layers to swap. */
+const GC_EMOTIONS=['joy','sad','angry'];
+let _gcFocused=false,_gcAutoTimer=null;
 function _gcEl(){return document.getElementById('global-companion');}
-function startCompanionAmbient(){
-  const el=_gcEl();if(!el||_gcFocused)return;
-  _refreshRafiqAvatars();
-  _stopCompanionAmbientTimer();
-  el.style.display='flex';
-  const move=()=>{
-    if(_gcFocused)return;
-    el.style.left=(10+Math.random()*68)+'%';
-    el.style.top=(16+Math.random()*44)+'%';
-  };
-  move();
-  _gcAmbientTimer=setInterval(move,3400+Math.random()*800);
+function _gcSetEmotion(el,emotion){
+  GC_EMOTIONS.forEach(e=>el.classList.remove('gc-emo-'+e));
+  if(emotion&&GC_EMOTIONS.includes(emotion))el.classList.add('gc-emo-'+emotion);
 }
-function _stopCompanionAmbientTimer(){if(_gcAmbientTimer){clearInterval(_gcAmbientTimer);_gcAmbientTimer=null;}}
-function stopCompanionAmbient(){_stopCompanionAmbientTimer();const el=_gcEl();if(el&&!_gcFocused)el.style.display='none';}
-function triggerCharacterMessage(message,opts){
+function _gcGoHome(el){
+  el.classList.remove('gc-focus');
+  el.classList.toggle('gc-home-left',_rafiqIsGirl());
+}
+function startCompanionAmbient(){
+  const el=_gcEl();if(!el)return;
+  _refreshRafiqAvatars();
+  el.style.display='flex';
+  if(!_gcFocused){_gcSetEmotion(el,null);_gcGoHome(el);}
+}
+function stopCompanionAmbient(){const el=_gcEl();if(el&&!_gcFocused)el.style.display='none';}
+function triggerCharacterMessage(message,emotion,opts){
   opts=opts||{};
   const el=_gcEl();if(!el)return;
   _refreshRafiqAvatars();
   _gcFocused=true;
-  _stopCompanionAmbientTimer();
   el.style.display='flex';
-  el.style.left=opts.left||'50%';
-  el.style.top=opts.top||'40%';
   el.classList.add('gc-focus');
+  _gcSetEmotion(el,emotion||'joy');
   const bubble=document.getElementById('gc-bubble');
   document.getElementById('gc-bubble-text').textContent=message;
   bubble.classList.remove('on');
@@ -6840,8 +6869,9 @@ function triggerCharacterMessage(message,opts){
 function dismissCharacterMessage(){
   clearTimeout(_gcAutoTimer);
   const bubble=document.getElementById('gc-bubble');if(bubble)bubble.classList.remove('on');
-  const el=_gcEl();if(el)el.classList.remove('gc-focus');
+  const el=_gcEl();
   _gcFocused=false;
+  if(el){_gcSetEmotion(el,null);_gcGoHome(el);}
   if(document.getElementById('s-student')?.classList.contains('active'))startCompanionAmbient();
   else stopCompanionAmbient();
 }
