@@ -6904,13 +6904,14 @@ const GC_EMOTIONS=['joy','sad','angry'];
 let _gcFocused=false,_gcAutoTimer=null;
 function _gcEl(){return document.getElementById('global-companion');}
 function _gcImageSrc(emotion){
-  // Luna has dedicated joy/sad artwork; Azur currently only has neutral art
-  // (body-language + color-filter carry the emotion for him — see triggerCharacterMessage docs).
+  // Luna has dedicated joy/sad artwork; Azur currently only has joy artwork
+  // (no sad/angry art yet — body-language + color-filter carry those for him).
   if(_rafiqIsGirl()){
     if(emotion==='joy')return './luna-fairy-joy.png';
     if(emotion==='sad')return './luna-fairy-sad.png';
     return './luna-fairy.png';
   }
+  if(emotion==='joy')return './azur-dragon-joy.png';
   return './azur-dragon.png';
 }
 function _gcSetEmotion(el,emotion){
