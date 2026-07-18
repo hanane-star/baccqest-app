@@ -1245,6 +1245,16 @@ select.finput{appearance:none;cursor:pointer}
   transition:left .85s cubic-bezier(.34,1.56,.64,1),top .85s cubic-bezier(.34,1.56,.64,1),transform .7s cubic-bezier(.34,1.56,.64,1);
   z-index:9600;
 }
+/* docked directly above a quiz question box — left/top set inline (px) by _gcDockAboveEl() */
+.gc-wrap.gc-docked{
+  right:auto;bottom:auto;left:0;top:0;
+  transform:translate(-50%,-100%) scale(1);
+  transition:left .6s ease,top .6s ease,transform .5s cubic-bezier(.34,1.56,.64,1);
+  z-index:820;
+}
+.gc-wrap.gc-docked .gc-av{font-size:clamp(52px,13vw,84px)}
+/* one-shot 360° flip on correct-answer celebration (layers on top of gc-focus) */
+.gc-wrap.gc-spin .gc-av{animation:rafiqFlip .8s cubic-bezier(.34,1.56,.64,1) 1,gcWingFlap .35s ease-in-out infinite!important}
 /* ── emotion states (body-language driven — single flat character art, no separate face layers) ── */
 .gc-wrap.gc-emo-joy .gc-av{animation:ccBob .9s ease-in-out infinite,gcHop .5s ease-in-out infinite}
 .gc-wrap.gc-emo-joy .gc-av img{animation-duration:.45s}
@@ -5401,6 +5411,7 @@ function pzInit(){pzShowSubjects();}
 
 function pzShowSubjects(){
   const view=document.getElementById('pz-view');if(!view)return;
+  if(typeof _gcUndockFromQuiz==='function')_gcUndockFromQuiz();
   PZ.subj=PZ.uid=PZ.sid=null;
   const allowed=_pzSubjectsForBranch();
   // Also include teacher-custom subjects
@@ -5628,11 +5639,15 @@ function _pzRenderQuestion(subj,unit,stg){
     <div class="pz-prog-bar"><div class="pz-prog-fill" style="width:${pct}%"></div></div>
     <div class="pz-prog-lbl"><span>سؤال ${PZ.qIdx+1} / ${stg.questions.length}</span><span>🪙 +${stg.coins} عند الإنهاء</span></div>
   </div>
-  <div class="pz-q-card">
+  <div class="pz-q-card" id="pz-q-card">
     <span class="pz-q-type-tag">${typeLabel}</span>
     <div class="pz-q-text">${fmth(q.text)}</div>
     ${qBody}
   </div>`;
+  if(typeof _gcDockAboveEl==='function'){
+    const card=document.getElementById('pz-q-card');
+    setTimeout(()=>_gcDockAboveEl(card),50);
+  }
 }
 
 function pzPickOpt(el,idx){
@@ -5658,6 +5673,7 @@ function pzConfirmMCQ(){
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
   _bumpFreeSolved(PZ.subj);
+  if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(ok,PZ.subj);
   document.getElementById('pz-confirm-btn').style.display='none';
   setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
 }
@@ -5676,6 +5692,7 @@ function pzConfirmFill(){
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ الإجابة: "'+q.correct+'" — '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
   _bumpFreeSolved(PZ.subj);
+  if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(ok,PZ.subj);
   setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
 }
 
@@ -5695,6 +5712,7 @@ function pzFlipMC(el,totalPairs){
     if(PZ.mMatched.length===parseInt(totalPairs)){
       PZ.score+=100;
       _bumpFreeSolved(PZ.subj);
+      if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(true,PZ.subj);
       const fb=document.getElementById('pz-fb');
       fb.className='pz-feedback ok';fb.textContent='🎉 جميع الأزواج صحيحة!';
       const subj=PUZZLE_DB[PZ.subj];
@@ -6885,9 +6903,21 @@ function closeCongrats(){document.getElementById('congrats').classList.remove('o
 const GC_EMOTIONS=['joy','sad','angry'];
 let _gcFocused=false,_gcAutoTimer=null;
 function _gcEl(){return document.getElementById('global-companion');}
+function _gcImageSrc(emotion){
+  // Luna has dedicated joy/sad artwork; Azur currently only has neutral art
+  // (body-language + color-filter carry the emotion for him — see triggerCharacterMessage docs).
+  if(_rafiqIsGirl()){
+    if(emotion==='joy')return './luna-fairy-joy.png';
+    if(emotion==='sad')return './luna-fairy-sad.png';
+    return './luna-fairy.png';
+  }
+  return './azur-dragon.png';
+}
 function _gcSetEmotion(el,emotion){
   GC_EMOTIONS.forEach(e=>el.classList.remove('gc-emo-'+e));
   if(emotion&&GC_EMOTIONS.includes(emotion))el.classList.add('gc-emo-'+emotion);
+  const img=el.querySelector('.gc-av img');
+  if(img)img.src=_gcImageSrc(emotion);
 }
 function _gcGoHome(el){
   el.classList.remove('gc-focus');
@@ -6920,9 +6950,63 @@ function dismissCharacterMessage(){
   const bubble=document.getElementById('gc-bubble');if(bubble)bubble.classList.remove('on');
   const el=_gcEl();
   _gcFocused=false;
-  if(el){_gcSetEmotion(el,null);_gcGoHome(el);}
+  if(el){
+    _gcSetEmotion(el,null);
+    if(el.classList.contains('gc-docked'))el.classList.remove('gc-focus');
+    else _gcGoHome(el);
+  }
   if(document.getElementById('s-student')?.classList.contains('active'))startCompanionAmbient();
   else stopCompanionAmbient();
+}
+
+/* ── QUIZ-PAGE COMPANION: docks above the question box, reacts to answers ── */
+let _gcQuizDocked=false;
+function _gcDockAboveEl(targetEl){
+  const gc=_gcEl();if(!gc||!targetEl)return;
+  const r=targetEl.getBoundingClientRect();
+  _gcQuizDocked=true;
+  gc.style.display='flex';
+  gc.classList.add('gc-docked');
+  gc.classList.remove('gc-home-left','gc-focus');
+  gc.style.left=Math.round(r.left+r.width/2)+'px';
+  gc.style.top=Math.max(96,Math.round(r.top+window.scrollY-10))+'px';
+  _gcSetEmotion(gc,null);
+}
+function _gcUndockFromQuiz(){
+  _gcQuizDocked=false;
+  const gc=_gcEl();if(!gc)return;
+  gc.classList.remove('gc-docked','gc-focus');
+  _gcSetEmotion(gc,null);
+  _gcGoHome(gc);
+}
+const QUIZ_JOY_PHRASES=['أحسنت! 🎉','ممتاز! ✨','معلم! 👑','جمييييل! 😍','ما هذا يا رائع! 🔥'];
+const QUIZ_SAD_PHRASES=[
+  {text:'لا بأس، سيظهر لك الفيديو الذي سينقذك الآن! 🎬',video:true},
+  {text:'انتظر، سيتحسن المستوى بعد قليل 😉',video:false},
+  {text:'لا تيأس، هذا عادي جداً.. لنتعلم من الخطأ! 💪',video:false}
+];
+/**
+ * Central quiz-answer reaction hook.
+ * @param {boolean} isCorrect - the answer result.
+ * @param {string} [subjKey] - PUZZLE_DB subject key (e.g. PZ.subj), used to look up a teacher video for the "rescue video" wrong-answer branch.
+ */
+function quizCharacterFeedback(isCorrect,subjKey){
+  const gc=_gcEl();if(!gc)return;
+  if(isCorrect){
+    const phrase=QUIZ_JOY_PHRASES[Math.floor(Math.random()*QUIZ_JOY_PHRASES.length)];
+    gc.classList.add('gc-spin');
+    triggerCharacterMessage(phrase,'joy',{autoCloseMs:1700});
+    _rafiqBurst(gc.querySelector('.gc-av'));
+    setTimeout(()=>gc.classList.remove('gc-spin'),800);
+  }else{
+    const pick=QUIZ_SAD_PHRASES[Math.floor(Math.random()*QUIZ_SAD_PHRASES.length)];
+    triggerCharacterMessage(pick.text,'sad',{autoCloseMs:2600});
+    if(pick.video){
+      let vid=null;
+      try{vid=(JSON.parse(localStorage.getItem('bq_tchr_vids')||'[]')).find(v=>v.subject===subjKey);}catch(e){}
+      if(vid&&typeof showVideoModal==='function')setTimeout(()=>showVideoModal(vid.url,vid.title||'فيديو الشرح'),1200);
+    }
+  }
 }
 
 // ══ SOUND ══
