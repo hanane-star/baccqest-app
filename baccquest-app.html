@@ -679,6 +679,11 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   scrollbar-width:thin;scrollbar-color:rgba(190,140,50,.45) rgba(10,4,0,.3);
   font-family:'Amiri','Traditional Arabic',Georgia,serif;
 }
+.feat-box.feat-box-topics{
+  background:
+    linear-gradient(rgba(8,4,16,.72),rgba(8,4,16,.88)),
+    url('./wizard-alchemy-lab.webp') center top/cover no-repeat;
+}
 .feat-box::-webkit-scrollbar{width:5px}
 .feat-box::-webkit-scrollbar-track{background:rgba(10,4,0,.3)}
 .feat-box::-webkit-scrollbar-thumb{background:rgba(190,140,50,.45);border-radius:3px}
@@ -4614,6 +4619,7 @@ async function showFeat(featId){
   }
   const hdr=document.querySelector('.feat-hdr');
   if(hdr)hdr.style.background=`linear-gradient(135deg,${cfg.col}28,rgba(30,12,3,.88))`;
+  document.querySelector('.feat-box')?.classList.toggle('feat-box-topics',featId==='topics');
   document.getElementById('feat-modal').classList.add('on');
 }
 
