@@ -117,7 +117,8 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
 /* ── ROLE SELECT ── */
 #s-role{
   background:url('./kosmic-library.jpg') center top/cover no-repeat;
-  align-items:center;justify-content:center;padding:32px 24px;text-align:center;position:relative;overflow:hidden
+  align-items:center;justify-content:center;padding:32px 24px;text-align:center;position:relative;
+  overflow:hidden;height:100vh;max-height:100vh
 }
 #s-role::before{
   content:'';position:absolute;inset:0;z-index:0;
@@ -129,20 +130,22 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   )
 }
 #s-role::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:52%;z-index:0;
-  background:linear-gradient(to bottom,#0a0518 0%,#0a0518 78%,transparent 100%)
+  content:'';position:absolute;top:0;left:0;right:0;height:58%;z-index:0;
+  background:linear-gradient(to bottom,#0a0518 0%,#0a0518 90%,transparent 100%)
 }
 .role-bottom-veil{
-  position:absolute;left:0;right:0;bottom:0;height:42%;z-index:0;pointer-events:none;
-  background:linear-gradient(to top,#0a0518 0%,#0a0518 68%,transparent 100%)
+  position:absolute;left:0;right:0;top:38%;bottom:0;z-index:0;pointer-events:none;
+  background:linear-gradient(to bottom,transparent 0%,#0a0518 30%,#0a0518 100%)
 }
 .role-top-logo{
-  position:absolute;top:5%;left:50%;transform:translateX(-50%);z-index:2;
-  font-size:28px;font-weight:900;letter-spacing:.5px;
-  padding:8px 26px;border-radius:999px;
-  background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1px solid rgba(255,255,255,.16);
-  text-shadow:0 2px 14px rgba(0,0,0,.5)
+  position:absolute;top:4%;left:50%;transform:translateX(-50%);z-index:2;
+  display:flex;flex-direction:column;align-items:center
+}
+.role-compass-mini{width:92px;height:92px;position:relative;margin:0 auto}
+.role-compass-mini .ms-compass{position:absolute;top:0;left:0;width:220px;height:220px;transform:scale(.418);transform-origin:top left}
+.role-logo-title{
+  margin-top:-4px;font-size:19px;font-weight:900;letter-spacing:2.5px;color:#eaf6ff;
+  text-shadow:0 0 18px rgba(94,234,212,.65),0 2px 10px rgba(0,0,0,.55)
 }
 .role-center{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
 .role-enter-btn{
@@ -151,12 +154,38 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   border:1.5px solid rgba(255,255,255,.4);border-radius:999px;
   padding:15px 34px;font-size:15px;font-weight:800;color:#fff;cursor:pointer;
   box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 24px rgba(167,139,250,.25),inset 0 1px 0 rgba(255,255,255,.25);
-  transition:all .3s;letter-spacing:.3px
+  transition:all .3s;letter-spacing:.3px;
+  animation:roleBtnPulse 2.6s ease-in-out infinite
+}
+@keyframes roleBtnPulse{
+  0%,100%{box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 24px rgba(167,139,250,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+  50%{box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 42px rgba(167,139,250,.6),inset 0 1px 0 rgba(255,255,255,.3)}
 }
 .role-enter-btn:hover{
   background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.7);
   transform:translateY(-3px);
-  box-shadow:0 14px 40px rgba(0,0,0,.35),0 0 36px rgba(167,139,250,.45),inset 0 1px 0 rgba(255,255,255,.3)
+  animation-play-state:paused;
+  box-shadow:0 14px 40px rgba(0,0,0,.35),0 0 48px rgba(167,139,250,.65),inset 0 1px 0 rgba(255,255,255,.3)
+}
+.role-elements-row{position:relative;z-index:1;margin-top:14px;display:flex;gap:11px}
+.role-elem{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  animation:roleElemFloat 2.4s ease-in-out infinite
+}
+.role-elem-fire{background:rgba(249,115,22,.14);border:1.5px solid rgba(249,115,22,.5);box-shadow:0 0 14px rgba(249,115,22,.35)}
+.role-elem-water{background:rgba(56,189,248,.14);border:1.5px solid rgba(56,189,248,.5);box-shadow:0 0 14px rgba(56,189,248,.35);animation-delay:.3s}
+.role-elem-nature{background:rgba(34,197,94,.14);border:1.5px solid rgba(34,197,94,.5);box-shadow:0 0 14px rgba(34,197,94,.35);animation-delay:.6s}
+.role-elem-bolt{background:rgba(234,179,8,.14);border:1.5px solid rgba(234,179,8,.5);box-shadow:0 0 14px rgba(234,179,8,.35);animation-delay:.9s}
+@keyframes roleElemFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (max-height:700px){
+  .role-compass-mini{width:66px;height:66px}
+  .role-compass-mini .ms-compass{transform:scale(.3)}
+  .role-logo-title{font-size:15px}
+  #s-role .rafiq-avatar{font-size:56px!important}
+  .role-enter-btn{margin-top:12px;padding:11px 26px;font-size:13px}
+  .role-elements-row{margin-top:8px}
+  .role-elem{width:34px;height:34px;font-size:16px}
 }
 /* ── LIBRARY HOTSPOTS ── */
 .lib-hs{
@@ -2839,10 +2868,30 @@ hr{border-color:rgba(212,163,97,.2)!important}
   <div class="blob" style="width:140px;height:140px;background:#EDE9FF;top:8%;left:4%;--d:8s"></div>
   <div class="blob" style="width:100px;height:100px;background:#CFFAFE;top:22%;left:58%;--d:10s;--dl:1.5s"></div>
   <div class="blob" style="width:180px;height:180px;background:#D1FAE5;top:58%;left:15%;--d:7s;--dl:.5s"></div>
-  <div class="role-top-logo grad-txt">funbac</div>
+  <div class="role-top-logo">
+    <div class="role-compass-mini">
+      <div class="ms-compass">
+        <div class="ms-ring ms-ring-outer"></div>
+        <div class="ms-ring ms-ring-spin"></div>
+        <div class="ms-star"></div>
+        <div class="ms-portal"></div>
+        <div class="ms-elem ms-elem-fire">🔥</div>
+        <div class="ms-elem ms-elem-water">💧</div>
+        <div class="ms-elem ms-elem-nature">🌿</div>
+        <div class="ms-elem ms-elem-bolt">⚡</div>
+      </div>
+    </div>
+    <div class="role-logo-title">MAGIC BAC</div>
+  </div>
   <div class="role-center">
     <div class="rafiq-avatar" style="font-size:84px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 28px rgba(167,139,250,.55));position:relative">👦</div>
     <button class="role-enter-btn" onclick="goStudent()" id="role-student-lbl">ابدأ رحلتك الآن 🚀</button>
+    <div class="role-elements-row">
+      <div class="role-elem role-elem-fire">🔥</div>
+      <div class="role-elem role-elem-water">💧</div>
+      <div class="role-elem role-elem-nature">🌿</div>
+      <div class="role-elem role-elem-bolt">⚡</div>
+    </div>
   </div>
   <div class="role-bottom-veil"></div>
 </div>
