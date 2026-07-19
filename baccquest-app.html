@@ -4102,15 +4102,28 @@ function realGoTeacher(){
 
 /* ── Subject registry ── */
 const LM_SUBJS={
-  math:{icon:'📐',name:'الرياضيات',   col:'#6C3CE1',wingKey:'الرياضيات',branches:['علوم تجريبية','رياضيات','تقني رياضي','تسيير واقتصاد']},
-  phy: {icon:'⚗️', name:'الفيزياء والكيمياء',col:'#06B6D4',wingKey:'الفيزياء',branches:['علوم تجريبية','رياضيات','تقني رياضي']},
-  nat: {icon:'🌿',name:'علوم الطبيعة',col:'#10B981',wingKey:'علوم الطبيعة',branches:['علوم تجريبية']},
-  arab:{icon:'✍️',name:'اللغة العربية',col:'#EF4444',wingKey:'اللغة العربية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  // ── Common to all 6 branches (per the official weekly-hours table) ──
+  math:{icon:'📐',name:'الرياضيات',   col:'#6C3CE1',wingKey:'الرياضيات',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  arab:{icon:'✍️',name:'اللغة العربية وآدابها',col:'#EF4444',wingKey:'اللغة العربية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  islamic:{icon:'☪️',name:'العلوم الإسلامية',col:'#059669',wingKey:'العلوم الإسلامية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
   hist:{icon:'🗺️',name:'التاريخ والجغرافيا',col:'#F59E0B',wingKey:'التاريخ',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
   phil:{icon:'🦉',name:'الفلسفة',     col:'#8B5CF6',wingKey:'الفلسفة',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
   fr:  {icon:'🇫🇷',name:'اللغة الفرنسية',col:'#EC4899',wingKey:'اللغة الفرنسية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
   en:  {icon:'🇬🇧',name:'اللغة الإنجليزية',col:'#0EA5E9',wingKey:'اللغة الإنجليزية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  // ── Branch-specific ──
+  phy: {icon:'⚗️', name:'العلوم الفيزيائية',col:'#06B6D4',wingKey:'الفيزياء',branches:['علوم تجريبية','رياضيات','تقني رياضي']},
+  nat: {icon:'🌿',name:'علوم الطبيعة والحياة',col:'#10B981',wingKey:'علوم الطبيعة',branches:['علوم تجريبية']},
+  tech:{icon:'⚙️',name:'التكنولوجيا',col:'#64748B',wingKey:'التكنولوجيا',branches:['تقني رياضي']},
+  acct:{icon:'💰',name:'التسيير المحاسبي والمالي',col:'#CA8A04',wingKey:'التسيير',branches:['تسيير واقتصاد']},
+  econ:{icon:'📊',name:'الاقتصاد والمناجمنت',col:'#DB2777',wingKey:'الاقتصاد',branches:['تسيير واقتصاد']},
+  law: {icon:'⚖️',name:'القانون',col:'#7C3AED',wingKey:'القانون',branches:['تسيير واقتصاد']},
 };
+// Technology specialization display name for تقني رياضي, based on the student's chosen sub-branch
+function _techSubjLabel(){
+  const sb=typeof ST!=='undefined'?ST.subBranch:'';
+  const map={'هندسة مدنية':'تكنولوجيا (هندسة مدنية)','هندسة كهربائية':'تكنولوجيا (هندسة كهربائية)','هندسة ميكانيكية':'تكنولوجيا (هندسة ميكانيكية)','هندسة طرائق':'تكنولوجيا (هندسة طرائق)'};
+  return map[sb]||'التكنولوجيا';
+}
 function _mySubjBranch(){return typeof ST!=='undefined'&&ST.branch?ST.branch:null;}
 function _subjAllowedForMyBranch(subjBranches){const b=_mySubjBranch();return !b||!subjBranches||subjBranches.includes(b);}
 const LM_ANIMALS=[['🦁','🦓'],['🐻','🐼'],['🐘','🐯'],['🐒','🐦'],['🦏','🦊']];
@@ -4347,9 +4360,10 @@ const FEAT_DATA={
       const subjs=Object.entries(LM_SUBJS).filter(([id,s])=>_subjAllowedForMyBranch(s.branches));
       return `<div class="feat-grid">${subjs.map(([id,s])=>{
         const p=loadUserProgress(_libState.userId,id);
+        const label=id==='tech'?_techSubjLabel():s.name;
         return `<div class="feat-item" onclick="closeFeat();openLevelModal('${id}')">
           <div class="feat-item-ico">${s.icon}</div>
-          <div class="feat-item-lbl">${s.name}</div>
+          <div class="feat-item-lbl">${label}</div>
           <div class="feat-item-sub">${p.totalCompleted}/${LM_TOTAL} مستوى</div>
         </div>`;
       }).join('')}</div>`;
