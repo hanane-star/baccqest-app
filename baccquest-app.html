@@ -3435,8 +3435,10 @@ hr{border-color:rgba(212,163,97,.2)!important}
       </div>
     </div>
     <div class="t-pane" id="tp-students">
-      <div class="sec-title">👥 تقدم الطلاب</div>
-      <div style="background:var(--sur);border-radius:13px;border:1.5px solid var(--bd);overflow:hidden;margin-bottom:13px;overflow-x:auto"><table class="prog-table"><thead><tr><th>الطالب</th><th>الشعبة</th><th>الاشتراك</th><th>🪙</th><th>الانضمام</th></tr></thead><tbody id="students-tbody"></tbody></table></div>
+      <div class="sec-title">👥 إجمالي الطلاب المسجّلين</div>
+      <div id="students-summary" style="background:var(--sur);border-radius:13px;border:1.5px solid var(--bd);padding:16px;margin-bottom:13px;text-align:center">
+        <div style="color:var(--tx2);font-size:11px">جاري التحميل...</div>
+      </div>
       <div class="sec-title">🆕 أحدث الأسئلة المنشورة</div>
       <div id="error-qs"></div>
     </div>
@@ -6717,13 +6719,17 @@ function _realStudentsLocal(){
   return Object.entries(users).map(([email,u])=>({email,name:u.name||'—',branch:u.branch||'—',sub:u.sub||'free',coins:u.coins||0,created:u.created||null}));
 }
 function _renderStudentsTable(list){
-  const tbody=document.getElementById('students-tbody');if(!tbody)return;
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--tx2);padding:16px;font-size:11px">لا يوجد طلاب مسجّلون بعد على هذا المتصفح/الحساب</td></tr>`;return;}
-  tbody.innerHTML=list.map(s=>{
-    const joined=s.created?new Date(s.created.seconds?s.created.seconds*1000:s.created).toLocaleDateString('ar'):'—';
-    const subLbl=s.sub==='pro'?'Pro':s.sub==='plus'?'Plus':'مجاني';
-    return `<tr><td><strong>${s.name}</strong></td><td>${s.branch}</td><td><span class="ppct">${subLbl}</span></td><td style="font-weight:700;color:var(--a)">🪙${s.coins}</td><td style="font-size:10px;color:var(--tx2)">${joined}</td></tr>`;
-  }).join('');
+  // Privacy: teacher-facing view shows only an aggregate count, never names/emails/branches (owner-only, see openOwnerDash)
+  const el=document.getElementById('students-summary');if(!el)return;
+  if(!list.length){el.innerHTML=`<div style="color:var(--tx2);font-size:11px">لا يوجد طلاب مسجّلون بعد</div>`;return;}
+  const bySub={free:0,plus:0,pro:0};
+  list.forEach(s=>{bySub[s.sub||'free']=(bySub[s.sub||'free']||0)+1;});
+  el.innerHTML=`
+    <div style="font-size:38px;font-weight:900;color:var(--p)">${list.length}</div>
+    <div style="display:flex;gap:10px;justify-content:center;font-size:11px;color:var(--tx2);margin-top:6px">
+      <span>🆓 مجاني: ${bySub.free||0}</span><span>⭐ Plus: ${bySub.plus||0}</span><span>💎 Pro: ${bySub.pro||0}</span>
+    </div>
+    <div style="font-size:10px;color:var(--tx2);margin-top:10px">🔒 بيانات الطلاب الشخصية محجوبة عن حساب الأستاذ لحماية الخصوصية</div>`;
 }
 function _renderRecentQuestions(){
   const el=document.getElementById('error-qs');if(!el)return;
