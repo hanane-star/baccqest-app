@@ -233,7 +233,7 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
 .lib-scene{
   position:relative;overflow:hidden;
   height:100vh;width:100%;flex-shrink:0;
-  background:#0a1030 url('./kosmic-library.jpg') center center/cover no-repeat;
+  background:#0a1030 url('./wizard-alchemy-lab.webp') center center/cover no-repeat;
 }
 /* vignette edges — improves hotspot readability */
 .lib-scene::after{
@@ -678,11 +678,6 @@ input,textarea,select,button{font-family:inherit}button{cursor:pointer}
   animation:pop .32s cubic-bezier(.34,1.56,.64,1);
   scrollbar-width:thin;scrollbar-color:rgba(190,140,50,.45) rgba(10,4,0,.3);
   font-family:'Amiri','Traditional Arabic',Georgia,serif;
-}
-.feat-box.feat-box-topics{
-  background:
-    linear-gradient(rgba(8,4,16,.72),rgba(8,4,16,.88)),
-    url('./wizard-alchemy-lab.webp') center top/cover no-repeat;
 }
 .feat-box::-webkit-scrollbar{width:5px}
 .feat-box::-webkit-scrollbar-track{background:rgba(10,4,0,.3)}
@@ -1898,15 +1893,6 @@ select.finput{appearance:none;cursor:pointer}
 #sp-ai,#sp-social,#sp-achv,#sp-sched,#sp-notif,#sp-explore{
   background:transparent!important;
 }
-/* subjects list (puzzles/quiz) — wizard alchemy lab backdrop */
-#sp-quiz{
-  background:
-    linear-gradient(rgba(8,4,16,.74),rgba(8,4,16,.86)),
-    url('./wizard-alchemy-lab.webp') center top/cover no-repeat!important;
-  border-radius:16px;
-  padding:12px!important;
-}
-
 /* ── SECTION TITLE ── */
 .sec-title{color:var(--tx)!important}
 .sec-title::before{background:linear-gradient(90deg,#D97706,#F59E0B)!important}
@@ -4619,7 +4605,6 @@ async function showFeat(featId){
   }
   const hdr=document.querySelector('.feat-hdr');
   if(hdr)hdr.style.background=`linear-gradient(135deg,${cfg.col}28,rgba(30,12,3,.88))`;
-  document.querySelector('.feat-box')?.classList.toggle('feat-box-topics',featId==='topics');
   document.getElementById('feat-modal').classList.add('on');
 }
 
