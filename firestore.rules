@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Students (profile, branch, coins, subscription tier) ──
+    match /students/{email} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['name','branch','sub','coins'])
+        && request.resource.data.name is string
+        && request.resource.data.branch is string
+        && request.resource.data.sub in ['free','plus','pro']
+        && request.resource.data.coins is number;
+      allow delete: if true; // TODO: restrict to admin once Firebase Auth + custom claims ship
+    }
+
+    // ── Teacher-published questions ──
+    match /questions/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['text','subject','type'])
+        && request.resource.data.text is string
+        && request.resource.data.subject is string
+        && request.resource.data.text.size() < 2000;
+      allow delete: if true; // TODO: restrict to the publishing teacher once Auth ships
+    }
+
+    // ── Teacher explainer videos ──
+    match /teacher_videos/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['title','url'])
+        && request.resource.data.title is string
+        && request.resource.data.url is string
+        && request.resource.data.title.size() < 200;
+      allow delete: if true; // TODO: restrict to the publishing teacher once Auth ships
+    }
+
+    // ── Teacher-uploaded exam PDFs ──
+    match /examPdfs/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['title','url'])
+        && request.resource.data.title is string
+        && request.resource.data.url is string;
+      allow delete: if true; // TODO: restrict to the publishing teacher once Auth ships
+    }
+
+    // ── Teacher → student notifications ──
+    match /notifications/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['text'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() < 500;
+      allow update, delete: if false; // notifications are append-only, never edited/removed by clients
+    }
+
+    // ── Aggregate counters (ai_sessions_<date>, answers, orient_branches) ──
+    // No personal data lives here — safe to keep permissive until Auth ships.
+    match /stats/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Deny anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
