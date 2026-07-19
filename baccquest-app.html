@@ -1774,6 +1774,14 @@ select.finput{appearance:none;cursor:pointer}
 .auth-err{font-size:11px;color:#EF9090;margin-top:9px;text-align:center;min-height:15px}
 .auth-footer{text-align:center;margin-top:12px;font-size:11px;color:rgba(200,170,100,.5)}
 .auth-footer a{color:rgba(230,195,110,.75);cursor:pointer;text-decoration:underline}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:rgba(200,170,100,.4);font-size:11px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(190,140,50,.25)}
+.auth-alt-btn{width:100%;padding:11px;margin-top:8px;background:rgba(255,220,120,.06);border:1px solid rgba(190,140,50,.3);border-radius:9px;color:#E8D9B8;font-family:'Amiri',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.auth-alt-btn:hover{background:rgba(255,220,120,.12);border-color:rgba(220,170,60,.5)}
+.auth-fb-btn{color:#8FB8F0;border-color:rgba(90,130,200,.35)}
+.auth-fb-btn:hover{background:rgba(90,130,200,.14);border-color:rgba(120,160,220,.55)}
+.auth-phone-box{margin-top:10px;padding:12px;background:rgba(0,0,0,.18);border-radius:10px;border:1px solid rgba(190,140,50,.2)}
+.auth-verify-gate{padding:6px 2px}
 .auth-close-btn{position:absolute;top:12px;left:14px;background:rgba(20,8,2,.7);border:1px solid rgba(190,140,50,.3);border-radius:50%;width:28px;height:28px;color:#C8B890;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .auth-close-btn:hover{background:rgba(200,50,30,.3);color:#FFC9C9}
 /* User avatar chip in HUD when logged in */
@@ -2596,6 +2604,7 @@ hr{border-color:rgba(212,163,97,.2)!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <!-- MAGIC BAC — animated splash / loading screen -->
 <div class="magic-splash" id="magic-splash" onclick="dismissMagicSplash()">
@@ -6751,12 +6760,13 @@ const firebaseConfig={
   appId:"1:222997505368:web:0caaceafceaa09b0ecf12d",
   measurementId:"G-ZCTMNFF66J"
 };
-let _fbDb=null,_fbStorage=null,_fbReady=false;
+let _fbDb=null,_fbStorage=null,_fbAuth=null,_fbReady=false;
 try{
   if(typeof firebase!=='undefined'){
     firebase.initializeApp(firebaseConfig);
     _fbDb=firebase.firestore();
     _fbStorage=firebase.storage();
+    _fbAuth=firebase.auth();
     _fbReady=true;
   }
 }catch(e){console.warn('Firebase init failed — falling back to local-only mode',e);}
@@ -8000,17 +8010,27 @@ function renderFeedbackList(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ① USER AUTH SYSTEM
+   ① USER AUTH SYSTEM — real Firebase Authentication
+   (email/password + verification, phone SMS OTP, Facebook OAuth)
    ═══════════════════════════════════════════════════════════ */
 (function(){
-  const USERS_KEY='bq_users';
-  const SESSION_KEY='bq_session';
+  const USERS_KEY='bq_users';   // local progress-cache mirror only (coins/streak/level), no longer holds passwords
+  const SESSION_KEY='bq_session'; // kept so the rest of the app (leaderboard, dcr, notifications, teacher stats) keeps working unmodified
   function _getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'{}');}catch{return {};}}
   function _saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u));}
   function _getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null');}catch{return null;}}
+  function _fb(){return typeof _fbAuth!=='undefined'&&_fbAuth;}
+
+  let _pendingProfile=null; // {uid,email,name,branch,needsProfile} while a phone/FB signup awaits name+branch
+  let _confirmationResult=null; // active phone OTP confirmation handle
+  let _recaptcha=null;
 
   window.openAuth=function(seg){
     authSeg(seg||'in');
+    document.getElementById('auth-verify-gate').style.display='none';
+    document.getElementById('auth-alt-methods').style.display='block';
+    document.getElementById('auth-footer-reset').style.display='block';
+    document.querySelector('.auth-seg').style.display='flex';
     document.getElementById('auth-ov').classList.add('on');
   };
   window.closeAuth=function(){
@@ -8024,19 +8044,75 @@ function renderFeedbackList(){
     document.getElementById('auth-form-in').classList.toggle('on',s==='in');
     document.getElementById('auth-form-up').classList.toggle('on',s==='up');
   };
+
+  function _showFormsAgain(){
+    document.getElementById('auth-verify-gate').style.display='none';
+    document.getElementById('auth-alt-methods').style.display='block';
+  }
+  function _showVerifyGate(){
+    document.querySelector('.auth-seg').style.display='none';
+    document.getElementById('auth-form-in').classList.remove('on');
+    document.getElementById('auth-form-up').classList.remove('on');
+    document.getElementById('auth-alt-methods').style.display='none';
+    document.getElementById('auth-footer-reset').style.display='none';
+    document.getElementById('auth-verify-gate').style.display='block';
+  }
+
+  // ── finalize a signed-in Firebase user into our `students` collection + local session mirror ──
+  async function _finalizeUser(user,{name,branch}={}){
+    const email=user.email||('user_'+user.uid+'@funbac.local');
+    const finalName=name||user.displayName||'طالب';
+    let finalBranch=branch;
+    if(!finalBranch&&_fbDb){
+      try{const doc=await _fbDb.collection('students').doc(email).get();if(doc.exists)finalBranch=doc.data().branch;}catch(e){}
+    }
+    finalBranch=finalBranch||'علوم';
+    const session={email,name:finalName,branch:finalBranch,sub:'free',uid:user.uid,ts:Date.now()};
+    if(_fbDb){
+      try{
+        const snap=await _fbDb.collection('students').doc(email).get();
+        if(snap.exists){
+          const d=snap.data();session.sub=d.sub||'free';if(d.coins!=null)session.coins=d.coins;
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email},{merge:true}).catch(()=>{});
+        }else{
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,sub:'free',coins:100,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+        }
+      }catch(e){console.warn('students sync failed',e);}
+    }
+    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    const users=_getUsers();
+    if(!users[email])users[email]={name:finalName,branch:finalBranch,sub:session.sub||'free',progress:{},coins:session.coins||100,streak:0,level:1,created:Date.now()};
+    _saveUsers(users);
+    _applySession(session);
+    _showFormsAgain();
+    closeAuth();
+    _showToast('أهلاً بك '+finalName+' 👋');
+  }
+
+  function _needsProfile(user){
+    // phone-only or Facebook users without a stored branch yet need one quick extra step
+    return !!(user.phoneNumber && !user.email);
+  }
+
+  // ── Email + Password ──
   window.authLogin=function(){
     const email=document.getElementById('ain-email').value.trim().toLowerCase();
     const pass=document.getElementById('ain-pass').value;
     const err=document.getElementById('auth-err-in');
+    err.textContent='';
     if(!email||!pass){err.textContent='يرجى ملء جميع الحقول';return;}
-    const users=_getUsers();
-    const u=users[email];
-    if(!u||u.pass!==btoa(pass)){err.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة';return;}
-    const session={email,name:u.name,branch:u.branch,sub:u.sub||'free',ts:Date.now()};
-    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
-    _applySession(session);
-    closeAuth();
-    _showToast('مرحباً '+u.name+' 👋');
+    if(!_fb()){err.textContent='تعذّر الاتصال بخدمة الحساب، حاول لاحقاً';return;}
+    _fbAuth.signInWithEmailAndPassword(email,pass).then(cred=>{
+      if(!cred.user.emailVerified){
+        _pendingProfile={afterVerify:true};
+        _showVerifyGate();
+        return;
+      }
+      _finalizeUser(cred.user);
+    }).catch(e=>{
+      err.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'
+        ?'البريد الإلكتروني أو كلمة السر غير صحيحة':'خطأ: '+e.message;
+    });
   };
   window.authSignup=function(){
     const name=document.getElementById('aup-name').value.trim();
@@ -8044,34 +8120,101 @@ function renderFeedbackList(){
     const pass=document.getElementById('aup-pass').value;
     const branch=document.getElementById('aup-branch').value;
     const err=document.getElementById('auth-err-up');
+    err.textContent='';
     if(!name||!email||!pass){err.textContent='يرجى ملء جميع الحقول';return;}
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='البريد الإلكتروني غير صحيح';return;}
     if(pass.length<8){err.textContent='كلمة السر يجب أن تكون 8 أحرف على الأقل';return;}
-    const users=_getUsers();
-    if(users[email]){err.textContent='هذا البريد الإلكتروني مسجل مسبقاً';return;}
-    users[email]={name,pass:btoa(pass),branch,sub:'free',progress:{},coins:100,streak:0,level:1,created:Date.now()};
-    _saveUsers(users);
-    const session={email,name,branch,sub:'free',ts:Date.now()};
-    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
-    _applySession(session);
-    // Sync student profile to Firestore so teachers on any device can see real registered students
-    if(typeof _fbReady!=='undefined'&&_fbReady){
-      try{_fbDb.collection('students').doc(email).set({name,branch,sub:'free',coins:100,createdAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}
-    }
-    closeAuth();
-    _showToast('أهلاً بك '+name+' 🎉 تم إنشاء حسابك');
+    if(!_fb()){err.textContent='تعذّر الاتصال بخدمة الحساب، حاول لاحقاً';return;}
+    _fbAuth.createUserWithEmailAndPassword(email,pass).then(cred=>{
+      return cred.user.updateProfile({displayName:name}).then(()=>cred.user.sendEmailVerification()).then(()=>{
+        return _fbDb?_fbDb.collection('students').doc(email).set({name,branch,uid:cred.user.uid,email,sub:'free',coins:100,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{}):null;
+      }).then(()=>{
+        _pendingProfile={name,branch,afterVerify:true};
+        _showVerifyGate();
+      });
+    }).catch(e=>{
+      err.textContent=e.code==='auth/email-already-in-use'?'هذا البريد الإلكتروني مسجل مسبقاً'
+        :e.code==='auth/weak-password'?'كلمة السر ضعيفة جداً':'خطأ: '+e.message;
+    });
   };
+  window.authCheckVerified=function(){
+    const err=document.getElementById('auth-err-verify');err.textContent='';
+    const user=_fb()&&_fbAuth.currentUser;
+    if(!user){err.textContent='الرجاء تسجيل الدخول أولاً';return;}
+    user.reload().then(()=>{
+      if(user.emailVerified){_finalizeUser(user,_pendingProfile||{});_pendingProfile=null;}
+      else err.textContent='لم يتم التحقق من البريد بعد — افتحي الرابط المرسل إليك';
+    });
+  };
+  window.authResendVerification=function(){
+    const user=_fb()&&_fbAuth.currentUser;
+    const err=document.getElementById('auth-err-verify');
+    if(!user){err.textContent='الرجاء تسجيل الدخول أولاً';return;}
+    user.sendEmailVerification().then(()=>_showToast('تم إرسال الرابط من جديد 📩')).catch(e=>err.textContent=e.message);
+  };
+  window.authResetPrompt=function(){
+    const email=prompt('أدخل بريدك الإلكتروني لاستعادة كلمة السر:');
+    if(!email)return;
+    if(!_fb()){alert('تعذّر الاتصال بخدمة الحساب، حاول لاحقاً');return;}
+    _fbAuth.sendPasswordResetEmail(email.trim().toLowerCase())
+      .then(()=>alert('تم إرسال رابط استعادة كلمة السر إلى '+email))
+      .catch(()=>alert('لم يتم العثور على حساب بهذا البريد الإلكتروني'));
+  };
+
+  // ── Facebook OAuth ──
+  window.authFacebook=function(){
+    if(!_fb()){_showToast('تعذّر الاتصال بخدمة الحساب');return;}
+    const provider=new firebase.auth.FacebookAuthProvider();
+    provider.addScope('email');
+    _fbAuth.signInWithPopup(provider).then(cred=>{
+      if(_needsProfile(cred.user)){_pendingProfile={name:cred.user.displayName};authTogglePhone(true);}
+      else _finalizeUser(cred.user,{name:cred.user.displayName});
+    }).catch(e=>_showToast('فشل الدخول عبر فيسبوك: '+e.message));
+  };
+
+  // ── Phone SMS OTP ──
+  window.authTogglePhone=function(forceOpen){
+    const box=document.getElementById('auth-phone-box');
+    const open=forceOpen===true||box.style.display==='none';
+    box.style.display=open?'block':'none';
+    if(open&&_fb()&&!_recaptcha){
+      try{_recaptcha=new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'invisible'});}catch(e){}
+    }
+  };
+  window.authSendOtp=function(){
+    const phone=document.getElementById('aph-phone').value.trim();
+    const err=document.getElementById('auth-err-phone');err.textContent='';
+    if(!/^\+\d{8,15}$/.test(phone)){err.textContent='أدخل رقماً بصيغة دولية صحيحة، مثال: +213xxxxxxxxx';return;}
+    if(!_fb()){err.textContent='تعذّر الاتصال بخدمة الحساب';return;}
+    _fbAuth.signInWithPhoneNumber(phone,_recaptcha).then(res=>{
+      _confirmationResult=res;
+      document.getElementById('aph-otp-wrap').style.display='block';
+      document.getElementById('aph-send-btn').style.display='none';
+      _showToast('تم إرسال رمز التحقق عبر SMS 📩');
+    }).catch(e=>{err.textContent='فشل الإرسال: '+e.message;});
+  };
+  window.authVerifyOtp=function(){
+    const code=document.getElementById('aph-code').value.trim();
+    const err=document.getElementById('auth-err-phone');err.textContent='';
+    if(!code||!_confirmationResult){err.textContent='أدخلي رمز التحقق أولاً';return;}
+    _confirmationResult.confirm(code).then(cred=>{
+      if(_needsProfile(cred.user)||!_pendingProfile){
+        // ask for name+branch via a quick prompt-style completion using the signup fields
+        const name=prompt('أدخلي اسمك الكامل:')||'طالب';
+        const branch=document.getElementById('aup-branch')?document.getElementById('aup-branch').value:'علوم';
+        _finalizeUser(cred.user,{name,branch});
+      }else{
+        _finalizeUser(cred.user,_pendingProfile);
+      }
+      _pendingProfile=null;_confirmationResult=null;
+    }).catch(e=>{err.textContent='رمز غير صحيح: '+e.message;});
+  };
+
   window.authLogout=function(){
+    if(_fb())_fbAuth.signOut();
     localStorage.removeItem(SESSION_KEY);
     _applySession(null);
     _showToast('تم الخروج من الحساب');
-  };
-  window.authResetPrompt=function(){
-    const email=prompt('أدخل بريدك الإلكتروني:');
-    if(!email)return;
-    const users=_getUsers();
-    if(users[email.toLowerCase()]){alert('سيتم إرسال رابط الاستعادة إلى '+email);}
-    else{alert('لم يتم العثور على حساب بهذا البريد الإلكتروني');}
   };
   window.hudUserClick=function(){
     const s=_getSession();
@@ -8084,8 +8227,9 @@ function renderFeedbackList(){
     if(s){
       btn.textContent='👤 '+s.name.split(' ')[0];
       const users=_getUsers();const u=users[s.email];
-      if(u&&typeof ST!=='undefined'){
-        if(u.coins)ST.coins=u.coins;if(u.streak)ST.streak=u.streak;if(u.level)ST.level=u.level;
+      if(typeof ST!=='undefined'){
+        if(s.coins!=null)ST.coins=s.coins;else if(u&&u.coins)ST.coins=u.coins;
+        if(u&&u.streak)ST.streak=u.streak;if(u&&u.level)ST.level=u.level;
         ST.branch=s.branch||ST.branch;
         const lc=document.getElementById('lib-coins');const ls=document.getElementById('lib-streak');const ll=document.getElementById('lib-level');
         if(lc)lc.textContent=ST.coins;if(ls)ls.textContent=ST.streak;if(ll)ll.textContent=ST.level;
@@ -8101,10 +8245,21 @@ function renderFeedbackList(){
     u.progress=u.progress||{};
     Object.keys(localStorage).filter(k=>k.startsWith('bq_lv_')).forEach(k=>{u.progress[k]=localStorage.getItem(k);});
     users[s.email]=u;_saveUsers(users);
+    if(_fbDb&&s.email)_fbDb.collection('students').doc(s.email).set({coins:u.coins},{merge:true}).catch(()=>{});
   };
   setInterval(()=>{if(_getSession())authSaveProgress();},120000);
-  document.addEventListener('DOMContentLoaded',()=>{const s=_getSession();if(s)_applySession(s);});
-  setTimeout(()=>{const s=_getSession();if(s)_applySession(s);},400);
+
+  // Real session restore/redirect driven by Firebase's own auth-state, not a guessed localStorage timing
+  if(_fb()){
+    _fbAuth.onAuthStateChanged(user=>{
+      if(!user){ if(_getSession()){localStorage.removeItem(SESSION_KEY);_applySession(null);} return; }
+      const isPasswordUser=user.providerData.some(p=>p.providerId==='password');
+      if(isPasswordUser&&!user.emailVerified)return; // wait for explicit verify-gate action, don't auto-grant
+      const existing=_getSession();
+      if(existing&&existing.uid===user.uid)return; // already applied
+      _finalizeUser(user,{});
+    });
+  }
 })();
 
 function _showToast(msg){
@@ -8670,7 +8825,37 @@ function tchrTogglePdfHidden(id){
         <button class="auth-submit" onclick="authSignup()">إنشاء الحساب 🚀</button>
         <div class="auth-err" id="auth-err-up"></div>
       </div>
-      <div class="auth-footer">مشكلة في الدخول؟ <a onclick="authResetPrompt()">استعادة الحساب</a></div>
+      <!-- EMAIL VERIFICATION GATE -->
+      <div class="auth-verify-gate" id="auth-verify-gate" style="display:none">
+        <div style="font-size:38px;margin-bottom:8px;text-align:center">📩</div>
+        <p style="font-size:12px;color:#D8C79E;text-align:center;line-height:1.7;margin-bottom:14px">أرسلنا رابط تأكيد إلى بريدك الإلكتروني. افتحي البريد واضغطي الرابط، ثم عودي هنا واضغطي "تحققت، تابع".</p>
+        <button class="auth-submit" onclick="authCheckVerified()">✅ تحققت، تابع</button>
+        <button class="auth-alt-btn" onclick="authResendVerification()">إعادة إرسال رابط التحقق</button>
+        <div class="auth-err" id="auth-err-verify"></div>
+      </div>
+      <!-- ALT SIGN-IN METHODS -->
+      <div class="auth-alt-methods" id="auth-alt-methods">
+        <div class="auth-divider"><span>أو</span></div>
+        <button class="auth-alt-btn auth-fb-btn" onclick="authFacebook()">📘 المتابعة عبر فيسبوك</button>
+        <button class="auth-alt-btn" onclick="authTogglePhone()">📱 المتابعة برقم الهاتف</button>
+        <div class="auth-phone-box" id="auth-phone-box" style="display:none">
+          <div class="auth-field">
+            <label class="auth-lbl">رقم الهاتف (بصيغة دولية)</label>
+            <input class="auth-inp" id="aph-phone" type="tel" placeholder="+213xxxxxxxxx">
+          </div>
+          <button class="auth-submit" id="aph-send-btn" onclick="authSendOtp()">إرسال رمز التحقق 📩</button>
+          <div id="aph-otp-wrap" style="display:none">
+            <div class="auth-field" style="margin-top:10px">
+              <label class="auth-lbl">رمز التحقق (SMS)</label>
+              <input class="auth-inp" id="aph-code" type="text" placeholder="123456">
+            </div>
+            <button class="auth-submit" onclick="authVerifyOtp()">تأكيد الرمز ✅</button>
+          </div>
+          <div class="auth-err" id="auth-err-phone"></div>
+        </div>
+        <div id="recaptcha-container"></div>
+      </div>
+      <div class="auth-footer" id="auth-footer-reset">مشكلة في الدخول؟ <a onclick="authResetPrompt()">استعادة كلمة السر</a></div>
     </div>
   </div>
 </div>
