@@ -2709,12 +2709,21 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
     <div class="set-divider"></div>
 
+    <!-- Referral -->
+    <div class="settings-grp">
+      <div class="settings-grp-lbl">🎁 ادعُ صديقاً واربح 10 🪙</div>
+      <div id="ref-link-box"></div>
+    </div>
+
+    <div class="set-divider"></div>
+
     <button class="set-full-btn dim" style="margin-top:14px;opacity:.6" onclick="settingsClose()">✕ إغلاق</button>
 
     <!-- Hidden teacher access — discreet, not a main option -->
     <div style="text-align:center;margin-top:16px">
       <span onclick="settingsClose();goTeacher()" style="font-size:9.5px;color:rgba(212,163,97,.32);cursor:pointer;letter-spacing:.3px">🔐 دخول الأستاذ</span>
     </div>
+    <div style="text-align:center;margin-top:6px" id="owner-entry-point"></div>
   </div>
 </div>
 
@@ -4091,15 +4100,17 @@ function realGoTeacher(){
 
 /* ── Subject registry ── */
 const LM_SUBJS={
-  math:{icon:'📐',name:'الرياضيات',   col:'#6C3CE1',wingKey:'الرياضيات'},
-  phy: {icon:'⚗️', name:'الفيزياء والكيمياء',col:'#06B6D4',wingKey:'الفيزياء'},
-  nat: {icon:'🌿',name:'علوم الطبيعة',col:'#10B981',wingKey:'علوم الطبيعة'},
-  arab:{icon:'✍️',name:'اللغة العربية',col:'#EF4444',wingKey:'اللغة العربية'},
-  hist:{icon:'🗺️',name:'التاريخ والجغرافيا',col:'#F59E0B',wingKey:'التاريخ'},
-  phil:{icon:'🦉',name:'الفلسفة',     col:'#8B5CF6',wingKey:'الفلسفة'},
-  fr:  {icon:'🇫🇷',name:'اللغة الفرنسية',col:'#EC4899',wingKey:'اللغة الفرنسية'},
-  en:  {icon:'🇬🇧',name:'اللغة الإنجليزية',col:'#0EA5E9',wingKey:'اللغة الإنجليزية'},
+  math:{icon:'📐',name:'الرياضيات',   col:'#6C3CE1',wingKey:'الرياضيات',branches:['علوم تجريبية','رياضيات','تقني رياضي','تسيير واقتصاد']},
+  phy: {icon:'⚗️', name:'الفيزياء والكيمياء',col:'#06B6D4',wingKey:'الفيزياء',branches:['علوم تجريبية','رياضيات','تقني رياضي']},
+  nat: {icon:'🌿',name:'علوم الطبيعة',col:'#10B981',wingKey:'علوم الطبيعة',branches:['علوم تجريبية']},
+  arab:{icon:'✍️',name:'اللغة العربية',col:'#EF4444',wingKey:'اللغة العربية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  hist:{icon:'🗺️',name:'التاريخ والجغرافيا',col:'#F59E0B',wingKey:'التاريخ',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  phil:{icon:'🦉',name:'الفلسفة',     col:'#8B5CF6',wingKey:'الفلسفة',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  fr:  {icon:'🇫🇷',name:'اللغة الفرنسية',col:'#EC4899',wingKey:'اللغة الفرنسية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
+  en:  {icon:'🇬🇧',name:'اللغة الإنجليزية',col:'#0EA5E9',wingKey:'اللغة الإنجليزية',branches:['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد']},
 };
+function _mySubjBranch(){return typeof ST!=='undefined'&&ST.branch?ST.branch:null;}
+function _subjAllowedForMyBranch(subjBranches){const b=_mySubjBranch();return !b||!subjBranches||subjBranches.includes(b);}
 const LM_ANIMALS=[['🦁','🦓'],['🐻','🐼'],['🐘','🐯'],['🐒','🐦'],['🦏','🦊']];
 const LM_TOTAL=30;
 
@@ -4331,7 +4342,7 @@ const FEAT_DATA={
     ico:'📚',name:'المواضيع',sub:'اختر مادتك وابدأ مستواك',col:'#A78BFA',
     tabId:'exams',
     body:()=>{
-      const subjs=Object.entries(LM_SUBJS);
+      const subjs=Object.entries(LM_SUBJS).filter(([id,s])=>_subjAllowedForMyBranch(s.branches));
       return `<div class="feat-grid">${subjs.map(([id,s])=>{
         const p=loadUserProgress(_libState.userId,id);
         return `<div class="feat-item" onclick="closeFeat();openLevelModal('${id}')">
@@ -5841,6 +5852,10 @@ window.setLang=function(lang){
 /* ══ SETTINGS PANEL ══ */
 window.settingsOpen=function(){
   const ov=document.getElementById('settings-ov');if(!ov)return;
+  if(typeof settingsShowReferral==='function')settingsShowReferral();
+  const ownerEl=document.getElementById('owner-entry-point');
+  if(ownerEl)ownerEl.innerHTML=(typeof _iAmOwner==='function'&&_iAmOwner())
+    ?'<span onclick="settingsClose();openOwnerDash()" style="font-size:9.5px;color:rgba(212,163,97,.5);cursor:pointer;letter-spacing:.3px">👑 لوحة المالك</span>':'';
   // Sync current state
   const curLang=localStorage.getItem('bq_lang')||'ar';
   ['ar','fr','en'].forEach(l=>{const b=document.getElementById('sl-'+l);if(b)b.classList.toggle('on',l===curLang);});
@@ -8010,6 +8025,47 @@ function renderFeedbackList(){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ⓪ REFERRAL SYSTEM — unique link per student, +10 coins to the referrer
+   ═══════════════════════════════════════════════════════════ */
+function _getRefCodeFromUrl(){
+  try{return new URLSearchParams(window.location.search).get('ref')||null;}catch{return null;}
+}
+async function _applyPendingReferral(newStudentEmail){
+  const ref=_getRefCodeFromUrl();
+  if(!ref||!_fbDb)return;
+  try{
+    const q=await _fbDb.collection('students').where('refCode','==',ref).limit(1).get();
+    if(!q.empty){
+      const refDoc=q.docs[0];
+      if(refDoc.id===newStudentEmail)return; // no self-referral
+      await refDoc.ref.set({coins:firebase.firestore.FieldValue.increment(10)},{merge:true});
+      await _fbDb.collection('students').doc(newStudentEmail).set({referredBy:ref},{merge:true});
+    }
+  }catch(e){console.warn('referral apply failed',e);}
+}
+function myReferralLink(){
+  let s=null;try{s=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+  if(!s||!s.uid)return null;
+  return location.origin+location.pathname+'?ref='+s.uid.slice(0,8);
+}
+window.copyReferralLink=function(){
+  const link=myReferralLink();
+  if(!link){_showToast('سجّلي الدخول أولاً');return;}
+  const el=document.getElementById('ref-link-txt');if(el)el.textContent=link;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(()=>_showToast('تم نسخ رابط الدعوة 🔗')).catch(()=>prompt('انسخي الرابط:',link));
+  }else prompt('انسخي الرابط:',link);
+};
+window.settingsShowReferral=function(){
+  const link=myReferralLink();
+  const box=document.getElementById('ref-link-box');
+  if(!box)return;
+  if(!link){box.innerHTML='<div style="font-size:11px;color:rgba(200,170,100,.6)">سجّلي الدخول لعرض رابط دعوتك</div>';return;}
+  box.innerHTML=`<div id="ref-link-txt" style="font-size:10px;direction:ltr;text-align:center;word-break:break-all;color:#D8C79E;margin-bottom:8px">${link}</div>
+    <button class="set-full-btn dim" onclick="copyReferralLink()">🔗 نسخ رابط الدعوة</button>`;
+};
+
+/* ═══════════════════════════════════════════════════════════
    ① USER AUTH SYSTEM — real Firebase Authentication
    (email/password + verification, phone SMS OTP, Facebook OAuth)
    ═══════════════════════════════════════════════════════════ */
@@ -8066,16 +8122,19 @@ function renderFeedbackList(){
     if(!finalBranch&&_fbDb){
       try{const doc=await _fbDb.collection('students').doc(email).get();if(doc.exists)finalBranch=doc.data().branch;}catch(e){}
     }
-    finalBranch=finalBranch||'علوم';
+    finalBranch=finalBranch||'علوم تجريبية';
     const session={email,name:finalName,branch:finalBranch,sub:'free',uid:user.uid,ts:Date.now()};
     if(_fbDb){
       try{
         const snap=await _fbDb.collection('students').doc(email).get();
         if(snap.exists){
           const d=snap.data();session.sub=d.sub||'free';if(d.coins!=null)session.coins=d.coins;
-          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email},{merge:true}).catch(()=>{});
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,phone:user.phoneNumber||d.phone||null},{merge:true}).catch(()=>{});
         }else{
-          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,sub:'free',coins:100,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          const refCode=user.uid.slice(0,8);
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,phone:user.phoneNumber||null,sub:'free',coins:100,refCode,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          session.coins=100;
+          await _applyPendingReferral(email);
         }
       }catch(e){console.warn('students sync failed',e);}
     }
@@ -8310,6 +8369,73 @@ function _getTchrVids(){try{return JSON.parse(localStorage.getItem(TCHR_VIDS_KEY
 function _saveTchrVids(v){localStorage.setItem(TCHR_VIDS_KEY,JSON.stringify(v));}
 window.openTchrDash=function(){document.getElementById('tchr-dash').classList.add('on');tchrTab('stats');};
 window.closeTchrDash=function(){document.getElementById('tchr-dash').classList.remove('on');};
+
+/* ── OWNER SUPER-ADMIN DASHBOARD ── */
+const OWNER_EMAIL='hananesidimoussa14@gmail.com';
+function _iAmOwner(){
+  let s=null;try{s=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+  return !!(s&&s.email&&s.email.toLowerCase()===OWNER_EMAIL.toLowerCase());
+}
+window.openOwnerDash=function(){
+  if(!_iAmOwner()){_showToast('🔒 هذه اللوحة خاصة بالمالك فقط');return;}
+  document.getElementById('owner-dash').classList.add('on');
+  _renderOwnerDash();
+};
+window.closeOwnerDash=function(){document.getElementById('owner-dash').classList.remove('on');};
+function _fmtOwnerDate(d){
+  if(!d)return'—';
+  const dt=d.seconds?new Date(d.seconds*1000):new Date(d);
+  return dt.toLocaleDateString('ar-DZ')+' — '+dt.toLocaleTimeString('ar-DZ');
+}
+function _renderOwnerDash(){
+  const body=document.getElementById('owner-body');
+  body.innerHTML=`<div style="text-align:center;padding:20px;color:rgba(200,170,100,.4);font-size:11px">جاري التحميل...</div>`;
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){body.innerHTML=`<div class="tchr-card">تعذّر الاتصال بقاعدة البيانات</div>`;return;}
+  _fbDb.collection('students').get().then(snap=>{
+    const list=[];snap.forEach(doc=>list.push({email:doc.id,...doc.data()}));
+    window._ownerStudentsCache=list;
+    const subCounts={free:0,plus:0,pro:0};
+    list.forEach(s=>{subCounts[s.sub||'free']=(subCounts[s.sub||'free']||0)+1;});
+    body.innerHTML=`
+      <div class="tchr-stat-grid">
+        <div class="tchr-stat"><div class="tchr-stat-val">${list.length}</div><div class="tchr-stat-lbl">إجمالي المسجّلين</div></div>
+        <div class="tchr-stat"><div class="tchr-stat-val">${(subCounts.plus||0)+(subCounts.pro||0)}</div><div class="tchr-stat-lbl">مشتركون مدفوعون</div></div>
+        <div class="tchr-stat"><div class="tchr-stat-val">${subCounts.free||0}</div><div class="tchr-stat-lbl">مجانيون</div></div>
+      </div>
+      <button class="set-full-btn dim" style="margin-bottom:14px" onclick="exportOwnerCSV()">⬇️ تصدير Excel/CSV</button>
+      <div class="tchr-card" style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'Amiri',serif;white-space:nowrap">
+          <thead><tr style="color:#F0D880;border-bottom:1px solid rgba(190,140,50,.3)">
+            <th style="padding:6px;text-align:right">الاسم</th><th style="padding:6px;text-align:right">البريد</th>
+            <th style="padding:6px;text-align:right">الهاتف</th><th style="padding:6px;text-align:right">الشعبة</th>
+            <th style="padding:6px;text-align:right">الاشتراك</th><th style="padding:6px;text-align:right">🪙</th>
+            <th style="padding:6px;text-align:right">تاريخ التسجيل</th><th style="padding:6px;text-align:right">أُحيل عبر</th>
+          </tr></thead>
+          <tbody>${list.map(s=>`<tr style="border-bottom:1px solid rgba(190,140,50,.12);color:#E8D9B8">
+            <td style="padding:6px">${s.name||'—'}</td><td style="padding:6px">${s.email}</td>
+            <td style="padding:6px">${s.phone||'—'}</td><td style="padding:6px">${s.branch||'—'}</td>
+            <td style="padding:6px">${s.sub==='pro'?'Pro':s.sub==='plus'?'Plus':'مجاني'}</td>
+            <td style="padding:6px">${s.coins!=null?s.coins:'—'}</td>
+            <td style="padding:6px">${_fmtOwnerDate(s.createdAt)}</td><td style="padding:6px">${s.referredBy||'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div style="text-align:center;font-size:10px;color:rgba(200,170,100,.4);margin-top:10px">ملاحظة: حقل "الجنس" غير مُجمَّع حالياً في التسجيل — يمكن إضافته لاحقاً إن رغبتِ</div>
+    `;
+  }).catch(()=>{body.innerHTML=`<div class="tchr-card">تعذّر تحميل البيانات</div>`;});
+}
+window.exportOwnerCSV=function(){
+  const list=window._ownerStudentsCache||[];
+  if(!list.length){_showToast('لا توجد بيانات للتصدير');return;}
+  const headers=['الاسم','البريد','الهاتف','الشعبة','الاشتراك','الكوينز','تاريخ التسجيل','أُحيل عبر'];
+  const rows=list.map(s=>[s.name||'',s.email||'',s.phone||'',s.branch||'',s.sub||'free',s.coins!=null?s.coins:'',_fmtOwnerDate(s.createdAt),s.referredBy||'']);
+  const csv='﻿'+[headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='baccquest-students-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+};
 function _tchrStudentsSourceSync(cb){
   if(typeof _fbReady!=='undefined'&&_fbReady){
     _fbDb.collection('students').get().then(snap=>{
@@ -8423,16 +8549,18 @@ window.tchrDelVideo=function(i){
   const vids=_getTchrVids();vids.splice(i,1);_saveTchrVids(vids);tchrTab('videos');
 };
 function _renderTchrStudents(){
+  // Privacy: teachers see only a total count, never names/emails/branches — that detail is owner-only (see #owner-dash)
   _tchrStudentsSourceSync(list=>{
     const el=document.getElementById('tchr-students-body');if(!el)return;
-    el.innerHTML=`<div class="tchr-card"><div class="tchr-card-title">👥 الطلاب (${list.length})</div>
-    ${list.length===0?`<div style="text-align:center;color:rgba(200,170,100,.4);font-family:'Amiri',serif;padding:18px">لا يوجد طلاب بعد</div>`:''}
-    ${list.map(u=>{const sub=u.sub||'free';
-      return `<div class="std-item">
-        <div class="std-avatar">${u.name?u.name[0]:'👤'}</div>
-        <div class="std-info"><div class="std-name">${u.name||'—'}</div><div class="std-meta">${u.email} · ${u.branch||'—'}</div></div>
-        <span class="std-badge ${sub}">${sub==='plus'?'Plus':sub==='pro'?'Pro':'مجاني'}</span>
-      </div>`;}).join('')}
+    const bySub={free:0,plus:0,pro:0};
+    list.forEach(u=>{bySub[u.sub||'free']=(bySub[u.sub||'free']||0)+1;});
+    el.innerHTML=`<div class="tchr-card">
+      <div class="tchr-card-title">👥 إجمالي الطلاب المسجّلين</div>
+      <div style="text-align:center;font-size:44px;font-weight:900;color:#F0D880;font-family:'Amiri',serif;margin:8px 0">${list.length}</div>
+      <div style="display:flex;gap:8px;justify-content:center;font-size:11px;color:rgba(200,170,100,.7)">
+        <span>🆓 مجاني: ${bySub.free||0}</span><span>⭐ Plus: ${bySub.plus||0}</span><span>💎 Pro: ${bySub.pro||0}</span>
+      </div>
+      <div style="text-align:center;font-size:10px;color:rgba(200,170,100,.4);margin-top:12px">🔒 بيانات الطلاب الشخصية محجوبة عن حساب الأستاذ لحماية الخصوصية</div>
     </div>`;
   });
   return `<div id="tchr-students-body"><div style="text-align:center;padding:20px;color:rgba(200,170,100,.4);font-size:11px">جاري التحميل...</div></div>`;
@@ -8814,12 +8942,12 @@ function tchrTogglePdfHidden(id){
         <div class="auth-field">
           <label class="auth-lbl">الشعبة</label>
           <select class="auth-inp" id="aup-branch">
-            <option value="علوم">علوم تجريبية</option>
+            <option value="علوم تجريبية">علوم تجريبية</option>
             <option value="رياضيات">رياضيات</option>
-            <option value="تقني">تقني رياضي</option>
-            <option value="فلسفة">آداب وفلسفة</option>
-            <option value="لغات">لغات أجنبية</option>
-            <option value="تسيير">تسيير واقتصاد</option>
+            <option value="تقني رياضي">تقني رياضي</option>
+            <option value="آداب وفلسفة">آداب وفلسفة</option>
+            <option value="لغات أجنبية">لغات أجنبية</option>
+            <option value="تسيير واقتصاد">تسيير واقتصاد</option>
           </select>
         </div>
         <button class="auth-submit" onclick="authSignup()">إنشاء الحساب 🚀</button>
@@ -8893,6 +9021,19 @@ function tchrTogglePdfHidden(id){
     <div class="tchr-tab"    id="tt-stds"    onclick="tchrTab('stds')">👥 طلاب</div>
   </div>
   <div class="tchr-body" id="tchr-body"></div>
+</div>
+
+<!-- ④ OWNER SUPER-ADMIN DASHBOARD (full PII, CSV export — owner email only) -->
+<div class="tchr-dash" id="owner-dash">
+  <div class="tchr-dash-hdr">
+    <span class="tchr-dash-hdr-ico">👑</span>
+    <div>
+      <div class="tchr-dash-hdr-title">لوحة المالك</div>
+      <div class="tchr-dash-hdr-sub">بيانات التسجيل الكاملة — سرّي</div>
+    </div>
+    <button class="tchr-close" onclick="closeOwnerDash()">✕</button>
+  </div>
+  <div class="tchr-body" id="owner-body"></div>
 </div>
 
 </body>
