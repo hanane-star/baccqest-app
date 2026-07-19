@@ -979,6 +979,10 @@ select.finput{appearance:none;cursor:pointer}
 .lesson-item.done{opacity:.55}
 .lesson-item.done .lname{text-decoration:line-through;color:var(--tx2)}
 .lcb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;transition:all .2s}
+.lcb.on{background:var(--s,#10B981);border-color:var(--s,#10B981);color:#fff;animation:lcbPop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes lcbPop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.pln-week-card{background:var(--sur);border:1.5px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.pln-week-hd{font-size:12px;font-weight:800;color:var(--p);margin-bottom:8px}
 
 /* ── PLAN: BAC Planner Assistant (gate / onboarding / dynamic plan) ── */
 .pg-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 16px;}
@@ -3611,19 +3615,56 @@ const NUDGES=[
 
 const SUBJECTS_PLAN=[
   {id:'math',icon:'📐',name:'الرياضيات',col:'#6C3CE1',lessons:[
-    {id:'m1',name:'الحدود والاشتقاق',done:true},{id:'m2',name:'التكامل',done:true},
-    {id:'m3',name:'الدوال اللوغاريتمية',done:false},{id:'m4',name:'المتتاليات',done:false},
-    {id:'m5',name:'الإحصاء',done:false},{id:'m6',name:'الهندسة في الفضاء',done:false},
+    {id:'m1',name:'الحدود والاشتقاق',unit:'التحليل',weight:2,done:true},{id:'m2',name:'التكامل',unit:'التحليل',weight:3,done:true},
+    {id:'m3',name:'الدوال اللوغاريتمية',unit:'التحليل',weight:2,done:false},{id:'m4',name:'المتتاليات',unit:'التحليل',weight:2,done:false},
+    {id:'m5',name:'الإحصاء',unit:'الهندسة والإحصاء',weight:1,done:false},{id:'m6',name:'الهندسة في الفضاء',unit:'الهندسة والإحصاء',weight:3,done:false},
   ]},
-  {id:'phy',icon:'⚗️',name:'الفيزياء',col:'#06B6D4',lessons:[
-    {id:'p1',name:'الميكانيك',done:true},{id:'p2',name:'الكهرباء',done:false},
-    {id:'p3',name:'البصريات',done:false},{id:'p4',name:'الكيمياء العضوية',done:false},
+  {id:'phy',icon:'⚗️',name:'العلوم الفيزيائية',col:'#06B6D4',lessons:[
+    {id:'p1',name:'الميكانيك',unit:'الفيزياء',weight:3,done:true},{id:'p2',name:'الكهرباء',unit:'الفيزياء',weight:2,done:false},
+    {id:'p3',name:'البصريات',unit:'الفيزياء',weight:2,done:false},{id:'p4',name:'الكيمياء العضوية',unit:'الكيمياء',weight:2,done:false},
   ]},
-  {id:'hist',icon:'🗺️',name:'التاريخ والجغرافيا',col:'#EF4444',lessons:[
-    {id:'h1',name:'الثورة الجزائرية 1954',done:true},{id:'h2',name:'الجغرافيا السياسية',done:false},{id:'h3',name:'التاريخ المعاصر',done:false},
+  {id:'nat',icon:'🌿',name:'علوم الطبيعة والحياة',col:'#10B981',lessons:[
+    {id:'n1',name:'التكاثر عند الإنسان',unit:'التوالد والوراثة',weight:2,done:false},{id:'n2',name:'الوراثة والصبغيات',unit:'التوالد والوراثة',weight:3,done:false},
+    {id:'n3',name:'جهاز المناعة',unit:'المناعة',weight:2,done:false},{id:'n4',name:'دفاع الجسم عن نفسه',unit:'المناعة',weight:2,done:false},
   ]},
-  {id:'phil',icon:'🦉',name:'الفلسفة',col:'#EC4899',lessons:[
-    {id:'f1',name:'منهجية المقالة',done:false},{id:'f2',name:'مفهوم الدولة',done:false},
+  {id:'hist',icon:'🗺️',name:'التاريخ والجغرافيا',col:'#F59E0B',lessons:[
+    {id:'h1',name:'الثورة الجزائرية 1954',unit:'التاريخ',weight:2,done:true},{id:'h2',name:'الجغرافيا السياسية',unit:'الجغرافيا',weight:1,done:false},{id:'h3',name:'التاريخ المعاصر',unit:'التاريخ',weight:2,done:false},
+  ]},
+  {id:'phil',icon:'🦉',name:'الفلسفة',col:'#8B5CF6',lessons:[
+    {id:'f1',name:'منهجية المقالة',unit:'المنهجية',weight:1,done:false},{id:'f2',name:'مفهوم الدولة',unit:'الوضع البشري',weight:2,done:false},
+    {id:'f3',name:'الشخص والهوية',unit:'الوضع البشري',weight:2,done:false},{id:'f4',name:'نظرية المعرفة',unit:'المعرفة',weight:3,done:false},
+  ]},
+  {id:'arab',icon:'✍️',name:'اللغة العربية وآدابها',col:'#EF4444',lessons:[
+    {id:'ar1',name:'الشعر الحديث',unit:'النصوص الأدبية',weight:2,done:false},{id:'ar2',name:'الرواية الجزائرية',unit:'النصوص الأدبية',weight:2,done:false},
+    {id:'ar3',name:'البيان والبديع',unit:'البلاغة والنقد',weight:1,done:false},{id:'ar4',name:'النقد الأدبي',unit:'البلاغة والنقد',weight:2,done:false},
+  ]},
+  {id:'fr',icon:'🇫🇷',name:'اللغة الفرنسية',col:'#EC4899',lessons:[
+    {id:'fr1',name:'Texte argumentatif',unit:'Compréhension',weight:2,done:false},{id:'fr2',name:'Texte narratif',unit:'Compréhension',weight:1,done:false},
+    {id:'fr3',name:'Production écrite',unit:'Expression',weight:2,done:false},
+  ]},
+  {id:'en',icon:'🇬🇧',name:'اللغة الإنجليزية',col:'#0EA5E9',lessons:[
+    {id:'en1',name:'Text Analysis',unit:'Reading',weight:2,done:false},{id:'en2',name:'Grammar Review',unit:'Reading',weight:1,done:false},
+    {id:'en3',name:'Essay Writing',unit:'Writing',weight:2,done:false},
+  ]},
+  {id:'islamic',icon:'☪️',name:'العلوم الإسلامية',col:'#059669',lessons:[
+    {id:'is1',name:'أصول العقيدة',unit:'العقيدة والعبادات',weight:1,done:false},{id:'is2',name:'أحكام المعاملات',unit:'العقيدة والعبادات',weight:2,done:false},
+    {id:'is3',name:'قضايا معاصرة',unit:'الفقه المعاصر',weight:2,done:false},
+  ]},
+  {id:'tech',icon:'⚙️',name:'التكنولوجيا',col:'#64748B',lessons:[
+    {id:'te1',name:'مبادئ الرسم الصناعي',unit:'الرسم التقني',weight:2,done:false},{id:'te2',name:'دراسة الأنظمة',unit:'الأنظمة',weight:3,done:false},
+    {id:'te3',name:'التحكم الآلي',unit:'الأنظمة',weight:2,done:false},{id:'te4',name:'المشروع التقني',unit:'الرسم التقني',weight:3,done:false},
+  ]},
+  {id:'acct',icon:'💰',name:'التسيير المحاسبي والمالي',col:'#CA8A04',lessons:[
+    {id:'ac1',name:'القيد المحاسبي',unit:'المحاسبة العامة',weight:2,done:false},{id:'ac2',name:'الميزانية',unit:'المحاسبة العامة',weight:2,done:false},
+    {id:'ac3',name:'التحليل المالي للمؤسسة',unit:'التحليل المالي',weight:3,done:false},
+  ]},
+  {id:'econ',icon:'📊',name:'الاقتصاد والمناجمنت',col:'#DB2777',lessons:[
+    {id:'ec1',name:'أعوان الاقتصاد',unit:'المؤسسة الاقتصادية',weight:1,done:false},{id:'ec2',name:'وظائف المؤسسة',unit:'الوظائف التسييرية',weight:2,done:false},
+    {id:'ec3',name:'التخطيط الاستراتيجي',unit:'الوظائف التسييرية',weight:3,done:false},
+  ]},
+  {id:'law',icon:'⚖️',name:'القانون',col:'#7C3AED',lessons:[
+    {id:'law1',name:'مصادر القانون',unit:'المدخل للقانون',weight:1,done:false},{id:'law2',name:'الأشخاص القانونية',unit:'المدخل للقانون',weight:2,done:false},
+    {id:'law3',name:'الشركات التجارية',unit:'القانون التجاري',weight:2,done:false},
   ]},
 ];
 
@@ -4810,9 +4851,73 @@ function renderBookshelf(){document.getElementById('bookshelf').innerHTML=WINGS.
 
 // ══ STUDY PLAN — مستشار البكالوريا الذكي (BAC Planner Assistant) ══
 const PLAN_BRANCHES=['تقني رياضي','علوم تجريبية','تسيير واقتصاد','آداب وفلسفة','لغات أجنبية','رياضيات'];
+
+// ── Persistence: lesson-done state survives reload (previously reset every time) ──
+const LESSON_DONE_KEY='bq_lesson_done';
+function _loadLessonDone(){try{return JSON.parse(localStorage.getItem(LESSON_DONE_KEY)||'{}');}catch{return{};}}
+function _saveLessonDone(map){localStorage.setItem(LESSON_DONE_KEY,JSON.stringify(map));}
+(function _restoreLessonDone(){
+  const map=_loadLessonDone();
+  SUBJECTS_PLAN.forEach(s=>s.lessons.forEach(l=>{if(map[l.id]!=null)l.done=map[l.id];}));
+})();
+
+// ── Teacher syllabus sync: additions/removals apply live to every student's plan ──
+function _fbApplySyllabusDoc(subjId,data){
+  const s=SUBJECTS_PLAN.find(x=>x.id===subjId);if(!s)return;
+  if(!s._baseLessons)s._baseLessons=JSON.parse(JSON.stringify(s.lessons));
+  const hidden=data.hidden||[],added=data.added||[];
+  const doneMap=_loadLessonDone();
+  s.lessons=s._baseLessons.filter(l=>!hidden.includes(l.id)).concat(added.map(a=>({...a,custom:true})));
+  s.lessons.forEach(l=>{if(doneMap[l.id]!=null)l.done=doneMap[l.id];});
+  if(document.getElementById('plan-root'))renderStudyPlan();
+  if(document.getElementById('tt-syllabus')?.classList.contains('on'))document.getElementById('tchr-body').innerHTML=_renderTchrSyllabus();
+}
+function _initSyllabusSync(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady))return;
+  _fbDb.collection('syllabus_overrides').onSnapshot(snap=>{
+    snap.forEach(doc=>_fbApplySyllabusDoc(doc.id,doc.data()));
+  },()=>{});
+}
+setTimeout(_initSyllabusSync,300);
+window.tqAddLesson=function(subjId,name,unit,weight){
+  name=(name||'').trim();if(!name){_showToast('اكتب اسم الدرس أولاً');return;}
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){_showToast('⚠️ تعذّر الاتصال بقاعدة البيانات');return;}
+  const id='custom_'+Date.now();
+  const ref=_fbDb.collection('syllabus_overrides').doc(subjId);
+  _fbDb.runTransaction(async tx=>{
+    const doc=await tx.get(ref);
+    const data=doc.exists?doc.data():{hidden:[],added:[]};
+    data.added=data.added||[];data.hidden=data.hidden||[];
+    data.added.push({id,name,unit:unit||'إضافات الأستاذ',weight:parseInt(weight)||2});
+    tx.set(ref,data);
+  }).then(()=>_showToast('✅ أُضيف الدرس — سينعكس فوراً على خطط كل الطلاب')).catch(e=>_showToast('خطأ: '+e.message));
+};
+window.tqDeleteLesson=function(subjId,lessonId){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){_showToast('⚠️ تعذّر الاتصال بقاعدة البيانات');return;}
+  const ref=_fbDb.collection('syllabus_overrides').doc(subjId);
+  _fbDb.runTransaction(async tx=>{
+    const doc=await tx.get(ref);
+    const data=doc.exists?doc.data():{hidden:[],added:[]};
+    data.hidden=data.hidden||[];data.added=(data.added||[]).filter(a=>a.id!==lessonId);
+    if(!data.hidden.includes(lessonId))data.hidden.push(lessonId);
+    tx.set(ref,data);
+  }).then(()=>_showToast('🗑️ أُزيل الدرس لجميع الطلاب')).catch(e=>_showToast('خطأ: '+e.message));
+};
+
 function rsch(lessons,dl){const rem=lessons.filter(l=>!l.done);const ppd=Math.max(1,Math.ceil(rem.length/Math.max(1,dl)));return lessons.map(l=>{if(l.done)return l;const idx=rem.indexOf(l);return{...l,sd:Math.floor(idx/ppd)+1};});}
 function _planFocusSubjects(){const ids=(ST.planFocus&&ST.planFocus.length)?ST.planFocus:SUBJECTS_PLAN.map(s=>s.id);return SUBJECTS_PLAN.filter(s=>ids.includes(s.id));}
 function calcG(){const all=_planFocusSubjects().flatMap(s=>s.lessons);return all.length?Math.round(all.filter(l=>l.done).length/all.length*100):0;}
+// Auto-rebalance engine: spreads ALL remaining lessons (across every focused subject) evenly over the days left until BAC
+function _planAllScheduled(){
+  const all=_planFocusSubjects().flatMap(s=>s.lessons.map(l=>({...l,subjName:s.name,subjIcon:s.icon,subjId:s.id,col:s.col})));
+  return rsch(all,DL);
+}
+function _planWeeklyGroups(){
+  const rem=_planAllScheduled().filter(l=>!l.done);
+  const weeks={};
+  rem.forEach(l=>{const w=Math.ceil(l.sd/7);(weeks[w]=weeks[w]||[]).push(l);});
+  return Object.keys(weeks).map(Number).sort((a,b)=>a-b).map(w=>({week:w,items:weeks[w]}));
+}
 function _planActivated(){return (localStorage.getItem('bq_sub_status')||'free')!=='free';}
 function _planOnboarded(){return !!ST.branch&&!!(ST.planFocus&&ST.planFocus.length);}
 function renderStudyPlan(){
@@ -4877,6 +4982,12 @@ function _planCleanHtml(){
   const pct=calcG(),filled=Math.round(pct/10),ascii='█'.repeat(filled)+'░'.repeat(10-filled);
   const today=_planTodayItems();
   const allDone=_planFocusSubjects().flatMap(s=>s.lessons).every(l=>l.done);
+  const weeks=_planWeeklyGroups();
+  const lessonRow=l=>`<div class="lesson-item${l.done?' done':''}" onclick="toggleLesson('${l.subjId}','${l.id}')" style="margin-bottom:7px">
+    <div class="lcb${l.done?' on':''}">${l.done?'✓':''}</div>
+    <span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.subjIcon} ${l.name}</span>
+    <span style="font-size:9px;color:var(--tx3)">${l.subjName}</span>
+  </div>`;
   return`<div class="pln-clean-hd">
     <div class="pln-pct-num grad-txt">${pct}%</div>
     <div class="pln-ascii">[${ascii}] ${pct}%</div>
@@ -4886,11 +4997,18 @@ function _planCleanHtml(){
     <div class="sec-title" style="margin:0">📖 برنامج اليوم</div>
     <span class="pln-edit-link" onclick="planEditFocus()">✏️ تعديل التركيز</span>
   </div>
-  <div id="plan-today-list">${allDone?`<div class="pln-empty">🎉 أنجزت كل دروس تركيزك! اضغط "تعديل التركيز" لإضافة مواد جديدة</div>`:today.length?today.map(l=>`<div class="lesson-item" onclick="toggleLesson('${l.subjId}','${l.id}')" style="margin-bottom:7px"><div class="lcb"></div><span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.subjIcon} ${l.name}</span><span style="font-size:9px;color:var(--tx3)">${l.subjName}</span></div>`).join(''):`<div class="pln-empty">لا مهام لليوم — أحسنت! 🎉</div>`}</div>`;
+  <div id="plan-today-list">${allDone?`<div class="pln-empty">🎉 أنجزت كل دروس تركيزك! اضغط "تعديل التركيز" لإضافة مواد جديدة</div>`:today.length?today.map(lessonRow).join(''):`<div class="pln-empty">لا مهام لليوم — أحسنت! 🎉</div>`}</div>
+  ${weeks.length?`<div class="sec-title" style="margin-top:16px">📅 الخطة الأسبوعية المُعاد توزيعها تلقائياً</div>
+  <div id="plan-weekly-list">${weeks.map(w=>`
+    <div class="pln-week-card">
+      <div class="pln-week-hd">الأسبوع ${w.week} <span style="font-size:9px;color:var(--tx3);font-weight:400">(${w.items.length} درس)</span></div>
+      ${w.items.map(lessonRow).join('')}
+    </div>`).join('')}</div>`:''}`;
 }
 function toggleLesson(sId,lId){
   const s=SUBJECTS_PLAN.find(x=>x.id===sId);const l=s?.lessons.find(x=>x.id===lId);if(!l)return;
   l.done=!l.done;
+  const doneMap=_loadLessonDone();doneMap[lId]=l.done;_saveLessonDone(doneMap);
   if(l.done){addCoins(15);playSound('check');updateRafiq(true);showToast('📖 درس مُنجز! +15🪙 — أُعيد توزيع باقي دروسك تلقائياً');}
   renderStudyPlan();
   if(l.done&&s.lessons.every(x=>x.done))showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);
@@ -5999,7 +6117,7 @@ function _pzTchrSubjProgress(subjId){
 
 // ── Teacher Dashboard: Content Builder tab ──
 window.tchrTab=function(tab){
-  ['stats','videos','stds','content','questions','manage'].forEach(t=>{
+  ['stats','videos','stds','content','questions','manage','syllabus'].forEach(t=>{
     const el=document.getElementById('tt-'+t);
     if(el)el.classList.toggle('on',t===tab);
   });
@@ -6010,7 +6128,39 @@ window.tchrTab=function(tab){
   else if(tab==='content')body.innerHTML=_renderTchrContent();
   else if(tab==='questions')body.innerHTML=_renderTchrQuestions();
   else if(tab==='manage')body.innerHTML=_renderTchrManage();
+  else if(tab==='syllabus')body.innerHTML=_renderTchrSyllabus();
 };
+
+/* ── التحكم بالمقرر الدراسي: إضافة/حذف دروس تنعكس فوراً على خطط كل الطلاب ── */
+let _tqSyllabusSubj='math';
+window.tqSetSyllabusSubj=function(id){_tqSyllabusSubj=id;document.getElementById('tchr-body').innerHTML=_renderTchrSyllabus();};
+function _renderTchrSyllabus(){
+  const s=SUBJECTS_PLAN.find(x=>x.id===_tqSyllabusSubj)||SUBJECTS_PLAN[0];
+  const units={};
+  s.lessons.forEach(l=>{(units[l.unit||'عام']=units[l.unit||'عام']||[]).push(l);});
+  return `<div class="tchr-card">
+    <div class="tchr-card-title">📚 التحكم بمقرر: ${s.name}</div>
+    <select class="finput" style="margin-bottom:12px" onchange="tqSetSyllabusSubj(this.value)">
+      ${SUBJECTS_PLAN.map(x=>`<option value="${x.id}" ${x.id===_tqSyllabusSubj?'selected':''}>${x.icon} ${x.name}</option>`).join('')}
+    </select>
+    ${Object.entries(units).map(([unitName,lessons])=>`
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:800;color:#F0D880;margin-bottom:6px">📖 ${unitName}</div>
+        ${lessons.map(l=>`<div class="std-item">
+          <div class="std-info"><div class="std-name">${l.name}${l.custom?' <span style="font-size:9px;color:#10B981">(مضاف)</span>':''}</div><div class="std-meta">وزن: ${'⭐'.repeat(l.weight||1)}</div></div>
+          <button class="vid-del" onclick="tqDeleteLesson('${s.id}','${l.id}')">🗑️</button>
+        </div>`).join('')}
+      </div>`).join('')}
+    <div class="set-divider"></div>
+    <div style="font-size:11px;font-weight:800;color:#F0D880;margin:10px 0 8px">➕ إضافة درس جديد</div>
+    <input class="finput" id="tq-lesson-name" placeholder="اسم الدرس" style="margin-bottom:8px">
+    <input class="finput" id="tq-lesson-unit" placeholder="اسم الوحدة (اختياري)" style="margin-bottom:8px">
+    <select class="finput" id="tq-lesson-weight" style="margin-bottom:8px">
+      <option value="1">وزن: ⭐ سهل</option><option value="2" selected>وزن: ⭐⭐ متوسط</option><option value="3">وزن: ⭐⭐⭐ صعب</option>
+    </select>
+    <button class="btn-p" onclick="tqAddLesson('${s.id}',document.getElementById('tq-lesson-name').value,document.getElementById('tq-lesson-unit').value,document.getElementById('tq-lesson-weight').value);document.getElementById('tq-lesson-name').value='';document.getElementById('tq-lesson-unit').value='';" style="margin-bottom:0">🚀 نشر الدرس لكل الطلاب</button>
+  </div>`;
+}
 
 function _renderTchrContent(){
   const subjects=_getTchrContent();
@@ -9034,6 +9184,7 @@ function tchrTogglePdfHidden(id){
   </div>
   <div class="tchr-tabs">
     <div class="tchr-tab on" id="tt-stats"   onclick="tchrTab('stats')">📊 إحصاء</div>
+    <div class="tchr-tab"    id="tt-syllabus" onclick="tchrTab('syllabus')">📚 المقرر</div>
     <div class="tchr-tab"    id="tt-questions" onclick="tchrTab('questions')">🧩 أسئلة</div>
     <div class="tchr-tab"    id="tt-videos"  onclick="tchrTab('videos')">🎬 وسائط</div>
     <div class="tchr-tab"    id="tt-manage"  onclick="tchrTab('manage')">🗂️ المحتوى</div>

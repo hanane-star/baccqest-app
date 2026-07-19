@@ -58,6 +58,15 @@ service cloud.firestore {
       allow write: if true;
     }
 
+    // ── Teacher-editable syllabus overrides (added/hidden lessons per subject) ──
+    // No personal data — one doc per subject id, live-synced to every student's study plan.
+    match /syllabus_overrides/{subjectId} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasOnly(['hidden','added'])
+        && request.resource.data.hidden is list
+        && request.resource.data.added is list;
+    }
+
     // Deny anything not explicitly matched above.
     match /{document=**} {
       allow read, write: if false;
