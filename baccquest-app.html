@@ -1787,6 +1787,56 @@ select.finput{appearance:none;cursor:pointer}
 .auth-phone-box{margin-top:10px;padding:12px;background:rgba(0,0,0,.18);border-radius:10px;border:1px solid rgba(190,140,50,.2)}
 .auth-verify-gate{padding:6px 2px}
 .auth-close-btn{position:absolute;top:12px;left:14px;background:rgba(20,8,2,.7);border:1px solid rgba(190,140,50,.3);border-radius:50%;width:28px;height:28px;color:#C8B890;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── TIME CAPSULE ── */
+.capsule-ov{position:fixed;inset:0;z-index:7200;background:rgba(0,0,0,.8);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:16px}
+.capsule-ov.on{display:flex;animation:fadeIn .25s ease}
+.capsule-box{width:100%;max-width:380px;border-radius:20px;padding:24px 22px;text-align:center;
+  background:linear-gradient(160deg,#1a0f2e 0%,#0d0818 100%);border:1.5px solid rgba(139,92,246,.4);
+  box-shadow:0 32px 90px rgba(0,0,0,.75),inset 0 1px 0 rgba(167,139,250,.15);max-height:88vh;overflow-y:auto}
+.capsule-ico{font-size:40px;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+.capsule-title{font-size:19px;font-weight:900;color:#E9D8FD;margin-bottom:8px}
+.capsule-sub{font-size:12px;color:rgba(230,220,250,.65);line-height:1.7;margin-bottom:16px}
+.capsule-box .auth-field{text-align:right}
+.capsule-box .auth-lbl{color:rgba(230,220,250,.6)}
+.capsule-box .auth-inp{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3);color:#E9D8FD;font-family:inherit}
+.capsule-reveal-item{background:rgba(139,92,246,.1);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#E9D8FD;text-align:right}
+
+/* ── SKILL TREE ── */
+.skt-subj-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.skt-subj-chip{background:var(--sur);border:1.5px solid var(--bd);border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.skt-subj-chip:hover{border-color:var(--p);background:var(--pl)}
+.skt-badges-row{display:flex;flex-wrap:wrap;gap:7px}
+.skt-badge-chip{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-size:10px;font-weight:800;padding:5px 10px;border-radius:14px;box-shadow:0 2px 8px rgba(217,119,6,.35)}
+.skt-badge-earned{text-align:center;background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;font-weight:800;font-size:12px;padding:8px;border-radius:10px;margin-bottom:12px}
+.skt-tree{display:flex;flex-direction:column;align-items:stretch}
+.skt-node{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--sur);border:1.5px solid var(--bd);cursor:pointer;transition:all .2s}
+.skt-node.locked{opacity:.45;cursor:not-allowed}
+.skt-node.unlocked{border-color:var(--p)}
+.skt-node.done{border-color:#F59E0B;background:var(--al)}
+.skt-ico{font-size:26px;flex-shrink:0}
+.skt-info{flex:1}
+.skt-name{font-size:12px;font-weight:800;color:var(--tx)}
+.skt-pct{font-size:10px;color:var(--tx2)}
+.skt-connector{width:2px;height:16px;background:var(--bd2);margin-right:23px}
+.skt-lessons{padding:8px 6px 4px 6px;display:flex;flex-direction:column;gap:6px}
+
+/* ── STUDY ROOM ── */
+.sr-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 4px}
+.sr-timer-ring{width:160px;height:160px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--p) calc(var(--p, 0) * 1%), var(--bg2) 0);margin-bottom:16px;position:relative}
+.sr-timer-ring::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--sur)}
+.sr-timer-inner{position:relative;z-index:1;text-align:center}
+.sr-controls{display:flex;gap:8px;margin-bottom:14px}
+.sr-ctl-btn{background:var(--pl);color:var(--p);border:1.5px solid var(--bd);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.sr-dur-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sr-dur-btn{background:var(--bg2);border:1.5px solid var(--bd);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;color:var(--tx)}
+.sr-snd-row{display:flex;gap:8px;flex-wrap:wrap}
+.sr-snd-btn{background:var(--sur);border:1.5px solid var(--bd);border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--tx)}
+.sr-snd-btn.on{border-color:var(--s,#10B981);background:var(--sl);color:var(--s,#10B981)}
+.pln-quick-row{display:flex;gap:8px;margin-bottom:14px}
+.pln-quick-btn{flex:1;background:linear-gradient(135deg,#8B5CF6,#6C3CE1);color:#fff;border:none;border-radius:12px;padding:11px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(108,60,225,.35)}
+.gc-wrap.gc-studying .gc-av img{animation-duration:3s!important;filter:saturate(.85) brightness(.92)}
 .auth-close-btn:hover{background:rgba(200,50,30,.3);color:#FFC9C9}
 /* User avatar chip in HUD when logged in */
 .hud-user-chip{max-width:90px;overflow:hidden;text-overflow:ellipsis}
@@ -3999,7 +4049,7 @@ function _calDayHds(full){const l=_calLang();if(l==='fr')return full?DNF_FULL:DN
 // ══ NAVIGATION ══
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function goRole(){showScreen('s-role');if(typeof stopCompanionAmbient==='function')stopCompanionAmbient();}
-function goStudent(){showScreen('s-student');initStudent();if(typeof startCompanionAmbient==='function')startCompanionAmbient();}
+function goStudent(){showScreen('s-student');initStudent();if(typeof startCompanionAmbient==='function')startCompanionAmbient();if(typeof maybeShowCapsulePrompt==='function'){maybeShowCapsulePrompt();_checkCapsuleUnlock();}}
 
 // ══ LIBRARY HOTSPOT NAVIGATION ══
 let _hsTarget=null;
@@ -4918,6 +4968,190 @@ function _planWeeklyGroups(){
   rem.forEach(l=>{const w=Math.ceil(l.sd/7);(weeks[w]=weeks[w]||[]).push(l);});
   return Object.keys(weeks).map(Number).sort((a,b)=>a-b).map(w=>({week:w,items:weeks[w]}));
 }
+/* ═══════════════════════════════════════════════════════════
+   🏅 SKILL TREE & BADGES — units gate sequentially, subject completion = badge
+   ═══════════════════════════════════════════════════════════ */
+const SUBJECT_BADGES={
+  math:'حكيم الرياضيات 🧮',phy:'خبير الفيزياء ⚗️',nat:'عالم الأحياء 🌿',arab:'أديب اللغة ✍️',
+  hist:'مؤرخ بارع 🗺️',phil:'فيلسوف صغير 🦉',fr:'Maître du Français 🇫🇷',en:'English Master 🇬🇧',
+  islamic:'حافظ العلوم الإسلامية ☪️',tech:'مهندس المستقبل ⚙️',acct:'محاسب محترف 💰',econ:'خبير اقتصادي 📊',law:'قانوني بارع ⚖️',
+};
+function _getMyBadges(){try{return JSON.parse(localStorage.getItem('bq_badges')||'[]');}catch{return[];}}
+function _awardBadge(subjId){
+  const badges=_getMyBadges();
+  if(badges.includes(subjId))return;
+  badges.push(subjId);
+  localStorage.setItem('bq_badges',JSON.stringify(badges));
+  if(typeof _fbDb!=='undefined'&&_fbDb){
+    let s=null;try{s=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+    if(s)_fbDb.collection('students').doc(s.email).set({badges:firebase.firestore.FieldValue.arrayUnion(subjId)},{merge:true}).catch(()=>{});
+  }
+  const name=SUBJECT_BADGES[subjId]||'وسام إنجاز 🏅';
+  setTimeout(()=>showCongrats('🏅 وسام جديد!',`"حصلت على وسام ${name}"`,100),400);
+}
+function _subjUnitsList(s){
+  const seen=[],out=[];
+  s.lessons.forEach(l=>{const u=l.unit||'عام';if(!seen.includes(u)){seen.push(u);out.push({name:u,lessons:s.lessons.filter(x=>(x.unit||'عام')===u)});}});
+  return out;
+}
+let _skillTreeSubj=null;
+window.openSkillTree=function(subjId){_skillTreeSubj=subjId;document.getElementById('plan-root').innerHTML=_renderSkillTree(subjId);};
+window.closeSkillTree=function(){_skillTreeSubj=null;renderStudyPlan();};
+function _renderSkillTree(subjId){
+  const s=SUBJECTS_PLAN.find(x=>x.id===subjId);if(!s)return'';
+  const units=_subjUnitsList(s);
+  let prevDone=true;
+  const nodes=units.map((u,i)=>{
+    const done=u.lessons.every(l=>l.done);
+    const unlocked=prevDone;
+    prevDone=prevDone&&done;
+    const pct=Math.round(u.lessons.filter(l=>l.done).length/u.lessons.length*100);
+    const ico=done?'👑':unlocked?'🏰':'🔒';
+    return `<div class="skt-node ${done?'done':unlocked?'unlocked':'locked'}" ${unlocked?`onclick="toggleSkillUnit(${i})"`:''}>
+      <div class="skt-ico">${ico}</div>
+      <div class="skt-info"><div class="skt-name">${u.name}</div><div class="skt-pct">${pct}%</div></div>
+    </div>
+    <div class="skt-lessons" id="skt-lessons-${i}" style="display:none">
+      ${u.lessons.map(l=>`<div class="lesson-item${l.done?' done':''}" onclick="event.stopPropagation();toggleLesson('${s.id}','${l.id}')">
+        <div class="lcb${l.done?' on':''}">${l.done?'✓':''}</div><span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.name}</span>
+      </div>`).join('')}
+    </div>
+    ${i<units.length-1?'<div class="skt-connector"></div>':''}`;
+  }).join('');
+  const badge=_getMyBadges().includes(subjId);
+  return `<div class="pln-today-hd"><div class="sec-title" style="margin:0">${s.icon} خارطة مهارات ${s.name}</div><span class="pln-edit-link" onclick="closeSkillTree()">→ رجوع</span></div>
+  ${badge?`<div class="skt-badge-earned">🏅 ${SUBJECT_BADGES[subjId]||'وسام إنجاز'}</div>`:''}
+  <div class="skt-tree">${nodes}</div>`;
+}
+window.toggleSkillUnit=function(i){
+  const el=document.getElementById('skt-lessons-'+i);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+};
+
+/* ═══════════════════════════════════════════════════════════
+   🧘 STUDY ROOM — Pomodoro timer + ambient sound + focus coins
+   ═══════════════════════════════════════════════════════════ */
+let _pomo={mode:'focus',remaining:25*60,running:false,timer:null,focusSecAccum:0,durFocus:25,durBreak:5};
+function _pomoFmt(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function _pomoTick(){
+  _pomo.remaining--;
+  if(_pomo.mode==='focus'){
+    _pomo.focusSecAccum++;
+    if(_pomo.focusSecAccum>0&&_pomo.focusSecAccum%600===0){addCoins(10);_showToast('🪙 +10 كوينز — 10 دقائق تركيز متواصل!');}
+  }
+  if(_pomo.remaining<=0){
+    if(_pomo.mode==='focus'){playSound('win');_pomo.mode='break';_pomo.remaining=_pomo.durBreak*60;_showToast('⏰ وقت الراحة! 5 دقائق');}
+    else{_pomo.mode='focus';_pomo.remaining=_pomo.durFocus*60;_showToast('🔥 عودة للتركيز!');}
+  }
+  _renderPomodoroTimerOnly();
+}
+window.pomoStart=function(){if(_pomo.running)return;_pomo.running=true;_pomo.timer=setInterval(_pomoTick,1000);_renderPomodoroTimerOnly();};
+window.pomoPause=function(){_pomo.running=false;clearInterval(_pomo.timer);_renderPomodoroTimerOnly();};
+window.pomoReset=function(){window.pomoPause();_pomo.mode='focus';_pomo.remaining=_pomo.durFocus*60;_pomo.focusSecAccum=0;_renderPomodoroTimerOnly();};
+window.pomoSetDuration=function(mins){if(_pomo.running)return;_pomo.durFocus=mins;_pomo.remaining=mins*60;_renderPomodoroTimerOnly();};
+function _renderPomodoroTimerOnly(){
+  const t=document.getElementById('pomo-time');if(!t)return;
+  t.textContent=_pomoFmt(_pomo.remaining);
+  document.getElementById('pomo-mode-lbl').textContent=_pomo.mode==='focus'?'📖 وقت التركيز':'☕ وقت الراحة';
+  document.getElementById('pomo-ring')?.style.setProperty('--p',(1-_pomo.remaining/((_pomo.mode==='focus'?_pomo.durFocus:_pomo.durBreak)*60))*100+'%');
+}
+let _ambientCtx=null,_ambientNode=null;
+function _ambientStopInternal(){if(_ambientNode){try{_ambientNode.stop();}catch(e){}_ambientNode=null;}}
+window.ambientPlay=function(type){
+  _ambientStopInternal();
+  if(!_ambientCtx)_ambientCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const bufferSize=2*_ambientCtx.sampleRate;
+  const buffer=_ambientCtx.createBuffer(1,bufferSize,_ambientCtx.sampleRate);
+  const data=buffer.getChannelData(0);
+  if(type==='rain'){for(let i=0;i<bufferSize;i++)data[i]=(Math.random()*2-1)*0.5;}
+  else{let last=0;for(let i=0;i<bufferSize;i++){const w=Math.random()*2-1;data[i]=(last+0.02*w)/1.02;last=data[i];data[i]*=3.5;}}
+  const src=_ambientCtx.createBufferSource();src.buffer=buffer;src.loop=true;
+  const gain=_ambientCtx.createGain();gain.gain.value=0.12;
+  src.connect(gain).connect(_ambientCtx.destination);src.start();
+  _ambientNode=src;
+  document.querySelectorAll('.sr-snd-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sr-snd-'+type)?.classList.add('on');
+};
+window.ambientStop=function(){_ambientStopInternal();document.querySelectorAll('.sr-snd-btn').forEach(b=>b.classList.remove('on'));};
+window.openStudyRoom=function(){
+  const gc=document.getElementById('global-companion');if(gc)gc.classList.add('gc-studying');
+  document.getElementById('plan-root').innerHTML=_renderStudyRoom();
+};
+window.closeStudyRoom=function(){
+  window.pomoPause();window.ambientStop();
+  const gc=document.getElementById('global-companion');if(gc)gc.classList.remove('gc-studying');
+  renderStudyPlan();
+};
+function _renderStudyRoom(){
+  return `<div class="pln-today-hd"><div class="sec-title" style="margin:0">🧘 غرفة المذاكرة والتركيز</div><span class="pln-edit-link" onclick="closeStudyRoom()">→ خروج</span></div>
+  <div class="sr-wrap">
+    <div class="sr-timer-ring" id="pomo-ring">
+      <div class="sr-timer-inner">
+        <div id="pomo-mode-lbl" style="font-size:11px;color:var(--tx2);margin-bottom:4px">📖 وقت التركيز</div>
+        <div id="pomo-time" style="font-size:32px;font-weight:900;color:var(--p)">${_pomoFmt(_pomo.remaining)}</div>
+      </div>
+    </div>
+    <div class="sr-controls">
+      <button class="sr-ctl-btn" onclick="pomoStart()">▶️ ابدأ</button>
+      <button class="sr-ctl-btn" onclick="pomoPause()">⏸️ إيقاف مؤقت</button>
+      <button class="sr-ctl-btn" onclick="pomoReset()">🔄 إعادة</button>
+    </div>
+    <div class="sr-dur-row">
+      <span style="font-size:11px;color:var(--tx2)">مدة التركيز:</span>
+      <button class="sr-dur-btn" onclick="pomoSetDuration(15)">15</button>
+      <button class="sr-dur-btn" onclick="pomoSetDuration(25)">25</button>
+      <button class="sr-dur-btn" onclick="pomoSetDuration(45)">45</button>
+    </div>
+    <div class="sec-title" style="margin-top:16px">🎧 أصوات مريحة</div>
+    <div class="sr-snd-row">
+      <button class="sr-snd-btn" id="sr-snd-rain" onclick="ambientPlay('rain')">🌧️ مطر</button>
+      <button class="sr-snd-btn" id="sr-snd-library" onclick="ambientPlay('library')">📚 مكتبة هادئة</button>
+      <button class="sr-snd-btn" onclick="ambientStop()">🔇 إيقاف</button>
+    </div>
+    <div style="text-align:center;font-size:10px;color:var(--tx3);margin-top:14px">🪙 تكسب +10 كوينز كل 10 دقائق تركيز متواصل</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ⏳ TIME CAPSULE — write a message to future self, unlocked on results day
+   ═══════════════════════════════════════════════════════════ */
+function _hasCapsule(){return !!localStorage.getItem('bq_time_capsule');}
+window.maybeShowCapsulePrompt=function(){
+  if(_hasCapsule()||localStorage.getItem('bq_seen_capsule_prompt'))return;
+  localStorage.setItem('bq_seen_capsule_prompt','1');
+  setTimeout(()=>document.getElementById('capsule-write-ov')?.classList.add('on'),1200);
+};
+window.closeCapsuleWrite=function(){document.getElementById('capsule-write-ov')?.classList.remove('on');};
+window.saveCapsule=function(){
+  const dream=document.getElementById('tc-dream').value.trim();
+  const major=document.getElementById('tc-major').value.trim();
+  const msg=document.getElementById('tc-msg').value.trim();
+  if(!dream||!major||!msg){_showToast('يرجى ملء كل الحقول أولاً');return;}
+  const capsule={dream,major,msg,savedAt:Date.now()};
+  localStorage.setItem('bq_time_capsule',JSON.stringify(capsule));
+  if(typeof _fbDb!=='undefined'&&_fbDb){
+    let s=null;try{s=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+    if(s)_fbDb.collection('students').doc(s.email).set({timeCapsule:capsule},{merge:true}).catch(()=>{});
+  }
+  window.closeCapsuleWrite();
+  _showToast('🔒 كبسولة الزمن محفوظة! ستُفتح يوم النتائج 🎉');
+};
+window._checkCapsuleUnlock=function(){
+  if(!_hasCapsule()||localStorage.getItem('bq_capsule_opened'))return;
+  const resultsDate=new Date(BAC.getTime()+25*86400000);
+  if(new Date()>=resultsDate){
+    localStorage.setItem('bq_capsule_opened','1');
+    let c=null;try{c=JSON.parse(localStorage.getItem('bq_time_capsule'));}catch(e){}
+    if(!c)return;
+    document.getElementById('tc-reveal-dream').textContent=c.dream;
+    document.getElementById('tc-reveal-major').textContent=c.major;
+    document.getElementById('tc-reveal-msg').textContent=c.msg;
+    document.getElementById('capsule-reveal-ov')?.classList.add('on');
+    launchFW();playSound('win');
+  }
+};
+window.closeCapsuleReveal=function(){document.getElementById('capsule-reveal-ov')?.classList.remove('on');};
+
 function _planActivated(){return (localStorage.getItem('bq_sub_status')||'free')!=='free';}
 function _planOnboarded(){return !!ST.branch&&!!(ST.planFocus&&ST.planFocus.length);}
 function renderStudyPlan(){
@@ -4988,12 +5222,20 @@ function _planCleanHtml(){
     <span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.subjIcon} ${l.name}</span>
     <span style="font-size:9px;color:var(--tx3)">${l.subjName}</span>
   </div>`;
+  const myBadges=_getMyBadges();
   return`<div class="pln-clean-hd">
     <div class="pln-pct-num grad-txt">${pct}%</div>
     <div class="pln-ascii">[${ascii}] ${pct}%</div>
     <div class="pln-days-lbl">📆 باقي ${DL} يوم على البكالوريا</div>
   </div>
-  <div class="pln-today-hd">
+  <div class="pln-quick-row">
+    <button class="pln-quick-btn" onclick="openStudyRoom()">🧘 غرفة المذاكرة</button>
+    <button class="pln-quick-btn" onclick="document.getElementById('capsule-write-ov').classList.add('on')">⏳ كبسولة الزمن</button>
+  </div>
+  <div class="sec-title" style="margin-top:2px">🗺️ خرائط المهارات</div>
+  <div class="skt-subj-row">${_planFocusSubjects().map(s=>`<div class="skt-subj-chip" onclick="openSkillTree('${s.id}')">${s.icon} ${s.name}${myBadges.includes(s.id)?' 🏅':''}</div>`).join('')}</div>
+  ${myBadges.length?`<div class="sec-title" style="margin-top:10px">🏅 أوسمتي</div><div class="skt-badges-row">${myBadges.map(id=>`<span class="skt-badge-chip">${SUBJECT_BADGES[id]||id}</span>`).join('')}</div>`:''}
+  <div class="pln-today-hd" style="margin-top:14px">
     <div class="sec-title" style="margin:0">📖 برنامج اليوم</div>
     <span class="pln-edit-link" onclick="planEditFocus()">✏️ تعديل التركيز</span>
   </div>
@@ -5011,7 +5253,7 @@ function toggleLesson(sId,lId){
   const doneMap=_loadLessonDone();doneMap[lId]=l.done;_saveLessonDone(doneMap);
   if(l.done){addCoins(15);playSound('check');updateRafiq(true);showToast('📖 درس مُنجز! +15🪙 — أُعيد توزيع باقي دروسك تلقائياً');}
   renderStudyPlan();
-  if(l.done&&s.lessons.every(x=>x.done))showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);
+  if(l.done&&s.lessons.every(x=>x.done)){showCongrats(`أنهيت ${s.name}! 🎊`,`"رفيق يحتفل معك!"`,50);_awardBadge(s.id);}
 }
 function updateRafiq(ok){
   const msg=document.getElementById('rafiq-msg'),mood=document.getElementById('rafiq-mood');
@@ -6533,7 +6775,8 @@ function _lboardRender(list){
   if(!list.length){el.innerHTML=`<div style="text-align:center;padding:18px;color:var(--tx2);font-size:11px">لا يوجد طلاب مصنَّفون بعد — كن أول من يظهر هنا! 🏆</div>`;return;}
   el.innerHTML=list.slice(0,10).map((p,i)=>{
     const isMe=session&&p.email===session.email;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:${i<list.length-1?'1px solid var(--bd)':'none'};${isMe?'background:var(--pl);border-radius:7px':''}"><span>${LBOARD_FLAGS[i]||'🎓'}</span><span style="flex:1;font-size:11px;font-weight:${isMe?700:500};color:${isMe?'var(--p)':'var(--tx)'}">${p.name}${isMe?' (أنت)':''}</span><span style="font-size:11px;font-weight:700;color:var(--a)">🪙 ${p.coins||0}</span></div>`;
+    const badgeCount=(p.badges||[]).length;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:${i<list.length-1?'1px solid var(--bd)':'none'};${isMe?'background:var(--pl);border-radius:7px':''}"><span>${LBOARD_FLAGS[i]||'🎓'}</span><span style="flex:1;font-size:11px;font-weight:${isMe?700:500};color:${isMe?'var(--p)':'var(--tx)'}">${p.name}${isMe?' (أنت)':''}${badgeCount?` <span title="${badgeCount} وسام">🏅${badgeCount}</span>`:''}</span><span style="font-size:11px;font-weight:700;color:var(--a)">🪙 ${p.coins||0}</span></div>`;
   }).join('');
 }
 function renderLeaderboard(){
@@ -9205,6 +9448,33 @@ function tchrTogglePdfHidden(id){
     <button class="tchr-close" onclick="closeOwnerDash()">✕</button>
   </div>
   <div class="tchr-body" id="owner-body"></div>
+</div>
+
+<!-- ⑤ TIME CAPSULE — write on first login -->
+<div class="capsule-ov" id="capsule-write-ov">
+  <div class="capsule-box">
+    <div class="capsule-ico">⏳</div>
+    <div class="capsule-title">كبسولة الزمن</div>
+    <p class="capsule-sub">اكتبي رسالة لنفسكِ اليوم — ستُفتح تلقائياً يوم إعلان نتائج البكالوريا 🎉</p>
+    <div class="auth-field"><label class="auth-lbl">📊 المعدل الذي تحلمين به</label><input class="auth-inp" id="tc-dream" placeholder="مثال: 16.5"></div>
+    <div class="auth-field"><label class="auth-lbl">🎓 التخصص المستقبلي</label><input class="auth-inp" id="tc-major" placeholder="مثال: طب، هندسة..."></div>
+    <div class="auth-field"><label class="auth-lbl">💌 رسالة تشجيعية لنفسكِ</label><textarea class="auth-inp" id="tc-msg" rows="3" style="resize:none;font-family:inherit"></textarea></div>
+    <button class="auth-submit" onclick="saveCapsule()">🔒 احفظي الكبسولة</button>
+    <button class="auth-alt-btn" onclick="closeCapsuleWrite()">لاحقاً</button>
+  </div>
+</div>
+
+<!-- TIME CAPSULE — reveal on results day -->
+<div class="capsule-ov" id="capsule-reveal-ov">
+  <div class="capsule-box">
+    <div class="capsule-ico">🎉</div>
+    <div class="capsule-title">وصلت كبسولة الزمن!</div>
+    <p class="capsule-sub">هذا ما كتبتِه لنفسكِ في بداية رحلتك:</p>
+    <div class="capsule-reveal-item">📊 حلمتِ بمعدل: <strong id="tc-reveal-dream"></strong></div>
+    <div class="capsule-reveal-item">🎓 تخصصكِ المنشود: <strong id="tc-reveal-major"></strong></div>
+    <div class="capsule-reveal-item" style="text-align:right">💌 "<span id="tc-reveal-msg"></span>"</div>
+    <button class="auth-submit" onclick="closeCapsuleReveal()">✨ شكراً يا أنا القديمة</button>
+  </div>
 </div>
 
 </body>
