@@ -79,8 +79,8 @@ http.createServer(async (req, res) => {
     return;
   }
 
-  // ── POST /api/verify-map-click — AI-graded blind-map / diagram pin-drop ──
-  if (req.method === 'POST' && url === '/api/verify-map-click') {
+  // ── POST /api/verify-essay — AI-graded philosophy/text-analysis answers ──
+  if (req.method === 'POST' && url === '/api/verify-essay') {
     if (!ANTHROPIC_KEY) {
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(JSON.stringify({error: 'NO_KEY', message: 'ANTHROPIC_API_KEY not configured on the server'}));
@@ -88,38 +88,21 @@ http.createServer(async (req, res) => {
     }
     try {
       const body = await readBody(req);
-      const { imageUrl, xPct, yPct, question, expectedLabel } = body;
-      let imgBuf, mediaType = 'image/jpeg';
-      if (/^https?:\/\//.test(imageUrl)) {
-        imgBuf = await new Promise((resolve, reject) => {
-          https.get(imageUrl, r => {
-            const chunks = [];
-            r.on('data', c => chunks.push(c));
-            r.on('end', () => resolve(Buffer.concat(chunks)));
-            r.on('error', reject);
-          }).on('error', reject);
-        });
-      } else {
-        const localPath = path.join(ROOT, imageUrl.replace(/^\.?\//, ''));
-        imgBuf = fs.readFileSync(localPath);
-        const ext = path.extname(localPath).toLowerCase();
-        if (ext === '.png') mediaType = 'image/png';
-        else if (ext === '.webp') mediaType = 'image/webp';
-      }
-      const b64 = imgBuf.toString('base64');
-      const prompt = `هذه صورة خريطة صماء. الطالب ضغط عند الإحداثيات (${xPct.toFixed(1)}% من اليسار, ${yPct.toFixed(1)}% من الأعلى) كإجابة على السؤال: "${question}". الإجابة المتوقعة هي: "${expectedLabel}". بالنظر إلى الصورة، هل تقع نقطة الضغط ضمن أو قريبة جداً من الموقع الصحيح (${expectedLabel})؟ كن متسامحاً مع فرق بضعة بكسلات لكن دقيقاً بخصوص الدولة/المنطقة الصحيحة. أجب بصيغة JSON فقط بدون أي نص إضافي: {"correct": true أو false, "feedback": "جملة قصيرة بالعربية تشرح السبب"}`;
+      const { question, studentAnswer, modelAnswer } = body;
+      const prompt = `أنت أستاذ فلسفة يصحّح إجابة تلميذ في البكالوريا الجزائرية.
+السؤال: "${question}"
+العناصر الأساسية المتوقعة في الإجابة النموذجية: "${modelAnswer}"
+إجابة التلميذ: "${studentAnswer}"
+
+قيّم إجابة التلميذ بناءً على مدى تغطيتها للأفكار الجوهرية، وليس تطابقها الحرفي مع النموذج. كن متفهماً لصياغات مختلفة تعبّر عن نفس الفكرة.
+أجب بصيغة JSON فقط بدون أي نص إضافي:
+{"score": رقم من 0 إلى 100, "correct": true إذا كان score>=50 وإلا false, "feedback": "تعليق قصير بالعربية يوضح نقاط القوة والنقص في إجابة التلميذ"}`;
       const result = await anthropicRequest({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
       });
-      let verdict = { correct: false, feedback: 'تعذّر تحليل الإجابة، حاول مجدداً' };
+      let verdict = { correct: false, score: 0, feedback: 'تعذّر تحليل الإجابة، حاول مجدداً' };
       try {
         const raw = result.data?.content?.[0]?.text || '';
         const match = raw.match(/\{[\s\S]*\}/);
