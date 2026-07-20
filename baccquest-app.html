@@ -5056,20 +5056,52 @@ function _renderPomodoroTimerOnly(){
   document.getElementById('pomo-mode-lbl').textContent=_pomo.mode==='focus'?'📖 وقت التركيز':'☕ وقت الراحة';
   document.getElementById('pomo-ring')?.style.setProperty('--p',(1-_pomo.remaining/((_pomo.mode==='focus'?_pomo.durFocus:_pomo.durBreak)*60))*100+'%');
 }
-let _ambientCtx=null,_ambientNode=null;
-function _ambientStopInternal(){if(_ambientNode){try{_ambientNode.stop();}catch(e){}_ambientNode=null;}}
+let _ambientCtx=null,_ambientNodes=[],_ambientChirpTimer=null;
+function _ambientStopInternal(){
+  _ambientNodes.forEach(n=>{try{n.stop&&n.stop();}catch(e){}});
+  _ambientNodes=[];
+  if(_ambientChirpTimer){clearInterval(_ambientChirpTimer);_ambientChirpTimer=null;}
+}
 window.ambientPlay=function(type){
   _ambientStopInternal();
   if(!_ambientCtx)_ambientCtx=new(window.AudioContext||window.webkitAudioContext)();
-  const bufferSize=2*_ambientCtx.sampleRate;
-  const buffer=_ambientCtx.createBuffer(1,bufferSize,_ambientCtx.sampleRate);
+  const ctx=_ambientCtx;
+  const bufferSize=2*ctx.sampleRate;
+  const buffer=ctx.createBuffer(1,bufferSize,ctx.sampleRate);
   const data=buffer.getChannelData(0);
-  if(type==='rain'){for(let i=0;i<bufferSize;i++)data[i]=(Math.random()*2-1)*0.5;}
-  else{let last=0;for(let i=0;i<bufferSize;i++){const w=Math.random()*2-1;data[i]=(last+0.02*w)/1.02;last=data[i];data[i]*=3.5;}}
-  const src=_ambientCtx.createBufferSource();src.buffer=buffer;src.loop=true;
-  const gain=_ambientCtx.createGain();gain.gain.value=0.12;
-  src.connect(gain).connect(_ambientCtx.destination);src.start();
-  _ambientNode=src;
+  for(let i=0;i<bufferSize;i++)data[i]=Math.random()*2-1;
+  const src=ctx.createBufferSource();src.buffer=buffer;src.loop=true;
+  const filter=ctx.createBiquadFilter();
+  const gain=ctx.createGain();
+  if(type==='rain'){
+    // soft drizzle: gentle low-passed noise, very quiet
+    filter.type='lowpass';filter.frequency.value=900;filter.Q.value=0.3;
+    gain.gain.value=0.045;
+  }else{
+    // calm garden bed: soft band-passed noise (like breeze/leaves), birdsong layered on top
+    filter.type='bandpass';filter.frequency.value=450;filter.Q.value=0.4;
+    gain.gain.value=0.03;
+  }
+  src.connect(filter).connect(gain).connect(ctx.destination);
+  src.start();
+  _ambientNodes.push(src);
+  if(type==='garden'){
+    _ambientChirpTimer=setInterval(()=>{
+      if(Math.random()<0.55)return; // sparse, natural-feeling gaps
+      const t=ctx.currentTime;
+      const osc=ctx.createOscillator();osc.type='sine';
+      const freq=1500+Math.random()*900;
+      osc.frequency.setValueAtTime(freq,t);
+      osc.frequency.exponentialRampToValueAtTime(freq*1.25,t+0.07);
+      osc.frequency.exponentialRampToValueAtTime(freq*0.9,t+0.15);
+      const chirpGain=ctx.createGain();
+      chirpGain.gain.setValueAtTime(0,t);
+      chirpGain.gain.linearRampToValueAtTime(0.025,t+0.02);
+      chirpGain.gain.linearRampToValueAtTime(0,t+0.18);
+      osc.connect(chirpGain).connect(ctx.destination);
+      osc.start(t);osc.stop(t+0.2);
+    },2400);
+  }
   document.querySelectorAll('.sr-snd-btn').forEach(b=>b.classList.remove('on'));
   document.getElementById('sr-snd-'+type)?.classList.add('on');
 };
@@ -5105,8 +5137,8 @@ function _renderStudyRoom(){
     </div>
     <div class="sec-title" style="margin-top:16px">🎧 أصوات مريحة</div>
     <div class="sr-snd-row">
-      <button class="sr-snd-btn" id="sr-snd-rain" onclick="ambientPlay('rain')">🌧️ مطر</button>
-      <button class="sr-snd-btn" id="sr-snd-library" onclick="ambientPlay('library')">📚 مكتبة هادئة</button>
+      <button class="sr-snd-btn" id="sr-snd-rain" onclick="ambientPlay('rain')">🌦️ رذاذ المطر</button>
+      <button class="sr-snd-btn" id="sr-snd-garden" onclick="ambientPlay('garden')">🌳 حديقة هادئة</button>
       <button class="sr-snd-btn" onclick="ambientStop()">🔇 إيقاف</button>
     </div>
     <div style="text-align:center;font-size:10px;color:var(--tx3);margin-top:14px">🪙 تكسب +10 كوينز كل 10 دقائق تركيز متواصل</div>
