@@ -8,7 +8,8 @@ const ROOT = __dirname;
 const PORT = process.env.PORT || 3002;
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://baccquest-app.onrender.com';
 const MIME = {'.html':'text/html','.css':'text/css','.js':'application/javascript',
-              '.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml'};
+              '.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml',
+              '.json':'application/json'};
 
 // ══ AI COMPANION (رفيق) — server-side proxy ══
 // Set ANTHROPIC_API_KEY as an environment variable on your host (e.g. Render → Environment)

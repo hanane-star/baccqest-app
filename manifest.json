@@ -1,0 +1,17 @@
+{
+  "name": "BaccQuest — رفيق البكالوريا",
+  "short_name": "BaccQuest",
+  "description": "منصة تحضير البكالوريا الجزائرية — أسئلة تفاعلية، خطة دراسية ذكية، ومساعد ذكاء اصطناعي",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e2a",
+  "theme_color": "#0b0e2a",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
