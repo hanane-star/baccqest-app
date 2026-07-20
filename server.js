@@ -79,6 +79,61 @@ http.createServer(async (req, res) => {
     return;
   }
 
+  // ── POST /api/verify-map-click — AI-graded blind-map / diagram pin-drop ──
+  if (req.method === 'POST' && url === '/api/verify-map-click') {
+    if (!ANTHROPIC_KEY) {
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: 'NO_KEY', message: 'ANTHROPIC_API_KEY not configured on the server'}));
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      const { imageUrl, xPct, yPct, question, expectedLabel } = body;
+      let imgBuf, mediaType = 'image/jpeg';
+      if (/^https?:\/\//.test(imageUrl)) {
+        imgBuf = await new Promise((resolve, reject) => {
+          https.get(imageUrl, r => {
+            const chunks = [];
+            r.on('data', c => chunks.push(c));
+            r.on('end', () => resolve(Buffer.concat(chunks)));
+            r.on('error', reject);
+          }).on('error', reject);
+        });
+      } else {
+        const localPath = path.join(ROOT, imageUrl.replace(/^\.?\//, ''));
+        imgBuf = fs.readFileSync(localPath);
+        const ext = path.extname(localPath).toLowerCase();
+        if (ext === '.png') mediaType = 'image/png';
+        else if (ext === '.webp') mediaType = 'image/webp';
+      }
+      const b64 = imgBuf.toString('base64');
+      const prompt = `هذه صورة خريطة صماء. الطالب ضغط عند الإحداثيات (${xPct.toFixed(1)}% من اليسار, ${yPct.toFixed(1)}% من الأعلى) كإجابة على السؤال: "${question}". الإجابة المتوقعة هي: "${expectedLabel}". بالنظر إلى الصورة، هل تقع نقطة الضغط ضمن أو قريبة جداً من الموقع الصحيح (${expectedLabel})؟ كن متسامحاً مع فرق بضعة بكسلات لكن دقيقاً بخصوص الدولة/المنطقة الصحيحة. أجب بصيغة JSON فقط بدون أي نص إضافي: {"correct": true أو false, "feedback": "جملة قصيرة بالعربية تشرح السبب"}`;
+      const result = await anthropicRequest({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      });
+      let verdict = { correct: false, feedback: 'تعذّر تحليل الإجابة، حاول مجدداً' };
+      try {
+        const raw = result.data?.content?.[0]?.text || '';
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) verdict = JSON.parse(match[0]);
+      } catch (e) {}
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify(verdict));
+    } catch (e) {
+      res.writeHead(500, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: e.message}));
+    }
+    return;
+  }
+
   // ── Serve static files ──
   let p = path.join(ROOT, req.url.split('?')[0]);
   if (!p.startsWith(ROOT)) p = path.join(ROOT, 'baccquest-app.html');

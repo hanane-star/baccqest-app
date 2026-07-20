@@ -2215,6 +2215,8 @@ select option{background:#1a0804;color:#EDEAE3}
 .pz-hotspot.ok{background:rgba(34,197,94,.6)!important;border-color:#22C55E!important;animation:none}
 .pz-hotspot.bad{background:rgba(239,68,68,.6)!important;border-color:#EF4444!important;animation:none}
 @keyframes pzHotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+.pz-map-wrap{cursor:crosshair}
+.pz-map-pin{position:absolute;width:18px;height:18px;margin-left:-9px;margin-top:-18px;border-radius:50% 50% 50% 0;background:#EF4444;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.4);pointer-events:none}
 
 /* ── حساب رقمي ── */
 .pz-numeric-row{display:flex;align-items:center;gap:8px}
@@ -5367,6 +5369,9 @@ const PUZZLE_DB={
              opts:['1','∞','−1','0'],correct:3,expl:'كلما زاد x اقترب 1/x من الصفر'},
             {type:'fill',text:'إذا كان **f(x)=x²** فإن **f\'(x)** = ___',
              correct:'2x',keywords:['2x'],expl:'مشتقة x² هي 2x'},
+            {type:'blindmap',text:'حدد موقع الجزائر على الخريطة الصماء',
+             imgUrl:'./world-blind-map.jpg',expectedLabel:'الجزائر (شمال أفريقيا)',
+             expl:'الجزائر تقع في شمال إفريقيا، على الساحل الجنوبي للبحر الأبيض المتوسط.'},
           ]},
           {id:'s2',label:'المرحلة 2: الاشتقاق',coins:35,questions:[
             {type:'mcq',text:'مشتقة **sin(x)** هي:',
@@ -6125,17 +6130,32 @@ function _pzRenderQuestion(subj,unit,stg){
       <button class="pz-btn pz-btn-p" onclick="pzConfirmOrder()">تأكيد الترتيب</button>
     </div>`;
   } else if(q.type==='diagram'||q.type==='blindmap'){
-    PZ.hotspotSel=null;
-    qBody=`<div class="pz-map-wrap">
-      <img src="${q.imgUrl}" class="pz-map-img" alt="">
-      ${q.hotspots.map(h=>`<div class="pz-hotspot" data-id="${h.id}" style="left:${h.x}%;top:${h.y}%" onclick="pzPickHotspot(this,'${h.id}')" title="${h.label||''}"></div>`).join('')}
-    </div>
-    <div class="pz-feedback" id="pz-fb"></div>
-    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
-    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
-      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
-      <button class="pz-btn pz-btn-p" onclick="pzConfirmHotspot()">تأكيد</button>
-    </div>`;
+    PZ.hotspotSel=null;PZ.mapClickPct=null;
+    if(q.hotspots&&q.hotspots.length){
+      // teacher-curated exact hotspots (instant local check)
+      qBody=`<div class="pz-map-wrap">
+        <img src="${q.imgUrl}" class="pz-map-img" alt="">
+        ${q.hotspots.map(h=>`<div class="pz-hotspot" data-id="${h.id}" style="left:${h.x}%;top:${h.y}%" onclick="pzPickHotspot(this,'${h.id}')" title="${h.label||''}"></div>`).join('')}
+      </div>
+      <div class="pz-feedback" id="pz-fb"></div>
+      <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+      <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+        <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+        <button class="pz-btn pz-btn-p" onclick="pzConfirmHotspot()">تأكيد</button>
+      </div>`;
+    }else{
+      // click-anywhere, graded by AI vision (no pre-placed hotspots needed)
+      qBody=`<div class="pz-map-wrap" id="pz-map-wrap" onclick="pzMapClick(event,this)">
+        <img src="${q.imgUrl}" class="pz-map-img" alt="">
+      </div>
+      <div style="font-size:10px;color:var(--tx3);margin-top:6px">📍 اضغطي مباشرة على الموقع الصحيح في الخريطة</div>
+      <div class="pz-feedback" id="pz-fb"></div>
+      <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+      <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+        <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+        <button class="pz-btn pz-btn-p" onclick="pzConfirmMapClick()">تأكيد (تصحيح بالذكاء الاصطناعي)</button>
+      </div>`;
+    }
   } else if(q.type==='numeric'){
     qBody=`<div class="pz-numeric-row">
       <input class="pz-fill-inp" id="pz-numeric-inp" type="number" step="any" placeholder="اكتب الناتج الرقمي..." onkeydown="if(event.key==='Enter')pzConfirmNumeric()">
@@ -6267,7 +6287,7 @@ function _pzGoNext(){
 }
 
 function pzNextQ(subj,unit,stg){
-  PZ.qIdx++;PZ.answered=false;PZ.selOpt=null;PZ.tfSel=null;PZ.orderPicks=[];PZ.hotspotSel=null;
+  PZ.qIdx++;PZ.answered=false;PZ.selOpt=null;PZ.tfSel=null;PZ.orderPicks=[];PZ.hotspotSel=null;PZ.mapClickPct=null;
   if(PZ.qIdx<stg.questions.length){
     _pzRenderQuestion(subj,unit,stg);
   }else{
@@ -6346,6 +6366,51 @@ window.pzConfirmHotspot=function(){
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
   _bumpFreeSolved(PZ.subj);
   document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
+
+/* ── خريطة صماء بتصحيح ذكاء اصطناعي (بدون نقاط ساخنة محدَّدة مسبقاً) ── */
+window.pzMapClick=function(evt,wrapEl){
+  if(PZ.answered)return;
+  const rect=wrapEl.getBoundingClientRect();
+  const xPct=((evt.clientX-rect.left)/rect.width)*100;
+  const yPct=((evt.clientY-rect.top)/rect.height)*100;
+  PZ.mapClickPct={x:xPct,y:yPct};
+  let pin=wrapEl.querySelector('.pz-map-pin');
+  if(!pin){pin=document.createElement('div');pin.className='pz-map-pin';wrapEl.appendChild(pin);}
+  pin.style.left=xPct+'%';pin.style.top=yPct+'%';
+};
+window.pzConfirmMapClick=async function(){
+  if(!PZ.mapClickPct){_showToast('اضغطي على الخريطة أولاً لتحديد موقعك');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback ok';fb.style.display='block';
+  fb.textContent='🤖 جاري التحقق من إجابتك بالذكاء الاصطناعي...';
+  document.getElementById('pz-action-row').style.display='none';
+  try{
+    const res=await fetch('/api/verify-map-click',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({imageUrl:q.imgUrl,xPct:PZ.mapClickPct.x,yPct:PZ.mapClickPct.y,question:q.text,expectedLabel:q.expectedLabel})
+    });
+    const verdict=await res.json();
+    if(verdict.error){
+      fb.className='pz-feedback bad';
+      fb.textContent='⚠️ تعذّر التصحيح الآلي حالياً: '+(verdict.message||verdict.error);
+    }else{
+      const ok=!!verdict.correct;
+      fb.className='pz-feedback '+(ok?'ok':'bad');
+      fb.textContent=(ok?'✅ ':'❌ ')+(verdict.feedback||'')+(q.expl?' — '+q.expl:'');
+      if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+      _bumpFreeSolved(PZ.subj);
+    }
+  }catch(e){
+    fb.className='pz-feedback bad';
+    fb.textContent='⚠️ تعذّر الاتصال بخدمة التصحيح، حاول مجدداً';
+    PZ.answered=false; // allow retry since we couldn't actually grade it
+    document.getElementById('pz-action-row').style.display='flex';
+    return;
+  }
   _pzShowNextRow(q.pdfUrl);
 };
 
