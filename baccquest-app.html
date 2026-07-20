@@ -2190,6 +2190,39 @@ select option{background:#1a0804;color:#EDEAE3}
 .pz-action-row{display:flex;gap:8px;margin-top:10px}
 .pz-next-row{display:none;gap:8px;margin-top:10px}
 .pz-next-row a.pz-btn{text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center}
+
+/* ── صح/خطأ ── */
+.pz-tf-row{display:flex;gap:10px}
+.pz-tf-btn{flex:1;text-align:center;padding:16px 8px;background:rgba(255,243,210,.06);border:1.5px solid rgba(212,163,97,.25);border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:var(--tx);transition:all .18s}
+.pz-tf-btn:hover{background:rgba(217,119,6,.15)}
+.pz-tf-btn.sel{background:rgba(217,119,6,.22);border-color:#F59E0B}
+.pz-tf-btn.ok{background:rgba(34,197,94,.2)!important;border-color:#22C55E!important;color:#86EFAC!important}
+.pz-tf-btn.bad{background:rgba(239,68,68,.18)!important;border-color:#EF4444!important;color:#FCA5A5!important}
+
+/* ── ترتيب الأحداث ── */
+.pz-order-list{display:flex;flex-direction:column;gap:7px}
+.pz-order-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,243,210,.06);border:1.5px solid rgba(212,163,97,.2);border-radius:9px;cursor:pointer;font-size:12px;color:var(--tx);transition:all .18s}
+.pz-order-item:hover{border-color:rgba(212,163,97,.5)}
+.pz-order-item.picked{background:rgba(217,119,6,.18);border-color:#F59E0B}
+.pz-order-num{width:20px;height:20px;border-radius:50%;background:rgba(190,140,50,.3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#F0D880;flex-shrink:0}
+
+/* ── مخطط / خريطة صماء ── */
+.pz-map-wrap{position:relative;width:100%;border-radius:10px;overflow:hidden;border:1.5px solid rgba(212,163,97,.25)}
+.pz-map-img{width:100%;display:block}
+.pz-hotspot{position:absolute;width:22px;height:22px;margin-left:-11px;margin-top:-11px;border-radius:50%;background:rgba(245,158,11,.35);border:2px solid #F59E0B;cursor:pointer;transition:all .2s;animation:pzHotspotPulse 1.8s ease-in-out infinite}
+.pz-hotspot:hover{transform:scale(1.15)}
+.pz-hotspot.sel{background:rgba(245,158,11,.6);animation:none}
+.pz-hotspot.ok{background:rgba(34,197,94,.6)!important;border-color:#22C55E!important;animation:none}
+.pz-hotspot.bad{background:rgba(239,68,68,.6)!important;border-color:#EF4444!important;animation:none}
+@keyframes pzHotspotPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+
+/* ── حساب رقمي ── */
+.pz-numeric-row{display:flex;align-items:center;gap:8px}
+.pz-numeric-unit{font-size:12px;color:var(--tx2);font-weight:700;white-space:nowrap}
+
+/* ── تحليل النص ── */
+.pz-ta-inp{width:100%;padding:10px 12px;background:rgba(255,220,120,.05);border:1.5px solid rgba(190,140,50,.28);border-radius:9px;color:#F0E5C8;font-size:13px;font-family:'Amiri',serif;outline:none;box-sizing:border-box;resize:vertical}
+.pz-ta-inp:focus{border-color:rgba(212,163,97,.7)}
 .pz-btn{flex:1;padding:11px;border-radius:9px;font-family:'Amiri',serif;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
 .pz-btn-p{background:linear-gradient(135deg,rgba(200,130,20,.9),rgba(150,80,8,.95));color:#FFF3D0;border:1px solid rgba(220,170,60,.3)}
 .pz-btn-p:hover{background:linear-gradient(135deg,rgba(230,155,25,.95),rgba(185,100,10,.99))}
@@ -6065,8 +6098,65 @@ function _pzRenderQuestion(subj,unit,stg){
     <div class="pz-feedback" id="pz-fb"></div>
     <div id="pz-mscore" style="text-align:center;font-size:11px;color:rgba(200,170,100,.6);margin:6px 0"></div>
     <div class="pz-next-row" id="pz-next-row" style="display:none"></div>`;
+  } else if(q.type==='truefalse'){
+    qBody=`<div class="pz-tf-row" id="pz-tf-row">
+      <div class="pz-tf-btn" onclick="pzPickTF(this,true)">✅ صحيح</div>
+      <div class="pz-tf-btn" onclick="pzPickTF(this,false)">❌ خطأ</div>
+    </div>
+    <div class="pz-feedback" id="pz-fb"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+      <button class="pz-btn pz-btn-p" onclick="pzConfirmTF()">تأكيد</button>
+    </div>`;
+  } else if(q.type==='order'){
+    const shuffledItems=q.items.map((t,i)=>({t,i})).sort(()=>Math.random()-.5);
+    PZ.orderPicks=[];
+    qBody=`<div class="pz-order-list" id="pz-order-list">
+      ${shuffledItems.map(it=>`<div class="pz-order-item" data-idx="${it.i}" onclick="pzPickOrder(this,${it.i})">
+        <span class="pz-order-num" id="pz-order-num-${it.i}"></span>${it.t}
+      </div>`).join('')}
+    </div>
+    <button class="pz-btn pz-btn-s" style="margin-top:8px" onclick="pzResetOrder()">↺ إعادة الترتيب</button>
+    <div class="pz-feedback" id="pz-fb"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+      <button class="pz-btn pz-btn-p" onclick="pzConfirmOrder()">تأكيد الترتيب</button>
+    </div>`;
+  } else if(q.type==='diagram'||q.type==='blindmap'){
+    PZ.hotspotSel=null;
+    qBody=`<div class="pz-map-wrap">
+      <img src="${q.imgUrl}" class="pz-map-img" alt="">
+      ${q.hotspots.map(h=>`<div class="pz-hotspot" data-id="${h.id}" style="left:${h.x}%;top:${h.y}%" onclick="pzPickHotspot(this,'${h.id}')" title="${h.label||''}"></div>`).join('')}
+    </div>
+    <div class="pz-feedback" id="pz-fb"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+      <button class="pz-btn pz-btn-p" onclick="pzConfirmHotspot()">تأكيد</button>
+    </div>`;
+  } else if(q.type==='numeric'){
+    qBody=`<div class="pz-numeric-row">
+      <input class="pz-fill-inp" id="pz-numeric-inp" type="number" step="any" placeholder="اكتب الناتج الرقمي..." onkeydown="if(event.key==='Enter')pzConfirmNumeric()">
+      ${q.unit?`<span class="pz-numeric-unit">${q.unit}</span>`:''}
+    </div>
+    <div class="pz-feedback" id="pz-fb"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+      <button class="pz-btn pz-btn-p" onclick="pzConfirmNumeric()">تأكيد</button>
+    </div>`;
+  } else if(q.type==='textanalysis'){
+    qBody=`<textarea class="pz-ta-inp" id="pz-ta-inp" rows="5" placeholder="اكتب تحليلك هنا..."></textarea>
+    <div class="pz-feedback" id="pz-fb"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
+      <button class="pz-btn pz-btn-p" onclick="pzConfirmTextAnalysis()">تأكيد وعرض النموذج</button>
+    </div>`;
   }
-  const typeLabel={mcq:'اختيار من متعدد',fill:'إكمال الفراغ',match:'بطاقات المطابقة'}[q.type]||'';
+  const typeLabel={mcq:'اختيار من متعدد',fill:'إكمال الفراغ',match:'بطاقات المطابقة',truefalse:'صح / خطأ',order:'ترتيب الأحداث',diagram:'التعرف على مخطط',blindmap:'خريطة صماء',numeric:'حساب واستخراج نتيجة',textanalysis:'تحليل نص'}[q.type]||'';
   view.innerHTML=`
   <div class="pz-nav">
     <span class="pz-nav-crumb" onclick="pzShowSubjects()">🧩</span>
@@ -6177,13 +6267,119 @@ function _pzGoNext(){
 }
 
 function pzNextQ(subj,unit,stg){
-  PZ.qIdx++;PZ.answered=false;PZ.selOpt=null;
+  PZ.qIdx++;PZ.answered=false;PZ.selOpt=null;PZ.tfSel=null;PZ.orderPicks=[];PZ.hotspotSel=null;
   if(PZ.qIdx<stg.questions.length){
     _pzRenderQuestion(subj,unit,stg);
   }else{
     pzFinishStage(subj,unit,stg);
   }
 }
+
+/* ── صح/خطأ ── */
+window.pzPickTF=function(el,val){
+  if(PZ.answered)return;
+  document.querySelectorAll('#pz-tf-row .pz-tf-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');PZ.tfSel=val;
+};
+window.pzConfirmTF=function(){
+  if(PZ.tfSel==null){_showToast('اختر إجابة أولاً');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  const ok=(PZ.tfSel===q.correct);
+  const btns=document.querySelectorAll('#pz-tf-row .pz-tf-btn');
+  btns.forEach((b,i)=>{const bVal=(i===0);if(bVal===q.correct)b.classList.add('ok');});
+  if(!ok)document.querySelector('#pz-tf-row .pz-tf-btn.sel')?.classList.add('bad');
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback '+(ok?'ok':'bad');
+  fb.textContent=(ok?'✅ إجابة صحيحة! ':'❌ ')+q.expl;
+  if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
+
+/* ── ترتيب الأحداث/المراحل (tap-in-order — mobile-friendly alternative to drag&drop) ── */
+window.pzPickOrder=function(el,idx){
+  if(PZ.answered||el.classList.contains('picked'))return;
+  el.classList.add('picked');
+  PZ.orderPicks.push(idx);
+  document.getElementById('pz-order-num-'+idx).textContent=PZ.orderPicks.length;
+};
+window.pzResetOrder=function(){
+  if(PZ.answered)return;
+  PZ.orderPicks=[];
+  document.querySelectorAll('#pz-order-list .pz-order-item').forEach(el=>el.classList.remove('picked'));
+  document.querySelectorAll('[id^="pz-order-num-"]').forEach(el=>el.textContent='');
+};
+window.pzConfirmOrder=function(){
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  if(PZ.orderPicks.length<q.items.length){_showToast('رتّب كل العناصر أولاً');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const ok=q.items.every((_,i)=>PZ.orderPicks[i]===i); // q.items is stored in the correct order
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback '+(ok?'ok':'bad');
+  fb.textContent=(ok?'✅ ترتيب صحيح! ':'❌ الترتيب الصحيح: '+q.items.join(' ← ')+' — ')+q.expl;
+  if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
+
+/* ── مخطط/خريطة صماء (نقاط ساخنة قابلة للنقر) ── */
+window.pzPickHotspot=function(el,id){
+  if(PZ.answered)return;
+  document.querySelectorAll('.pz-hotspot').forEach(h=>h.classList.remove('sel'));
+  el.classList.add('sel');PZ.hotspotSel=id;
+};
+window.pzConfirmHotspot=function(){
+  if(!PZ.hotspotSel){_showToast('اضغط على الموقع الصحيح في الخريطة أولاً');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  const ok=(PZ.hotspotSel===q.correctId);
+  document.querySelectorAll('.pz-hotspot').forEach(h=>{
+    if(h.dataset.id===q.correctId)h.classList.add('ok');
+    else if(h.dataset.id===PZ.hotspotSel&&!ok)h.classList.add('bad');
+  });
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback '+(ok?'ok':'bad');
+  fb.textContent=(ok?'✅ إجابة صحيحة! ':'❌ ')+q.expl;
+  if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
+
+/* ── حساب واستخراج نتيجة رقمية ── */
+window.pzConfirmNumeric=function(){
+  const val=parseFloat(document.getElementById('pz-numeric-inp')?.value);
+  if(isNaN(val)){_showToast('اكتب رقماً أولاً');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  const tol=(q.tolerance!=null)?q.tolerance:0.01;
+  const ok=Math.abs(val-q.correct)<=tol;
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback '+(ok?'ok':'bad');
+  fb.textContent=(ok?'✅ إجابة صحيحة! ':'❌ الإجابة الصحيحة: '+q.correct+(q.unit?' '+q.unit:'')+' — ')+q.expl;
+  if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
+  _bumpFreeSolved(PZ.subj);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
+
+/* ── تحليل نصوص/مقولات فلسفية — تقييم ذاتي بمقارنة الكلمات المفتاحية، وليس تصحيحاً آلياً دقيقاً لمقال حر ── */
+window.pzConfirmTextAnalysis=function(){
+  const val=(document.getElementById('pz-ta-inp')?.value||'').trim();
+  if(!val){_showToast('اكتب تحليلك أولاً');return;}
+  if(PZ.answered)return;PZ.answered=true;
+  const subj=PUZZLE_DB[PZ.subj];const unit=subj.units.find(u=>u.id===PZ.uid);const stg=unit.stages.find(s=>s.id===PZ.sid);const q=stg.questions[PZ.qIdx];
+  addCoins(10);playSound('check');
+  _bumpFreeSolved(PZ.subj);
+  const fb=document.getElementById('pz-fb');
+  fb.className='pz-feedback ok';
+  fb.innerHTML=`💡 <strong>هذا تقييم ذاتي، قارني إجابتك بالعناصر الأساسية التالية:</strong><br>${q.expl}`;
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
+};
 
 function pzFinishStage(subj,unit,stg){
   const totalQ=stg.questions.length;
