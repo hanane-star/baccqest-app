@@ -4559,9 +4559,6 @@ const FEAT_DATA={
     ico:'🗺️',name:'الخطة',sub:'قائمة دروسك المتبقية',col:'#D97706',
     tabId:'plan',
     body:()=>{
-      if(typeof _planFocusSubjects!=='function'||!_planOnboarded()){
-        return `<div style="text-align:center;padding:16px;color:#8A8680;font-size:12px">أكملي إعداد خطتك أولاً من صفحة الخطة الكاملة 🗺️</div>`;
-      }
       const pct=calcG();
       const today=_planTodayItems();
       return `<div style="margin-bottom:12px">
