@@ -2188,6 +2188,8 @@ select option{background:#1a0804;color:#EDEAE3}
 .pz-feedback.ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86EFAC;display:block}
 .pz-feedback.bad{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#FCA5A5;display:block}
 .pz-action-row{display:flex;gap:8px;margin-top:10px}
+.pz-next-row{display:none;gap:8px;margin-top:10px}
+.pz-next-row a.pz-btn{text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center}
 .pz-btn{flex:1;padding:11px;border-radius:9px;font-family:'Amiri',serif;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
 .pz-btn-p{background:linear-gradient(135deg,rgba(200,130,20,.9),rgba(150,80,8,.95));color:#FFF3D0;border:1px solid rgba(220,170,60,.3)}
 .pz-btn-p:hover{background:linear-gradient(135deg,rgba(230,155,25,.95),rgba(185,100,10,.99))}
@@ -4806,6 +4808,9 @@ function goHome(){
 }
 function stab(id,el){
   if(id!=='arena'&&typeof _dcrTimerHandle!=='undefined'&&_dcrTimerHandle){clearInterval(_dcrTimerHandle);_dcrTimerHandle=null;}
+  // Azur/Luna are removed entirely from the questions/exercises experience
+  if(id==='quiz'){if(typeof stopCompanionAmbient==='function')stopCompanionAmbient();}
+  else if(typeof startCompanionAmbient==='function')startCompanionAmbient();
   document.querySelectorAll('#s-student .tab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
   document.querySelectorAll('#s-student > .pane').forEach(p=>{p.classList.remove('active');p.style.display='none';p.style.flex='';});
@@ -6034,15 +6039,17 @@ function _pzRenderQuestion(subj,unit,stg){
       </div>`).join('')}
     </div>
     <div class="pz-feedback" id="pz-fb"></div>
-    <div class="pz-action-row" style="margin-top:10px">
-      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">${_rafiqEmoji()} رفيق</button>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
       <button class="pz-btn pz-btn-p" id="pz-confirm-btn" onclick="pzConfirmMCQ()">تأكيد</button>
     </div>`;
   } else if(q.type==='fill'){
     qBody=`<input class="pz-fill-inp" id="pz-fill" placeholder="اكتب إجابتك..." onkeydown="if(event.key==='Enter')pzConfirmFill()">
     <div class="pz-feedback" id="pz-fb"></div>
-    <div class="pz-action-row" style="margin-top:10px">
-      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">${_rafiqEmoji()} رفيق</button>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>
+    <div class="pz-action-row" id="pz-action-row" style="margin-top:10px">
+      <button class="pz-btn pz-btn-s" onclick="stab('ai',document.querySelectorAll('.tab')[4])">🤖 رفيق</button>
       <button class="pz-btn pz-btn-p" onclick="pzConfirmFill()">تأكيد</button>
     </div>`;
   } else if(q.type==='match'){
@@ -6056,7 +6063,8 @@ function _pzRenderQuestion(subj,unit,stg){
       ${shuffled.map(c=>`<div class="mc" id="pzmc-${c.id}" data-id="${c.id}" data-pair="${c.pair}" data-side="${c.side}" onclick="pzFlipMC(this,'${pairs.length}')">?</div>`).join('')}
     </div>
     <div class="pz-feedback" id="pz-fb"></div>
-    <div id="pz-mscore" style="text-align:center;font-size:11px;color:rgba(200,170,100,.6);margin:6px 0"></div>`;
+    <div id="pz-mscore" style="text-align:center;font-size:11px;color:rgba(200,170,100,.6);margin:6px 0"></div>
+    <div class="pz-next-row" id="pz-next-row" style="display:none"></div>`;
   }
   const typeLabel={mcq:'اختيار من متعدد',fill:'إكمال الفراغ',match:'بطاقات المطابقة'}[q.type]||'';
   view.innerHTML=`
@@ -6078,10 +6086,6 @@ function _pzRenderQuestion(subj,unit,stg){
     <div class="pz-q-text">${fmth(q.text)}</div>
     ${qBody}
   </div>`;
-  if(typeof _gcDockAboveEl==='function'){
-    const card=document.getElementById('pz-q-card');
-    setTimeout(()=>_gcDockAboveEl(card),50);
-  }
 }
 
 function pzPickOpt(el,idx){
@@ -6107,9 +6111,8 @@ function pzConfirmMCQ(){
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
   _bumpFreeSolved(PZ.subj);
-  if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(ok,PZ.subj);
-  document.getElementById('pz-confirm-btn').style.display='none';
-  setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
 }
 
 function pzConfirmFill(){
@@ -6126,13 +6129,14 @@ function pzConfirmFill(){
   fb.textContent=ok?'✅ إجابة صحيحة! '+q.expl:'❌ الإجابة: "'+q.correct+'" — '+q.expl;
   if(ok){PZ.score+=100;addCoins(10);playSound('correct');}else playSound('wrong');
   _bumpFreeSolved(PZ.subj);
-  if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(ok,PZ.subj);
-  setTimeout(()=>pzNextQ(subj,unit,stg),ok?1800:2500);
+  document.getElementById('pz-action-row').style.display='none';
+  _pzShowNextRow(q.pdfUrl);
 }
 
 function pzFlipMC(el,totalPairs){
   if(el.classList.contains('done'))return;
-  const pairData=PUZZLE_DB[PZ.subj]?.units.find(u=>u.id===PZ.uid)?.stages.find(s=>s.id===PZ.sid)?.questions[PZ.qIdx]?.pairs;
+  const q=PUZZLE_DB[PZ.subj]?.units.find(u=>u.id===PZ.uid)?.stages.find(s=>s.id===PZ.sid)?.questions[PZ.qIdx];
+  const pairData=q?.pairs;
   if(!pairData)return;
   el.classList.add('flip');
   if(el.dataset.side==='L')el.textContent=el.dataset.pair;
@@ -6146,18 +6150,30 @@ function pzFlipMC(el,totalPairs){
     if(PZ.mMatched.length===parseInt(totalPairs)){
       PZ.score+=100;
       _bumpFreeSolved(PZ.subj);
-      if(typeof quizCharacterFeedback==='function')quizCharacterFeedback(true,PZ.subj);
       const fb=document.getElementById('pz-fb');
       fb.className='pz-feedback ok';fb.textContent='🎉 جميع الأزواج صحيحة!';
-      const subj=PUZZLE_DB[PZ.subj];
-      const unit=subj.units.find(u=>u.id===PZ.uid);
-      const stg=unit.stages.find(s=>s.id===PZ.sid);
-      setTimeout(()=>pzNextQ(subj,unit,stg),1800);
+      _pzShowNextRow(q.pdfUrl);
     }
   }else{
     const p=PZ.mSel;PZ.mSel=null;playSound('wrong');
     setTimeout(()=>{p.classList.remove('flip');p.textContent='?';el.classList.remove('flip');el.textContent='?';},900);
   }
+}
+
+// Manual navigation: the student must press "السؤال التالي" — no auto-advance
+function _pzShowNextRow(pdfUrl){
+  const row=document.getElementById('pz-next-row');
+  if(!row)return;
+  row.innerHTML=`
+    ${pdfUrl?`<a class="pz-btn pz-btn-s" href="${pdfUrl}" target="_blank" rel="noopener">📄 تحميل الملف المرفق</a>`:''}
+    <button class="pz-btn pz-btn-p" onclick="_pzGoNext()">السؤال التالي ⬅️</button>`;
+  row.style.display='flex';
+}
+function _pzGoNext(){
+  const subj=PUZZLE_DB[PZ.subj];
+  const unit=subj.units.find(u=>u.id===PZ.uid);
+  const stg=unit.stages.find(s=>s.id===PZ.sid);
+  pzNextQ(subj,unit,stg);
 }
 
 function pzNextQ(subj,unit,stg){
