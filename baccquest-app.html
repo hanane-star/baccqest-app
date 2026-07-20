@@ -4556,13 +4556,14 @@ const FEAT_DATA={
       </div>`,
   },
   planning:{
-    ico:'🗺️',name:'الخطة',sub:'خريطة مسارك نحو البكالوريا',col:'#D97706',
+    ico:'🗺️',name:'الخطة',sub:'قائمة دروسك المتبقية',col:'#D97706',
     tabId:'plan',
     body:()=>{
-      const total=Object.keys(LM_SUBJS).length*LM_TOTAL;
-      let done=0;
-      Object.keys(LM_SUBJS).forEach(sid=>{done+=(JSON.parse(localStorage.getItem('bq_lv_'+sid)||'[]')).length;});
-      const pct=Math.round(done/total*100);
+      if(typeof _planFocusSubjects!=='function'||!_planOnboarded()){
+        return `<div style="text-align:center;padding:16px;color:#8A8680;font-size:12px">أكملي إعداد خطتك أولاً من صفحة الخطة الكاملة 🗺️</div>`;
+      }
+      const pct=calcG();
+      const today=_planTodayItems();
       return `<div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#8A8680;margin-bottom:6px">
           <span>التقدم الإجمالي</span><span style="color:#FBBF24;font-weight:700">${pct}%</span>
@@ -4571,25 +4572,27 @@ const FEAT_DATA={
           <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:8px;transition:width 1s"></div>
         </div>
       </div>
-      <div class="feat-grid">
-        ${Object.entries(LM_SUBJS).map(([id,s])=>{
-          const p=loadUserProgress(_libState.userId,id);
-          return `<div class="feat-item" onclick="closeFeat();openLevelModal('${id}')">
-            <div class="feat-item-ico">${s.icon}</div>
-            <div class="feat-item-lbl">${s.name.split(' ')[0]}</div>
-            <div class="feat-item-sub">${p.percentDone}% ✓</div>
-          </div>`;
-        }).join('')}
-      </div>`;
+      <div class="sec-title" style="margin-top:0">📖 الدروس المتبقية اليوم</div>
+      ${today.length?today.map(l=>`<div class="lesson-item${l.done?' done':''}" onclick="toggleLesson('${l.subjId}','${l.id}')" style="margin-bottom:7px">
+        <div class="lcb${l.done?' on':''}">${l.done?'✓':''}</div>
+        <span class="lname" style="flex:1;font-size:12px;font-weight:600">${l.subjIcon} ${l.name}</span>
+        <span style="font-size:9px;color:var(--tx3)">${l.subjName}</span>
+      </div>`).join(''):`<div class="pln-empty">لا مهام لليوم — أحسنت! 🎉</div>`}`;
     },
   },
   puzzles:{
     ico:'🧩',name:'الألغاز',sub:'صندوق التحديات اليومية',col:'#EC4899',
     tabId:'quiz',
-    body:()=>`
-      <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:44px;animation:spin 6s linear infinite">🧩</div>
-        <div style="font-size:13px;color:#EDEAE3;margin:8px 0">اختر المادة وابدأ التحدي</div>
+    body:()=>{
+      const subjIds=Object.keys(PUZZLE_DB);
+      const totalPct=subjIds.length?Math.round(subjIds.reduce((a,id)=>a+_pzSubjProgress(id),0)/subjIds.length):0;
+      return `<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#8A8680;margin-bottom:6px">
+          <span>التقدم الإجمالي</span><span style="color:#FBBF24;font-weight:700">${totalPct}%</span>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden">
+          <div style="height:100%;width:${totalPct}%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:8px;transition:width 1s"></div>
+        </div>
       </div>
       <div class="feat-grid">
         ${Object.entries(PUZZLE_DB).map(([id,s])=>{
@@ -4600,7 +4603,8 @@ const FEAT_DATA={
             <div class="feat-item-sub">${pct}% مكتمل</div>
           </div>`;
         }).join('')}
-      </div>`,
+      </div>`;
+    },
   },
 };
 
