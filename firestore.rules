@@ -3,14 +3,33 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Students (profile, branch, coins, subscription tier) ──
+    // Doc id = email. Owner = the authenticated user whose auth email/uid matches this doc.
     match /students/{email} {
       allow read: if true;
-      allow create, update: if request.resource.data.keys().hasAll(['name','branch','sub','coins'])
+      allow create: if request.resource.data.keys().hasAll(['name','branch','sub','coins'])
         && request.resource.data.name is string
         && request.resource.data.branch is string
         && request.resource.data.sub in ['free','plus','pro']
-        && request.resource.data.coins is number;
-      allow delete: if true; // TODO: restrict to admin once Firebase Auth + custom claims ship
+        && request.resource.data.coins is number
+        && request.auth != null
+        && (request.auth.token.email == email || request.auth.uid == request.resource.data.uid);
+      allow update: if request.auth != null && (
+        // owner updating their own full profile
+        (
+          (request.auth.token.email == email || request.auth.uid == resource.data.uid)
+          && request.resource.data.keys().hasAll(['name','branch','sub','coins'])
+          && request.resource.data.name is string
+          && request.resource.data.branch is string
+          && request.resource.data.sub in ['free','plus','pro']
+          && request.resource.data.coins is number
+        )
+        // referral bonus: any signed-in user may bump another student's coins only, nothing else
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coins'])
+          && request.resource.data.coins is number
+        )
+      );
+      allow delete: if request.auth != null && request.auth.token.email == email;
     }
 
     // ── Teacher-published questions ──

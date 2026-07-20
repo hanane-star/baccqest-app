@@ -1,10 +1,12 @@
 const http = require('http');
 const https = require('https');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = __dirname;
 const PORT = process.env.PORT || 3002;
+const APP_BASE_URL = process.env.APP_BASE_URL || 'https://baccquest-app.onrender.com';
 const MIME = {'.html':'text/html','.css':'text/css','.js':'application/javascript',
               '.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml'};
 
@@ -13,12 +15,61 @@ const MIME = {'.html':'text/html','.css':'text/css','.js':'application/javascrip
 // so every student gets real AI without needing their own key.
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 
+// ══ CHARGILY PAY — real card payments (CIB/Edahabia) ══
+// Set CHARGILY_SECRET_KEY (test_sk_... or live_sk_...) as an env var. Never ship it to the client.
+const CHARGILY_SECRET_KEY = process.env.CHARGILY_SECRET_KEY || '';
+// Server-side price list — the source of truth. Never trust a price sent by the client.
+const PLAN_PRICES = { plus: 900, pro: 7200 };
+
+// ══ FIREBASE ADMIN — lets the payment webhook upgrade a student's subscription server-side ══
+// Set FIREBASE_SERVICE_ACCOUNT_JSON to the full JSON content of a Firebase service account key.
+let _admin = null;
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    const admin = require('firebase-admin');
+    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
+    _admin = admin;
+  }
+} catch (e) { console.error('firebase-admin init failed:', e.message); }
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let buf = '';
     req.on('data', d => buf += d);
     req.on('end', () => { try { resolve(JSON.parse(buf)); } catch { resolve({}); }});
     req.on('error', reject);
+  });
+}
+
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let buf = '';
+    req.on('data', d => buf += d);
+    req.on('end', () => resolve(buf));
+    req.on('error', reject);
+  });
+}
+
+function chargilyRequest(method, apiPath, payload) {
+  return new Promise((resolve, reject) => {
+    const body = payload ? JSON.stringify(payload) : '';
+    const req = https.request({
+      hostname: 'api.chargily.com',
+      path: apiPath,
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + CHARGILY_SECRET_KEY,
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, res => {
+      let buf = '';
+      res.on('data', d => buf += d);
+      res.on('end', () => { try { resolve({status: res.statusCode, data: JSON.parse(buf)}); } catch(e) { resolve({status: res.statusCode, data: {raw: buf}}); }});
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
   });
 }
 
@@ -110,6 +161,79 @@ http.createServer(async (req, res) => {
       } catch (e) {}
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(JSON.stringify(verdict));
+    } catch (e) {
+      res.writeHead(500, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: e.message}));
+    }
+    return;
+  }
+
+  // ── POST /api/create-checkout — start a real Chargily Pay checkout (CIB/Edahabia) ──
+  if (req.method === 'POST' && url === '/api/create-checkout') {
+    if (!CHARGILY_SECRET_KEY) {
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: 'NO_KEY', message: 'CHARGILY_SECRET_KEY not configured on the server'}));
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      const { planId, email } = body;
+      const amount = PLAN_PRICES[planId];
+      if (!amount || !email) {
+        res.writeHead(400, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: 'invalid planId or email'}));
+        return;
+      }
+      const result = await chargilyRequest('POST', '/v2/checkouts', {
+        amount,
+        currency: 'dzd',
+        locale: 'ar',
+        success_url: APP_BASE_URL + '/?pay=success',
+        failure_url: APP_BASE_URL + '/?pay=failed',
+        webhook_endpoint: APP_BASE_URL + '/api/chargily-webhook',
+        description: 'اشتراك funbac — خطة ' + planId,
+        metadata: { email, plan: planId }
+      });
+      if (result.status >= 200 && result.status < 300 && result.data.checkout_url) {
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({checkout_url: result.data.checkout_url}));
+      } else {
+        res.writeHead(502, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: 'chargily_error', details: result.data}));
+      }
+    } catch (e) {
+      res.writeHead(500, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: e.message}));
+    }
+    return;
+  }
+
+  // ── POST /api/chargily-webhook — Chargily notifies us here when a checkout is paid ──
+  if (req.method === 'POST' && url === '/api/chargily-webhook') {
+    try {
+      const raw = await readRawBody(req);
+      const signature = req.headers['signature'] || '';
+      const expected = crypto.createHmac('sha256', CHARGILY_SECRET_KEY).update(raw).digest('hex');
+      const sigBuf = Buffer.from(signature, 'utf8');
+      const expBuf = Buffer.from(expected, 'utf8');
+      const valid = sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
+      if (!valid) {
+        res.writeHead(400, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: 'invalid_signature'}));
+        return;
+      }
+      const event = JSON.parse(raw);
+      if (event.type === 'checkout.paid') {
+        const email = event.data && event.data.metadata && event.data.metadata.email;
+        const plan = event.data && event.data.metadata && event.data.metadata.plan;
+        if (email && plan && _admin) {
+          await _admin.firestore().collection('students').doc(email).set({ sub: plan }, { merge: true });
+        } else if (email && plan) {
+          console.error('Chargily webhook: payment confirmed for', email, plan, 'but FIREBASE_SERVICE_ACCOUNT_JSON is not configured — subscription NOT upgraded.');
+        }
+      }
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({received: true}));
     } catch (e) {
       res.writeHead(500, {'Content-Type': 'application/json'});
       res.end(JSON.stringify({error: e.message}));

@@ -8048,6 +8048,7 @@ const PLANS=[
   {id:'pro',   label:'Pro',    price:7200, period:'سنوياً',    features:['كل مزايا Plus','تقارير تقدم مفصّلة','دعم الأستاذ المباشر','شهادة إتمام'],color:'#10B981',badge:'الأفضل قيمة'},
 ];
 const PAY_METHODS=[
+  {id:'chargily', label:'بطاقة CIB / Edahabia',icon:'💳',desc:'دفع إلكتروني فوري وآمن — تفعيل تلقائي مباشرةً'},
   {id:'baridimob',label:'BaridiMob',icon:'📱',desc:'الدفع عبر تطبيق BaridiMob (بريد الجزائر)'},
   {id:'ccp',      label:'CCP / بريد',icon:'🏦',desc:'التحويل عبر الحساب البريدي (CCP)'},
 ];
@@ -8108,7 +8109,13 @@ function renderPayment(){
     const pl=PLANS.find(p=>p.id===PAY.plan);
     const m=PAY.method;
     let formHtml='';
-    if(m==='baridimob'){formHtml=`
+    if(m==='chargily'){formHtml=`
+      <div class="pay-status-pending">
+        <strong>💳 دفع فوري وآمن</strong><br>
+        سيتم تحويلك لصفحة دفع آمنة لإدخال بيانات بطاقة CIB أو Edahabia. يُفعَّل اشتراكك تلقائياً فور نجاح الدفع، بدون انتظار.
+      </div>
+      <button class="btn-p" id="chargily-pay-btn" onclick="payWithChargily()" style="width:100%;margin-top:10px">💳 الدفع الآن — ${pl.price} دج</button>`;}
+    else if(m==='baridimob'){formHtml=`
       <div class="pay-status-pending">
         <strong>📱 خطوات الدفع عبر BaridiMob:</strong><br>
         1. افتح تطبيق BaridiMob<br>
@@ -8200,6 +8207,63 @@ function submitPayment(){
      Server stores the receipt image and verifies manually or via BaridiMob/CCP bank API ══ */
   PAY.step='pending';renderPayment();
 }
+
+async function payWithChargily(){
+  const btn=document.getElementById('chargily-pay-btn');
+  const session=(typeof _getSession==='function')?_getSession():null;
+  const email=session&&session.email;
+  if(!email){showToast('❌ سجّل الدخول أولاً لإتمام الدفع');return;}
+  if(btn){btn.disabled=true;btn.textContent='⏳ جاري التحويل لصفحة الدفع...';}
+  try{
+    const res=await fetch('/api/create-checkout',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({planId:PAY.plan,email})
+    });
+    const data=await res.json();
+    if(data.checkout_url){
+      window.location.href=data.checkout_url;
+    }else{
+      showToast('❌ تعذّر بدء عملية الدفع، حاول مجدداً');
+      if(btn){btn.disabled=false;btn.textContent='💳 الدفع الآن';}
+    }
+  }catch(e){
+    showToast('❌ تعذّر الاتصال بخدمة الدفع');
+    if(btn){btn.disabled=false;btn.textContent='💳 الدفع الآن';}
+  }
+}
+
+// After returning from a Chargily checkout, sync the real subscription status from Firestore.
+async function _checkChargilyReturn(){
+  const params=new URLSearchParams(window.location.search);
+  const payState=params.get('pay');
+  if(!payState)return;
+  history.replaceState(null,'',window.location.pathname);
+  if(payState==='failed'){showToast('❌ لم تكتمل عملية الدفع');return;}
+  if(payState!=='success')return;
+  const session=(typeof _getSession==='function')?_getSession():null;
+  const email=session&&session.email;
+  if(!email||!_fbDb){showToast('⏳ الدفع قيد المعالجة، تحقق من اشتراكك بعد قليل');return;}
+  showToast('⏳ جاري التحقق من الدفع...');
+  for(let i=0;i<6;i++){
+    await new Promise(r=>setTimeout(r,2000));
+    try{
+      const snap=await _fbDb.collection('students').doc(email).get();
+      const sub=snap.exists?snap.data().sub:'free';
+      if(sub&&sub!=='free'){
+        localStorage.setItem('bq_sub_status','paid');
+        localStorage.setItem('bq_sub_plan',sub);
+        localStorage.setItem('bq_sub_activated',Date.now().toString());
+        if(session){session.sub=sub;localStorage.setItem('bq_session',JSON.stringify(session));}
+        showToast('🎉 تم تفعيل اشتراكك بنجاح!');
+        if(typeof renderStudyPlan==='function')try{renderStudyPlan();}catch(e){}
+        return;
+      }
+    }catch(e){}
+  }
+  showToast('⏳ الدفع لا يزال قيد المعالجة، تحقق لاحقاً');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_checkChargilyReturn);
+else _checkChargilyReturn();
 
 function simulateApprove(){
   /* Dev-only: simulate payment approval for testing */
