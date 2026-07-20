@@ -4315,7 +4315,7 @@ function completeLevel(subjectId,level){
     localStorage.setItem(key,JSON.stringify(done));
     // Reward coins
     ST.coins+=15;
-    document.getElementById('coins').textContent=ST.coins;
+    const cv=document.getElementById('coins-val');if(cv)cv.textContent=ST.coins;
     trackActivity();
   }
 }
@@ -5369,7 +5369,7 @@ const PUZZLE_DB={
              correct:'2x',keywords:['2x'],expl:'مشتقة x² هي 2x'},
             {type:'blindmap',text:'حدد موقع الجزائر على الخريطة الصماء',
              imgUrl:'./world-blind-map.jpg',
-             hotspots:[{id:'dz',x:48,y:38,label:'الجزائر'},{id:'eg',x:57,y:39,label:'مصر'},{id:'sa2',x:60,y:44,label:'السعودية'},{id:'fr',x:47,y:24,label:'فرنسا'}],
+             hotspots:[{id:'dz',x:45.5,y:47,label:'الجزائر'},{id:'eg',x:49,y:49,label:'مصر'},{id:'sa2',x:54,y:50,label:'السعودية'},{id:'fr',x:41,y:38,label:'فرنسا'}],
              correctId:'dz',
              expl:'الجزائر تقع في شمال إفريقيا، على الساحل الجنوبي للبحر الأبيض المتوسط.'},
           ]},
@@ -8802,24 +8802,25 @@ window.settingsShowReferral=function(){
   }
 
   // ── finalize a signed-in Firebase user into our `students` collection + local session mirror ──
-  async function _finalizeUser(user,{name,branch}={}){
+  async function _finalizeUser(user,{name,branch,subBranch}={}){
     const email=user.email||('user_'+user.uid+'@funbac.local');
     const finalName=name||user.displayName||'طالب';
     let finalBranch=branch;
+    let finalSubBranch=subBranch||(typeof ST!=='undefined'?ST.subBranch:'')||'';
     if(!finalBranch&&_fbDb){
-      try{const doc=await _fbDb.collection('students').doc(email).get();if(doc.exists)finalBranch=doc.data().branch;}catch(e){}
+      try{const doc=await _fbDb.collection('students').doc(email).get();if(doc.exists){finalBranch=doc.data().branch;if(!finalSubBranch)finalSubBranch=doc.data().subBranch||'';}}catch(e){}
     }
     finalBranch=finalBranch||'علوم تجريبية';
-    const session={email,name:finalName,branch:finalBranch,sub:'free',uid:user.uid,ts:Date.now()};
+    const session={email,name:finalName,branch:finalBranch,subBranch:finalSubBranch,sub:'free',uid:user.uid,ts:Date.now()};
     if(_fbDb){
       try{
         const snap=await _fbDb.collection('students').doc(email).get();
         if(snap.exists){
           const d=snap.data();session.sub=d.sub||'free';if(d.coins!=null)session.coins=d.coins;
-          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,phone:user.phoneNumber||d.phone||null},{merge:true}).catch(()=>{});
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,subBranch:finalSubBranch,uid:user.uid,email,phone:user.phoneNumber||d.phone||null},{merge:true}).catch(()=>{});
         }else{
           const refCode=user.uid.slice(0,8);
-          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,uid:user.uid,email,phone:user.phoneNumber||null,sub:'free',coins:100,refCode,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          await _fbDb.collection('students').doc(email).set({name:finalName,branch:finalBranch,subBranch:finalSubBranch,uid:user.uid,email,phone:user.phoneNumber||null,sub:'free',coins:100,refCode,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
           session.coins=100;
           await _applyPendingReferral(email);
         }
@@ -8827,7 +8828,7 @@ window.settingsShowReferral=function(){
     }
     localStorage.setItem(SESSION_KEY,JSON.stringify(session));
     const users=_getUsers();
-    if(!users[email])users[email]={name:finalName,branch:finalBranch,sub:session.sub||'free',progress:{},coins:session.coins||100,streak:0,level:1,created:Date.now()};
+    if(!users[email])users[email]={name:finalName,branch:finalBranch,subBranch:finalSubBranch,sub:session.sub||'free',progress:{},coins:session.coins||100,streak:0,level:1,created:Date.now()};
     _saveUsers(users);
     _applySession(session);
     _showFormsAgain();
@@ -8977,6 +8978,7 @@ window.settingsShowReferral=function(){
         if(s.coins!=null)ST.coins=s.coins;else if(u&&u.coins)ST.coins=u.coins;
         if(u&&u.streak)ST.streak=u.streak;if(u&&u.level)ST.level=u.level;
         ST.branch=s.branch||ST.branch;
+        if(s.subBranch)ST.subBranch=s.subBranch;
         const lc=document.getElementById('lib-coins');const ls=document.getElementById('lib-streak');const ll=document.getElementById('lib-level');
         if(lc)lc.textContent=ST.coins;if(ls)ls.textContent=ST.streak;if(ll)ll.textContent=ST.level;
       }
