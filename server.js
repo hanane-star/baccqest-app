@@ -23,6 +23,9 @@ const TEACHER_ACCESS_CODE = (process.env.TEACHER_ACCESS_CODE || 'BACC-TCHR-2891'
 // ══ CHARGILY PAY — real card payments (CIB/Edahabia) ══
 // Set CHARGILY_SECRET_KEY (test_sk_... or live_sk_...) as an env var. Never ship it to the client.
 const CHARGILY_SECRET_KEY = process.env.CHARGILY_SECRET_KEY || '';
+// Real host is pay.chargily.net — test/live mode is a URL prefix, auto-detected from the key.
+const CHARGILY_HOST = 'pay.chargily.net';
+const CHARGILY_BASE_PATH = CHARGILY_SECRET_KEY.startsWith('test_') ? '/test/api/v2' : '/api/v2';
 // Server-side price list — the source of truth. Never trust a price sent by the client.
 const PLAN_PRICES = { plus: 900, pro: 7200 };
 
@@ -59,8 +62,8 @@ function chargilyRequest(method, apiPath, payload) {
   return new Promise((resolve, reject) => {
     const body = payload ? JSON.stringify(payload) : '';
     const req = https.request({
-      hostname: 'api.chargily.com',
-      path: apiPath,
+      hostname: CHARGILY_HOST,
+      path: CHARGILY_BASE_PATH + apiPath,
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -229,7 +232,7 @@ http.createServer(async (req, res) => {
           }
         } catch (e) { console.error('promo code lookup failed:', e.message); }
       }
-      const result = await chargilyRequest('POST', '/v2/checkouts', {
+      const result = await chargilyRequest('POST', '/checkouts', {
         amount,
         currency: 'dzd',
         locale: 'ar',
