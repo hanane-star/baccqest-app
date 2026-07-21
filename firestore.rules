@@ -103,6 +103,19 @@ service cloud.firestore {
       allow delete: if true; // TODO: restrict to the publishing teacher/owner once per-teacher Auth ships
     }
 
+    // ── Module explainer videos (one per unit, teacher/owner-authored) ──
+    match /unit_videos/{id} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasOnly(['url'])
+        && request.resource.data.url is string;
+    }
+
+    // ── Promo codes — owner-controlled discounts, same trust boundary as pricing ──
+    match /promo_codes/{code} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'hananesidimoussa14@gmail.com';
+    }
+
     // Deny anything not explicitly matched above.
     match /{document=**} {
       allow read, write: if false;

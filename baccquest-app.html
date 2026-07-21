@@ -2565,6 +2565,28 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
 /* ══ BOARD GAME STAGE PATH ══ */
 .pz-board-wrap{padding:14px 10px 40px;min-height:100%;}
+.pz-module-vid{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(108,60,225,.15),rgba(16,185,129,.1));border:1.5px solid rgba(108,60,225,.3);border-radius:14px;padding:10px;margin:10px;cursor:pointer;transition:transform .2s}
+.pz-module-vid:hover{transform:translateY(-2px)}
+.pz-module-vid-thumb{position:relative;width:84px;height:56px;border-radius:9px;overflow:hidden;background:#1a1245;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pz-module-vid-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;background:rgba(0,0,0,.25)}
+.pz-module-vid-lbl{font-size:12px;font-weight:800;color:var(--tx)}
+/* ── Scratchpad ── */
+.pz-scratch-wrap{margin:10px;background:var(--bg2);border:1.5px solid var(--bd);border-radius:12px;overflow:hidden}
+.pz-scratch-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:11px;font-weight:800;color:var(--tx2);cursor:pointer;user-select:none}
+.pz-scratch-body{padding:0 10px 10px}
+.pz-scratch-ta{width:100%;min-height:90px;background:var(--bg3);border:1px solid var(--bd);border-radius:9px;padding:8px;font-size:12px;color:var(--tx);resize:vertical;font-family:inherit}
+.pz-scratch-tools{display:flex;justify-content:flex-end;margin-top:6px}
+.pz-scratch-btn{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;font-size:10px;color:var(--tx2);cursor:pointer}
+/* ── Floating calculator ── */
+.pz-calc-fab{position:fixed;left:14px;bottom:90px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#6C3CE1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(108,60,225,.5);cursor:pointer;z-index:960}
+.pz-calc-modal{position:fixed;left:14px;bottom:150px;width:220px;background:var(--bg1);border:1.5px solid var(--bd2);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:970;flex-direction:column;overflow:hidden}
+.pz-calc-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);font-size:11px;font-weight:800;color:var(--tx);cursor:grab;touch-action:none}
+.pz-calc-close{background:none;border:none;color:var(--tx2);font-size:13px;cursor:pointer}
+.pz-calc-screen{padding:12px 10px;text-align:left;direction:ltr;font-size:20px;font-weight:700;color:var(--tx);background:var(--bg3);word-break:break-all;min-height:30px}
+.pz-calc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px}
+.pz-calc-key{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:8px 0;font-size:12px;color:var(--tx);cursor:pointer}
+.pz-calc-key.op{background:var(--p);color:#fff;font-weight:800}
+@media (max-width:420px){.pz-calc-modal{width:196px}.pz-calc-key{font-size:11px;padding:7px 0}}
 .pz-board-unit-hdr{display:flex;align-items:center;gap:8px;margin:14px 0 18px;}
 .pz-board-unit-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,163,97,.3),transparent);}
 .pz-board-unit-badge{font-family:'Amiri',serif;font-size:11px;font-weight:700;color:#C4903A;padding:5px 14px;border-radius:20px;background:rgba(212,163,97,.08);border:1px solid rgba(212,163,97,.2);white-space:nowrap;flex-shrink:0;}
@@ -3221,6 +3243,15 @@ hr{border-color:rgba(212,163,97,.2)!important}
     <!-- QUIZ — Hierarchical puzzle system -->
     <div class="pane" id="sp-quiz">
       <div id="pz-view"><!-- rendered by pzShowSubjects() --></div>
+      <div class="pz-calc-fab" id="pz-calc-fab" style="display:none" onclick="pzToggleCalc()">🧮</div>
+      <div class="pz-calc-modal" id="pz-calc-modal" style="display:none">
+        <div class="pz-calc-hdr" id="pz-calc-drag-handle">
+          <span>🧮 آلة حاسبة</span>
+          <button class="pz-calc-close" onclick="pzToggleCalc()">✕</button>
+        </div>
+        <div class="pz-calc-screen" id="pz-calc-screen">0</div>
+        <div class="pz-calc-grid" id="pz-calc-grid"></div>
+      </div>
     </div>
 
     <!-- QBANK -->
@@ -5032,6 +5063,7 @@ function _initSyllabusSync(){
 setTimeout(_initSyllabusSync,300);
 setTimeout(()=>{if(typeof _initPricingSync==='function')_initPricingSync();},300);
 setTimeout(()=>{if(typeof _initStoreBooksSync==='function')_initStoreBooksSync();},300);
+setTimeout(()=>{if(typeof _initUnitVideosSync==='function')_initUnitVideosSync();},300);
 window.tqAddLesson=function(subjId,name,unit,weight){
   name=(name||'').trim();if(!name){_showToast('اكتب اسم الدرس أولاً');return;}
   if(!(typeof _fbReady!=='undefined'&&_fbReady)){_showToast('⚠️ تعذّر الاتصال بقاعدة البيانات');return;}
@@ -5954,6 +5986,7 @@ function pzShowSubjects(){
   const view=document.getElementById('pz-view');if(!view)return;
   if(typeof _gcUndockFromQuiz==='function')_gcUndockFromQuiz();
   PZ.subj=PZ.uid=PZ.sid=null;
+  if(typeof _pzUpdateCalcVisibility==='function')_pzUpdateCalcVisibility();
   const allowed=_pzSubjectsForBranch();
   // Also include teacher-custom subjects
   const tchrSubjs=_pzGetTchrSubjects();
@@ -5994,6 +6027,7 @@ function pzShowSubjects(){
 function pzShowUnits(subjId){
   const subj=PUZZLE_DB[subjId];if(!subj)return;
   PZ.subj=subjId;PZ.uid=PZ.sid=null;
+  if(typeof _pzUpdateCalcVisibility==='function')_pzUpdateCalcVisibility();
   const view=document.getElementById('pz-view');
   let html=`
   <div class="pz-nav">
@@ -6024,6 +6058,7 @@ function pzShowStages(subjId,uid){
   // Board-game path view for stages
   const subj=PUZZLE_DB[subjId];const unit=subj?.units.find(u=>u.id===uid);if(!unit)return;
   PZ.subj=subjId;PZ.uid=uid;PZ.sid=null;
+  if(typeof _pzUpdateCalcVisibility==='function')_pzUpdateCalcVisibility();
   const view=document.getElementById('pz-view');
   const ANIMALS=['🦁','🐼','🐻','🦓','🐘','🐒','🐯','🦜','🦏','🐨','🦊','🐺','🦒','🦋'];
   const PER_ROW=3;
@@ -6052,6 +6087,7 @@ function pzShowStages(subjId,uid){
     <span class="pz-nav-sep">›</span>
     <span class="pz-nav-cur">${unit.label}</span>
   </div>
+  ${_pzModuleVideoCard(subjId,uid)}
   <div class="pz-board-wrap">
     <div class="pz-board-flag">
       <div class="pz-board-flag-line" style="background:linear-gradient(90deg,transparent,rgba(100,160,50,.35))"></div>
@@ -6245,7 +6281,100 @@ function _pzRenderQuestion(subj,unit,stg){
     <span class="pz-q-type-tag">${typeLabel}</span>
     <div class="pz-q-text">${fmth(q.text)}</div>
     ${qBody}
+  </div>
+  ${_pzScratchpadHtml()}`;
+  _pzLoadScratch();
+  _pzUpdateCalcVisibility();
+}
+/* ── Scratchpad: free writing space under each question for working out an answer before confirming ── */
+function _pzScratchOpenPref(){return localStorage.getItem('bq_scratch_open')==='1';}
+function _pzScratchpadHtml(){
+  const open=_pzScratchOpenPref();
+  return `<div class="pz-scratch-wrap">
+    <div class="pz-scratch-hdr" onclick="pzToggleScratch()">
+      <span>📝 المسودة — للمحاولة والحسابات الأولية</span>
+      <span id="pz-scratch-toggle-ico">${open?'▴':'▾'}</span>
+    </div>
+    <div class="pz-scratch-body" id="pz-scratch-body" style="display:${open?'block':'none'}">
+      <textarea class="pz-scratch-ta" id="pz-scratch-ta" placeholder="اكتب محاولتك، ملاحظاتك، أو حساباتك هنا..." oninput="_pzSaveScratch()"></textarea>
+      <div class="pz-scratch-tools">
+        <button class="pz-scratch-btn" onclick="pzClearScratch()">🧹 مسح الكل</button>
+      </div>
+    </div>
   </div>`;
+}
+function _pzScratchKey(){return 'bq_scratch_'+PZ.subj+'_'+PZ.uid+'_'+PZ.sid+'_'+PZ.qIdx;}
+function _pzLoadScratch(){const ta=document.getElementById('pz-scratch-ta');if(ta)ta.value=localStorage.getItem(_pzScratchKey())||'';}
+function _pzSaveScratch(){const ta=document.getElementById('pz-scratch-ta');if(ta)localStorage.setItem(_pzScratchKey(),ta.value);}
+function pzClearScratch(){const ta=document.getElementById('pz-scratch-ta');if(ta){ta.value='';localStorage.removeItem(_pzScratchKey());}}
+function pzToggleScratch(){
+  const body=document.getElementById('pz-scratch-body');const ico=document.getElementById('pz-scratch-toggle-ico');
+  if(!body)return;
+  const show=body.style.display==='none';
+  body.style.display=show?'block':'none';
+  if(ico)ico.textContent=show?'▴':'▾';
+  localStorage.setItem('bq_scratch_open',show?'1':'0');
+  if(show)_pzLoadScratch();
+}
+
+/* ── Floating scientific calculator — only for calculation-heavy subjects ── */
+const PZ_CALC_SUBJECTS=['math','physics','sciences','civil','electrical','mechanical','methods'];
+let _calcExpr='';
+function _pzUpdateCalcVisibility(){
+  const fab=document.getElementById('pz-calc-fab');if(!fab)return;
+  const show=PZ_CALC_SUBJECTS.includes(PZ.subj);
+  fab.style.display=show?'flex':'none';
+  if(!show){const m=document.getElementById('pz-calc-modal');if(m)m.style.display='none';}
+}
+const CALC_KEYS=['7','8','9','÷','sin','4','5','6','×','cos','1','2','3','−','tan','0','.','=','+','√','(',')','%','π','⌫','C'];
+function _calcBuildGrid(){
+  const grid=document.getElementById('pz-calc-grid');if(!grid||grid.dataset.built)return;
+  grid.dataset.built='1';
+  grid.innerHTML=CALC_KEYS.map(k=>`<button class="pz-calc-key${'+−×÷='.includes(k)?' op':''}" onclick="_calcPress('${k}')">${k}</button>`).join('');
+}
+function _calcPress(k){
+  const scr=document.getElementById('pz-calc-screen');if(!scr)return;
+  if(k==='C'){_calcExpr='';}
+  else if(k==='⌫'){_calcExpr=_calcExpr.slice(0,-1);}
+  else if(k==='='){
+    try{
+      let e=_calcExpr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/π/g,'Math.PI')
+        .replace(/√\(([^)]*)\)/g,'Math.sqrt($1)').replace(/√(\d+(\.\d+)?)/g,'Math.sqrt($1)')
+        .replace(/sin\(([^)]*)\)/g,'Math.sin(($1)*Math.PI/180)').replace(/cos\(([^)]*)\)/g,'Math.cos(($1)*Math.PI/180)').replace(/tan\(([^)]*)\)/g,'Math.tan(($1)*Math.PI/180)')
+        .replace(/(\d+(\.\d+)?)%/g,'($1/100)');
+      const val=Function('"use strict";return ('+e+')')();
+      _calcExpr=(Math.round(val*1e8)/1e8).toString();
+    }catch(e){_calcExpr='خطأ';}
+  }
+  else if(['sin','cos','tan','√'].includes(k)){_calcExpr+=k+'(';}
+  else{_calcExpr+=k;}
+  scr.textContent=_calcExpr||'0';
+}
+function pzToggleCalc(){
+  const modal=document.getElementById('pz-calc-modal');if(!modal)return;
+  const show=modal.style.display==='none';
+  modal.style.display=show?'flex':'none';
+  if(show){_calcBuildGrid();_calcInitDrag();}
+}
+function _calcInitDrag(){
+  const modal=document.getElementById('pz-calc-modal');const handle=document.getElementById('pz-calc-drag-handle');
+  if(!modal||!handle||modal._dragInit)return;modal._dragInit=true;
+  let startX=0,startY=0,startLeft=0,startTop=0;
+  handle.addEventListener('pointerdown',e=>{
+    const r=modal.getBoundingClientRect();
+    startX=e.clientX;startY=e.clientY;startLeft=r.left;startTop=r.top;
+    modal.style.right='auto';modal.style.bottom='auto';modal.style.left=r.left+'px';modal.style.top=r.top+'px';
+    handle.setPointerCapture(e.pointerId);
+    const onMove=me=>{
+      const r2=modal.getBoundingClientRect();
+      let nl=startLeft+(me.clientX-startX),nt=startTop+(me.clientY-startY);
+      nl=Math.max(0,Math.min(window.innerWidth-r2.width,nl));
+      nt=Math.max(0,Math.min(window.innerHeight-r2.height,nt));
+      modal.style.left=nl+'px';modal.style.top=nt+'px';
+    };
+    const onUp=ue=>{handle.releasePointerCapture(ue.pointerId);window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);};
+    window.addEventListener('pointermove',onMove);window.addEventListener('pointerup',onUp);
+  });
 }
 
 function pzPickOpt(el,idx){
@@ -6697,7 +6826,7 @@ function _pzTchrSubjProgress(subjId){
 
 // ── Teacher Dashboard: Content Builder tab ──
 window.tchrTab=function(tab){
-  ['stats','videos','stds','content','questions','manage','syllabus','store'].forEach(t=>{
+  ['stats','videos','stds','content','questions','manage','syllabus','store','unitvid'].forEach(t=>{
     const el=document.getElementById('tt-'+t);
     if(el)el.classList.toggle('on',t===tab);
   });
@@ -6710,6 +6839,7 @@ window.tchrTab=function(tab){
   else if(tab==='manage')body.innerHTML=_renderTchrManage();
   else if(tab==='syllabus')body.innerHTML=_renderTchrSyllabus();
   else if(tab==='store'){body.innerHTML=_renderTchrStore();_renderTchrStoreBooksList();}
+  else if(tab==='unitvid')body.innerHTML=_renderTchrUnitVideos();
 };
 
 /* ── التحكم بالمقرر الدراسي: إضافة/حذف دروس تنعكس فوراً على خطط كل الطلاب ── */
@@ -7228,6 +7358,27 @@ function dcrFinish(){
 /* ═══════════════════════════════════════════════════════════
    🛒 STORE — subscriptions (owner-priced) + real books marketplace
    ═══════════════════════════════════════════════════════════ */
+/* ── Module videos: one explainer video per unit, shown at the top of the unit's stage path ── */
+let UNIT_VIDEOS={};
+function _unitVideoKey(subjId,uid){return subjId+'__'+uid;}
+function _initUnitVideosSync(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady))return;
+  _fbDb.collection('unit_videos').onSnapshot(snap=>{
+    snap.forEach(doc=>{UNIT_VIDEOS[doc.id]=doc.data().url;});
+    if(PZ.subj&&PZ.uid&&!PZ.sid&&document.getElementById('pz-view'))pzShowStages(PZ.subj,PZ.uid);
+  },()=>{});
+}
+function _pzModuleVideoCard(subjId,uid){
+  const url=UNIT_VIDEOS[_unitVideoKey(subjId,uid)];
+  if(!url)return'';
+  const isYT=url.includes('youtube.com')||url.includes('youtu.be');
+  const ytId=isYT?url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/)?.[1]:null;
+  const thumb=ytId?`<img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:40px">🎬</div>`;
+  return `<div class="pz-module-vid" onclick="showVideoModal('${url.replace(/'/g,"\\'")}','فيديو شرح الوحدة')">
+    <div class="pz-module-vid-thumb">${thumb}<div class="pz-module-vid-play">▶</div></div>
+    <div class="pz-module-vid-lbl">🎬 فيديو شرح الوحدة الشامل</div>
+  </div>`;
+}
 let STORE_BOOKS=[];
 function _initStoreBooksSync(){
   if(!(typeof _fbReady!=='undefined'&&_fbReady))return;
@@ -7290,10 +7441,36 @@ function previewBook(id){
 }
 function _ownedBooks(){try{return JSON.parse(localStorage.getItem('bq_owned_books')||'[]');}catch(e){return[];}}
 function _isBookOwned(id){return _ownedBooks().includes(id);}
+/* ── Promo codes — validated against Firestore (owner-managed only) ── */
+async function _pzCheckPromoCode(code){
+  code=(code||'').trim().toUpperCase();
+  if(!code)return null;
+  if(!(typeof _fbReady!=='undefined'&&_fbReady))return null;
+  try{
+    const doc=await _fbDb.collection('promo_codes').doc(code).get();
+    if(!doc.exists)return null;
+    const d=doc.data();
+    if(!d.active)return null;
+    return {code,...d};
+  }catch(e){return null;}
+}
+let _bookPromoApplied=null;
+function _effectiveBookPrice(b){
+  if(!_bookPromoApplied)return b.priceCoins;
+  if(_bookPromoApplied.type==='unlock')return 0;
+  if(_bookPromoApplied.type==='percent')return Math.max(0,Math.round(b.priceCoins*(1-_bookPromoApplied.value/100)));
+  return b.priceCoins;
+}
 function openBookCheckout(id){
+  _bookPromoApplied=null;
+  _renderBookCheckoutBox(id);
+  document.getElementById('book-checkout-ov').classList.add('on');
+}
+function _renderBookCheckoutBox(id){
   const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
   const owned=_isBookOwned(id);
   const box=document.getElementById('book-checkout-box');
+  const price=_effectiveBookPrice(b);
   box.innerHTML=`
     <div class="capsule-ico">${b.icon||'📘'}</div>
     <div class="capsule-title">${b.title}</div>
@@ -7301,22 +7478,37 @@ function openBookCheckout(id){
     ${owned?`
       <button class="btn-p" style="width:100%" onclick="downloadBook('${b.id}')">⬇️ تحميل الملف</button>
     `:`
-      <div class="store-row"><span>السعر</span><strong>🪙 ${b.priceCoins}</strong></div>
+      <div class="store-row"><span>السعر</span><strong>${_bookPromoApplied?`<s style="opacity:.5">🪙 ${b.priceCoins}</s> `:''}🪙 ${price}</strong></div>
       <div class="store-row"><span>رصيدك الحالي</span><strong>${ST.coins} 🪙</strong></div>
-      ${ST.coins>=b.priceCoins
+      ${!_bookPromoApplied?`
+      <div style="display:flex;gap:6px;margin:8px 0">
+        <input class="finput" id="book-promo-inp" placeholder="كود برومو (اختياري)" style="flex:1;margin-bottom:0">
+        <button class="vid-add-btn" onclick="applyBookPromo('${b.id}')">تطبيق</button>
+      </div>`:`<div style="font-size:11px;color:#10B981;margin:6px 0">✅ تم تطبيق الكود: ${_bookPromoApplied.code}</div>`}
+      ${ST.coins>=price
         ?`<button class="btn-p" style="width:100%" onclick="confirmBookPurchase('${b.id}')">✅ تأكيد الشراء</button>`
-        :`<div class="book-checkout-warn">رصيدك غير كافٍ — تحتاج ${b.priceCoins-ST.coins} 🪙 إضافية</div>`
+        :`<div class="book-checkout-warn">رصيدك غير كافٍ — تحتاج ${price-ST.coins} 🪙 إضافية</div>`
       }
     `}
     <button onclick="closeBookCheckout()" style="background:none;border:none;color:rgba(230,220,250,.6);font-size:11px;margin-top:10px;width:100%;cursor:pointer">إغلاق</button>
   `;
-  document.getElementById('book-checkout-ov').classList.add('on');
+}
+async function applyBookPromo(id){
+  const inp=document.getElementById('book-promo-inp');
+  const code=(inp?.value||'').trim();
+  if(!code){showToast('اكتب كوداً أولاً');return;}
+  const promo=await _pzCheckPromoCode(code);
+  if(!promo||!['percent','unlock'].includes(promo.type)){showToast('❌ كود غير صالح أو غير مفعّل');return;}
+  _bookPromoApplied=promo;
+  showToast('✅ تم تطبيق كود الخصم!');playSound('win');
+  _renderBookCheckoutBox(id);
 }
 function closeBookCheckout(){document.getElementById('book-checkout-ov').classList.remove('on');}
 function confirmBookPurchase(id){
   const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
-  if(ST.coins<b.priceCoins){showToast('⚠️ رصيد غير كافٍ');return;}
-  ST.coins-=b.priceCoins;
+  const price=_effectiveBookPrice(b);
+  if(ST.coins<price){showToast('⚠️ رصيد غير كافٍ');return;}
+  ST.coins-=price;
   const c=document.getElementById('coins');if(c)c.textContent=ST.coins;
   const pc=document.getElementById('prof-coins');if(pc)pc.textContent=ST.coins;
   const lc=document.getElementById('lib-coins');if(lc)lc.textContent=ST.coins;
@@ -7327,6 +7519,7 @@ function confirmBookPurchase(id){
       _fbDb.collection('students').doc(session.email).set({coins:ST.coins,ownedBooks:firebase.firestore.FieldValue.arrayUnion(id)},{merge:true}).catch(()=>{});
     }
   }
+  _bookPromoApplied=null;
   showToast('✅ تم الشراء بنجاح!');playSound('win');
   openBookCheckout(id);
   renderStoreBooks();
@@ -8317,10 +8510,24 @@ const PAY_METHODS=[
 ];
 /* merchant info — replace with your real account details */
 const MERCHANT={baridimob:'0550-000-000',holderName:'FUNBAC SARL',ccp:'1234567-89',cle:'12',rip:'00799999000000100000000'};
-let PAY={plan:null,method:null,step:'plans',ref:'',subStatus:localStorage.getItem('bq_sub_status')||'free'};
+let PAY={plan:null,method:null,step:'plans',ref:'',promo:null,subStatus:localStorage.getItem('bq_sub_status')||'free'};
 
-function openPayment(){document.getElementById('pay-overlay').classList.add('on');renderPayment();}
+function openPayment(){PAY.promo=null;document.getElementById('pay-overlay').classList.add('on');renderPayment();}
 function closePayment(){document.getElementById('pay-overlay').classList.remove('on');}
+function _payEffectivePrice(pl){
+  if(!PAY.promo||PAY.promo.type!=='percent')return pl.price;
+  return Math.max(0,Math.round(pl.price*(1-PAY.promo.value/100)));
+}
+async function applyPaymentPromo(){
+  const inp=document.getElementById('pay-promo-inp');
+  const code=(inp?.value||'').trim();
+  if(!code){showToast('اكتب كوداً أولاً');return;}
+  const promo=await _pzCheckPromoCode(code);
+  if(!promo||promo.type!=='percent'){showToast('❌ كود غير صالح أو غير مفعّل لهذا النوع من الدفع');return;}
+  PAY.promo=promo;
+  showToast('✅ تم تطبيق كود الخصم!');playSound('win');
+  renderPayment();
+}
 
 function renderPayment(){
   const box=document.getElementById('pay-box');
@@ -8370,6 +8577,7 @@ function renderPayment(){
   }
   else if(PAY.step==='form'){
     const pl=PLANS.find(p=>p.id===PAY.plan);
+    const price=_payEffectivePrice(pl);
     const m=PAY.method;
     let formHtml='';
     if(m==='chargily'){formHtml=`
@@ -8377,7 +8585,7 @@ function renderPayment(){
         <strong>💳 دفع فوري وآمن</strong><br>
         سيتم تحويلك لصفحة دفع آمنة لإدخال بيانات بطاقة CIB أو Edahabia. يُفعَّل اشتراكك تلقائياً فور نجاح الدفع، بدون انتظار.
       </div>
-      <button class="btn-p" id="chargily-pay-btn" onclick="payWithChargily()" style="width:100%;margin-top:10px">💳 الدفع الآن — ${pl.price} دج</button>`;}
+      <button class="btn-p" id="chargily-pay-btn" onclick="payWithChargily()" style="width:100%;margin-top:10px">💳 الدفع الآن — ${price} دج</button>`;}
     else if(m==='baridimob'){formHtml=`
       <div class="pay-status-pending">
         <strong>📱 خطوات الدفع عبر BaridiMob:</strong><br>
@@ -8385,7 +8593,7 @@ function renderPayment(){
         2. اختر "إرسال أموال" → RIP<br>
         3. RIP المستفيد: <strong style="color:var(--p);user-select:all">${MERCHANT.rip}</strong><br>
         4. اسم صاحب الحساب: <strong style="color:var(--p);user-select:all">${MERCHANT.holderName}</strong><br>
-        5. المبلغ: <strong>${pl.price} دج</strong><br>
+        5. المبلغ: <strong>${price} دج</strong><br>
         6. في الملاحظة: اكتب بريدك الإلكتروني<br>
         7. أدخل رقم مرجع العملية وارفع صورة وصل التحويل أدناه
       </div>
@@ -8399,7 +8607,7 @@ function renderPayment(){
         1. توجه إلى أقرب مكتب بريد<br>
         2. رقم الحساب الجاري CCP: <strong style="color:var(--p);user-select:all">${MERCHANT.ccp}</strong><br>
         3. المفتاح Clé: <strong style="color:var(--p);user-select:all">${MERCHANT.cle}</strong><br>
-        4. المبلغ: <strong>${pl.price} دج</strong><br>
+        4. المبلغ: <strong>${price} دج</strong><br>
         5. في خانة الملاحظة: اكتب بريدك الإلكتروني<br>
         6. احتفظ بحوالة الدفع المصدّقة من مركز البريد وارفع صورتها أدناه
       </div>
@@ -8413,8 +8621,13 @@ function renderPayment(){
       <button onclick="closePayment()" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:3px 9px;font-size:10px;cursor:pointer">✕</button>
     </div>
     <div style="background:var(--pl);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:11px">
-      خطة: <strong style="color:var(--p)">${pl.label}</strong> | ${pl.price} دج ${pl.period}
+      خطة: <strong style="color:var(--p)">${pl.label}</strong> | ${PAY.promo?`<s style="opacity:.5">${pl.price}</s> `:''}${price} دج ${pl.period}
     </div>
+    ${!PAY.promo?`
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <input class="finput" id="pay-promo-inp" placeholder="كود برومو (اختياري)" style="flex:1;margin-bottom:0">
+      <button class="vid-add-btn" onclick="applyPaymentPromo()">تطبيق</button>
+    </div>`:`<div style="font-size:11px;color:#10B981;margin-bottom:12px">✅ تم تطبيق الكود: ${PAY.promo.code}</div>`}
     ${formHtml}
     <button onclick="PAY.step='method';renderPayment()" style="background:none;border:none;color:var(--tx2);font-size:11px;cursor:pointer;width:100%;margin-top:4px">→ رجوع</button>`;
   }
@@ -8480,7 +8693,7 @@ async function payWithChargily(){
   try{
     const res=await fetch('/api/create-checkout',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({planId:PAY.plan,email})
+      body:JSON.stringify({planId:PAY.plan,email,promoCode:PAY.promo?PAY.promo.code:''})
     });
     const data=await res.json();
     if(data.checkout_url){
@@ -9423,6 +9636,18 @@ function _renderOwnerDash(){
         </div>
         <button class="btn-p" style="width:100%;margin-bottom:0" onclick="ownerSavePricing()">💾 حفظ الأسعار</button>
       </div>
+      <div class="tchr-card">
+        <div class="tchr-card-title">🎟️ أكواد الخصم الترويجية</div>
+        <p style="font-size:10px;color:rgba(200,170,100,.6);margin-bottom:10px">أنشئي كوداً — نسبة خصم % على الاشتراك أو الكتب، أو فتح مجاني لكتاب.</p>
+        <input class="finput" id="promo-code-inp" placeholder="الكود (مثال: BAC2026)">
+        <select class="finput" id="promo-type-sel">
+          <option value="percent">نسبة خصم %</option>
+          <option value="unlock">فتح مجاني (كتاب)</option>
+        </select>
+        <input class="finput" type="number" id="promo-value-inp" placeholder="قيمة الخصم % (فقط لنوع النسبة)">
+        <button class="btn-p" style="width:100%;margin-bottom:0" onclick="ownerCreatePromo()">➕ إنشاء الكود</button>
+        <div id="owner-promo-list" style="margin-top:12px"></div>
+      </div>
       <div class="tchr-stat-grid">
         <div class="tchr-stat"><div class="tchr-stat-val">${list.length}</div><div class="tchr-stat-lbl">إجمالي المسجّلين</div></div>
         <div class="tchr-stat"><div class="tchr-stat-val">${(subCounts.plus||0)+(subCounts.pro||0)}</div><div class="tchr-stat-lbl">مشتركون مدفوعون</div></div>
@@ -9448,7 +9673,43 @@ function _renderOwnerDash(){
       </div>
       <div style="text-align:center;font-size:10px;color:rgba(200,170,100,.4);margin-top:10px">ملاحظة: حقل "الجنس" غير مُجمَّع حالياً في التسجيل — يمكن إضافته لاحقاً إن رغبتِ</div>
     `;
+    _renderOwnerPromoList();
   }).catch(()=>{body.innerHTML=`<div class="tchr-card">تعذّر تحميل البيانات</div>`;});
+}
+function ownerCreatePromo(){
+  if(!(typeof _iAmOwner==='function'&&_iAmOwner())){showToast('🔒 هذه الميزة خاصة بالمالك فقط');return;}
+  const code=(document.getElementById('promo-code-inp')?.value||'').trim().toUpperCase();
+  const type=document.getElementById('promo-type-sel')?.value;
+  const value=parseInt(document.getElementById('promo-value-inp')?.value)||0;
+  if(!code){showToast('⚠️ اكتب الكود');return;}
+  if(type==='percent'&&(value<=0||value>100)){showToast('⚠️ أدخل نسبة صحيحة بين 1 و100');return;}
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  _fbDb.collection('promo_codes').doc(code).set({type,value,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+    .then(()=>{
+      showToast('✅ تم إنشاء الكود');playSound('win');
+      document.getElementById('promo-code-inp').value='';document.getElementById('promo-value-inp').value='';
+      _renderOwnerPromoList();
+    }).catch(e=>showToast('❌ فشل: '+(e.message||'')));
+}
+function _renderOwnerPromoList(){
+  const wrap=document.getElementById('owner-promo-list');if(!wrap)return;
+  if(!(typeof _fbReady!=='undefined'&&_fbReady))return;
+  _fbDb.collection('promo_codes').get().then(snap=>{
+    const rows=[];snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+    wrap.innerHTML=rows.length?rows.map(p=>`<div class="vid-item">
+      <div class="vid-thumb" style="font-size:14px">🎟️</div>
+      <div class="vid-info"><div class="vid-title">${p.id}</div><div class="vid-meta">${p.type==='percent'?'خصم '+p.value+'%':'فتح مجاني'}${p.active?'':' · 🙈 موقوف'}</div></div>
+      <button class="vid-del" style="background:rgba(167,139,250,.15);color:#C4B5FD;border-color:rgba(167,139,250,.4)" onclick="ownerTogglePromo('${p.id}',${!p.active})">${p.active?'إيقاف':'تفعيل'}</button>
+      <button class="vid-del" onclick="ownerDeletePromo('${p.id}')">حذف</button>
+    </div>`).join(''):`<div style="text-align:center;color:rgba(200,170,100,.4);padding:12px">لا توجد أكواد بعد</div>`;
+  }).catch(()=>{});
+}
+function ownerTogglePromo(id,active){
+  _fbDb.collection('promo_codes').doc(id).update({active}).then(()=>_renderOwnerPromoList()).catch(e=>showToast('❌ '+(e.message||'')));
+}
+function ownerDeletePromo(id){
+  if(!confirm('حذف هذا الكود نهائياً؟'))return;
+  _fbDb.collection('promo_codes').doc(id).delete().then(()=>_renderOwnerPromoList()).catch(e=>showToast('❌ '+(e.message||'')));
 }
 window.exportOwnerCSV=function(){
   const list=window._ownerStudentsCache||[];
@@ -9796,6 +10057,37 @@ function _renderTchrManage(){
     <button class="vid-del" onclick="${r.onDel}">حذف</button>
   </div>`).join('')}</div>`;
 }
+let _tqUnitVidSubj=Object.keys(PUZZLE_DB)[0];
+function _renderTchrUnitVideos(){
+  const subj=PUZZLE_DB[_tqUnitVidSubj];
+  const units=subj?.units||[];
+  return `<div class="tchr-card">
+    <div class="tchr-card-title">🎬 فيديو شرح شامل لكل وحدة</div>
+    <p style="font-size:10px;color:rgba(200,170,100,.6);margin-bottom:10px">فيديو واحد يظهر أعلى صفحة الوحدة في قسم الألغاز، بدل وضع فيديو لكل سؤال منفرد.</p>
+    <select class="finput" onchange="_tqUnitVidSubj=this.value;tchrTab('unitvid')">
+      ${Object.entries(PUZZLE_DB).map(([id,s])=>`<option value="${id}" ${id===_tqUnitVidSubj?'selected':''}>${s.icon} ${s.label}</option>`).join('')}
+    </select>
+    ${units.map(u=>{
+      const key=_unitVideoKey(_tqUnitVidSubj,u.id);
+      const current=UNIT_VIDEOS[key]||'';
+      return `<div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:800;color:#F0D880;margin-bottom:4px">📦 ${u.label}</div>
+        <div style="display:flex;gap:6px">
+          <input class="vid-inp" id="uv-${key}" value="${current}" placeholder="رابط YouTube أو فيديو مباشر" style="flex:1">
+          <button class="vid-add-btn" onclick="tchrSaveUnitVideo('${_tqUnitVidSubj}','${u.id}')">حفظ</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function tchrSaveUnitVideo(subjId,uid){
+  const key=_unitVideoKey(subjId,uid);
+  const url=(document.getElementById('uv-'+key)?.value||'').trim();
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  _fbDb.collection('unit_videos').doc(key).set({url}).then(()=>{
+    showToast(url?'✅ تم حفظ فيديو الوحدة':'✅ تم حذف فيديو الوحدة');playSound('win');
+  }).catch(e=>showToast('❌ فشل الحفظ: '+(e.message||'')));
+}
 function _renderTchrStore(){
   return `
   <div class="tchr-card">
@@ -10140,6 +10432,7 @@ function tchrTogglePdfHidden(id){
     <div class="tchr-tab"    id="tt-content" onclick="tchrTab('content')">🗺️ المسار</div>
     <div class="tchr-tab"    id="tt-stds"    onclick="tchrTab('stds')">👥 طلاب</div>
     <div class="tchr-tab"    id="tt-store"   onclick="tchrTab('store')">🛍️ المتجر</div>
+    <div class="tchr-tab"    id="tt-unitvid" onclick="tchrTab('unitvid')">🎬 فيديو الوحدة</div>
   </div>
   <div class="tchr-body" id="tchr-body"></div>
 </div>

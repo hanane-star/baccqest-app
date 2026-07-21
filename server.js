@@ -199,7 +199,7 @@ http.createServer(async (req, res) => {
     }
     try {
       const body = await readBody(req);
-      const { planId, email } = body;
+      const { planId, email, promoCode } = body;
       // Price is owner-controlled: read the live value from Firestore settings/pricing first.
       // Falls back to the hardcoded PLAN_PRICES only if Firebase Admin isn't configured or the doc is missing.
       let amount = PLAN_PRICES[planId];
@@ -214,6 +214,21 @@ http.createServer(async (req, res) => {
         res.end(JSON.stringify({error: 'invalid planId or email'}));
         return;
       }
+      // Promo codes are validated server-side only — the client never gets to declare its own discount.
+      let appliedPromo = null;
+      if (promoCode && _admin) {
+        try {
+          const code = String(promoCode).trim().toUpperCase();
+          const pdoc = await _admin.firestore().collection('promo_codes').doc(code).get();
+          if (pdoc.exists) {
+            const p = pdoc.data();
+            if (p.active && p.type === 'percent' && typeof p.value === 'number' && p.value > 0 && p.value <= 100) {
+              amount = Math.max(1, Math.round(amount * (1 - p.value / 100)));
+              appliedPromo = code;
+            }
+          }
+        } catch (e) { console.error('promo code lookup failed:', e.message); }
+      }
       const result = await chargilyRequest('POST', '/v2/checkouts', {
         amount,
         currency: 'dzd',
@@ -221,8 +236,8 @@ http.createServer(async (req, res) => {
         success_url: APP_BASE_URL + '/?pay=success',
         failure_url: APP_BASE_URL + '/?pay=failed',
         webhook_endpoint: APP_BASE_URL + '/api/chargily-webhook',
-        description: 'اشتراك funbac — خطة ' + planId,
-        metadata: { email, plan: planId }
+        description: 'اشتراك funbac — خطة ' + planId + (appliedPromo ? ' (كود: ' + appliedPromo + ')' : ''),
+        metadata: { email, plan: planId, promo: appliedPromo || '' }
       });
       if (result.status >= 200 && result.status < 300 && result.data.checkout_url) {
         res.writeHead(200, {'Content-Type': 'application/json'});
