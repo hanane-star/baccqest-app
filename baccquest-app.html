@@ -1794,6 +1794,22 @@ select.finput{appearance:none;cursor:pointer}
 .auth-inp::placeholder{color:rgba(200,170,100,.3)}
 .auth-select{width:100%;padding:10px 14px;background:rgba(18,6,1,.8);border:1px solid rgba(190,140,50,.28);border-radius:8px;color:#F0E5C8;font-size:13px;font-family:'Amiri',serif;outline:none;cursor:pointer}
 .auth-submit{width:100%;padding:13px;margin-top:8px;background:linear-gradient(135deg,rgba(200,130,20,.92),rgba(150,80,8,.96));border:1px solid rgba(220,170,60,.3);border-radius:10px;color:#FFF3D0;font-family:'Amiri',serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .22s;box-shadow:0 4px 16px rgba(160,80,8,.4)}
+.auth-consent{display:flex;align-items:flex-start;gap:7px;font-size:11px;color:#D8C79E;margin-top:10px;cursor:pointer;line-height:1.6}
+.auth-consent input[type=checkbox]{margin-top:2px;width:15px;height:15px;flex-shrink:0;accent-color:#C88214}
+.auth-consent a{color:#F0C879;text-decoration:underline;cursor:pointer}
+.privacy-ov{position:fixed;inset:0;background:rgba(10,6,2,.75);z-index:9500;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.privacy-ov.on{display:flex}
+.privacy-box{background:#1a1006;border:1.5px solid rgba(220,170,60,.3);border-radius:16px;max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.privacy-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(220,170,60,.2);flex-shrink:0}
+.privacy-hdr-title{font-family:'Amiri',serif;font-size:16px;font-weight:800;color:#F0C879}
+.privacy-close{background:rgba(255,255,255,.08);border:none;border-radius:8px;padding:5px 10px;color:#D8C79E;cursor:pointer;font-size:13px}
+.privacy-body{padding:16px 18px;overflow-y:auto;font-size:12px;line-height:1.9;color:#D8C79E}
+.privacy-body h3{font-family:'Amiri',serif;font-size:14px;color:#F0C879;margin:16px 0 6px}
+.privacy-body h3:first-child{margin-top:0}
+.privacy-body ul{padding-inline-start:18px;margin:6px 0}
+.privacy-body table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.privacy-body td,.privacy-body th{border:1px solid rgba(220,170,60,.2);padding:6px 8px;text-align:right}
+.privacy-body a{color:#F0C879}
 .auth-submit:hover{background:linear-gradient(135deg,rgba(230,155,25,.96),rgba(185,100,10,.99));box-shadow:0 6px 22px rgba(200,120,10,.55)}
 .auth-err{font-size:11px;color:#EF9090;margin-top:9px;text-align:center;min-height:15px}
 .auth-footer{text-align:center;margin-top:12px;font-size:11px;color:rgba(200,170,100,.5)}
@@ -9411,6 +9427,8 @@ window.settingsShowReferral=function(){
     document.getElementById('auth-err-in').textContent='';
     document.getElementById('auth-err-up').textContent='';
   };
+  window.openPrivacyPolicy=function(){document.getElementById('privacy-ov').classList.add('on');};
+  window.closePrivacyPolicy=function(){document.getElementById('privacy-ov').classList.remove('on');};
   window.authSeg=function(s){
     document.getElementById('auth-seg-in').classList.toggle('on',s==='in');
     document.getElementById('auth-seg-up').classList.toggle('on',s==='up');
@@ -9501,6 +9519,7 @@ window.settingsShowReferral=function(){
     if(!name||!email||!pass){err.textContent='يرجى ملء جميع الحقول';return;}
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='البريد الإلكتروني غير صحيح';return;}
     if(pass.length<8){err.textContent='كلمة السر يجب أن تكون 8 أحرف على الأقل';return;}
+    if(!document.getElementById('aup-consent')?.checked){err.textContent='يجب الموافقة على سياسة الخصوصية للمتابعة';return;}
     if(!_fb()){err.textContent='تعذّر الاتصال بخدمة الحساب، حاول لاحقاً';return;}
     _fbAuth.createUserWithEmailAndPassword(email,pass).then(cred=>{
       return cred.user.updateProfile({displayName:name}).then(()=>cred.user.sendEmailVerification()).then(()=>{
@@ -9540,6 +9559,7 @@ window.settingsShowReferral=function(){
 
   // ── Facebook OAuth ──
   window.authFacebook=function(){
+    if(document.getElementById('auth-seg-up')?.classList.contains('on')&&!document.getElementById('aup-consent')?.checked){_showToast('يجب الموافقة على سياسة الخصوصية أولاً');return;}
     if(!_fb()){_showToast('تعذّر الاتصال بخدمة الحساب');return;}
     const provider=new firebase.auth.FacebookAuthProvider();
     provider.addScope('email');
@@ -9562,6 +9582,7 @@ window.settingsShowReferral=function(){
     const phone=document.getElementById('aph-phone').value.trim();
     const err=document.getElementById('auth-err-phone');err.textContent='';
     if(!/^\+\d{8,15}$/.test(phone)){err.textContent='أدخل رقماً بصيغة دولية صحيحة، مثال: +213xxxxxxxxx';return;}
+    if(document.getElementById('auth-seg-up')?.classList.contains('on')&&!document.getElementById('aup-consent')?.checked){err.textContent='يجب الموافقة على سياسة الخصوصية أولاً';return;}
     if(!_fb()){err.textContent='تعذّر الاتصال بخدمة الحساب';return;}
     _fbAuth.signInWithPhoneNumber(phone,_recaptcha).then(res=>{
       _confirmationResult=res;
@@ -10535,6 +10556,10 @@ function tchrTogglePdfHidden(id){
             <option value="تسيير واقتصاد">تسيير واقتصاد</option>
           </select>
         </div>
+        <label class="auth-consent">
+          <input type="checkbox" id="aup-consent">
+          <span>أوافق على <a onclick="event.preventDefault();openPrivacyPolicy();">سياسة الخصوصية</a></span>
+        </label>
         <button class="auth-submit" onclick="authSignup()">إنشاء الحساب 🚀</button>
         <div class="auth-err" id="auth-err-up"></div>
       </div>
@@ -10569,6 +10594,85 @@ function tchrTogglePdfHidden(id){
         <div id="recaptcha-container"></div>
       </div>
       <div class="auth-footer" id="auth-footer-reset">مشكلة في الدخول؟ <a onclick="authResetPrompt()">استعادة كلمة السر</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY MODAL -->
+<div class="privacy-ov" id="privacy-ov" onclick="if(event.target===this)closePrivacyPolicy()">
+  <div class="privacy-box">
+    <div class="privacy-hdr">
+      <div class="privacy-hdr-title">🔒 سياسة الخصوصية</div>
+      <button class="privacy-close" onclick="closePrivacyPolicy()">✕ إغلاق</button>
+    </div>
+    <div class="privacy-body" id="privacy-body">
+      <p style="font-size:11px;color:#8A8680;margin-bottom:12px">آخر تحديث: 21 يوليو 2026</p>
+
+      <h3>1. مقدمة</h3>
+      <p>نحن في BaccQuest ("التطبيق"، "نحن") نلتزم بحماية خصوصية مستخدمينا من تلاميذ وأساتذة البكالوريا في الجزائر. توضح هذه السياسة ما هي البيانات التي نجمعها، وكيف نستخدمها، ومع من نشاركها، وكيف يمكنك التحكم بها. باستخدامك للتطبيق، فإنك توافق على الممارسات الموضحة في هذه السياسة.</p>
+
+      <h3>2. البيانات التي نجمعها</h3>
+      <p><strong>أ) بيانات الحساب:</strong></p>
+      <ul>
+        <li>الاسم الكامل</li>
+        <li>البريد الإلكتروني</li>
+        <li>رقم الهاتف (عند التسجيل عبر رمز التحقق)</li>
+        <li>الشعبة الدراسية والتخصص</li>
+        <li>كلمة المرور (مُشفّرة بالكامل، لا نطّلع عليها مطلقاً)</li>
+      </ul>
+      <p><strong>ب) بيانات الاستخدام:</strong></p>
+      <ul>
+        <li>تقدمك الدراسي (الدروس، نتائج الأسئلة، الأوسمة)</li>
+        <li>رصيد الكوينز ونوع الاشتراك</li>
+        <li>محادثاتك مع المساعد الذكي "رفيق"</li>
+        <li>محتوى "المسودة" أثناء حل الأسئلة (يُخزَّن على جهازك فقط، لا يُرسل لخوادمنا)</li>
+      </ul>
+      <p><strong>ج) بيانات الدفع:</strong> عند الدفع بالبطاقة، تُعالَج بياناتها بالكامل عبر مزوّد الدفع Chargily — نحن لا نرى أو نخزّن رقم بطاقتك مطلقاً. عند الدفع اليدوي (BaridiMob/CCP)، نطّلع فقط على رقم مرجع العملية وصورة الوصل التي ترفعها طوعاً.</p>
+      <p><strong>د) بيانات تقنية:</strong> عنوان IP ونوع الجهاز، لأغراض أمنية وتشخيص الأعطال فقط.</p>
+
+      <h3>3. كيف نستخدم بياناتك</h3>
+      <ul>
+        <li>تخصيص المحتوى التعليمي حسب شعبتك وتقدمك</li>
+        <li>تفعيل وإدارة اشتراكك</li>
+        <li>إظهارك في لوحة المتصدرين (باسمك المعروض فقط)</li>
+        <li>تفعيل نظام الإحالة</li>
+        <li>التواصل معك بخصوص إشعارات مهمة</li>
+        <li>تحسين التطبيق وإصلاح الأعطال</li>
+      </ul>
+      <p><strong>نحن لا نبيع بياناتك لأي طرف ثالث، ولا نستخدمها في إعلانات مستهدفة.</strong></p>
+
+      <h3>4. من يمكنه رؤية بياناتك</h3>
+      <table>
+        <tr><th>الطرف</th><th>ما يراه</th></tr>
+        <tr><td>الأساتذة</td><td>إحصائيات مجمّعة فقط — لا يرون أبداً بيانات شخصية لأي طالب فردي</td></tr>
+        <tr><td>مالك التطبيق</td><td>وصول كامل لأغراض الإدارة والدعم الفني</td></tr>
+        <tr><td>طلاب آخرون</td><td>اسمك في لوحة المتصدرين فقط (إن فعّلتها)</td></tr>
+      </table>
+
+      <h3>5. مزوّدو الخدمة الخارجيون</h3>
+      <ul>
+        <li><strong>Google Firebase</strong> — تخزين البيانات وتسجيل الدخول والاستضافة</li>
+        <li><strong>Anthropic (Claude AI)</strong> — لتشغيل "رفيق" وتصحيح المقالات الفلسفية</li>
+        <li><strong>Chargily</strong> — معالجة المدفوعات الإلكترونية بأمان</li>
+      </ul>
+
+      <h3>6. أمان البيانات</h3>
+      <p>كلمات المرور مُشفّرة بالكامل، قواعد أمان صارمة تمنع وصول أي مستخدم لبيانات غيره، والاتصال بخوادمنا مُشفّر بالكامل (HTTPS). رغم ذلك، لا يوجد نظام آمن بنسبة 100%، ونعمل باستمرار على تحسين الحماية.</p>
+
+      <h3>7. حقوقك</h3>
+      <p>يحق لك في أي وقت الاطلاع على بياناتك، تصحيحها، حذف حسابك بالكامل، أو إلغاء الاشتراك في الإشعارات. لطلب حذف حسابك، تواصلي معنا عبر البريد أدناه.</p>
+
+      <h3>8. الخصوصية للقاصرين</h3>
+      <p>نظراً لأن غالبية مستخدمي التطبيق تلاميذ بكالوريا، نلتزم بعدم جمع أي بيانات تفوق ما هو ضروري لتقديم الخدمة، ولا نستخدم بيانات القاصرين لأي غرض تسويقي.</p>
+
+      <h3>9. التخزين المحلي</h3>
+      <p>يستخدم التطبيق التخزين المحلي في متصفحك لحفظ تفضيلاتك (اللغة، الصوت، تقدمك المؤقت) — تبقى هذه البيانات على جهازك ولا تُرسل لخوادمنا إلا عند الحاجة للمزامنة بين الأجهزة.</p>
+
+      <h3>10. التعديلات على هذه السياسة</h3>
+      <p>قد نُحدّث هذه السياسة من وقت لآخر، وسنُعلمك بأي تغيير جوهري عبر إشعار داخل التطبيق.</p>
+
+      <h3>11. التواصل</h3>
+      <p>لأي استفسار بخصوص خصوصيتك أو بياناتك: 📧 <a href="mailto:hananesidimoussa14@gmail.com">hananesidimoussa14@gmail.com</a></p>
     </div>
   </div>
 </div>
