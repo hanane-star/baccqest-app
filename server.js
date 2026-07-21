@@ -16,6 +16,10 @@ const MIME = {'.html':'text/html','.css':'text/css','.js':'application/javascrip
 // so every student gets real AI without needing their own key.
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 
+// ══ TEACHER ACCESS CODE — never ship the real code to the client ══
+// Set TEACHER_ACCESS_CODE as an env var on your host. Falls back to a dev default locally.
+const TEACHER_ACCESS_CODE = (process.env.TEACHER_ACCESS_CODE || 'BACC-TCHR-2891').trim().toUpperCase();
+
 // ══ CHARGILY PAY — real card payments (CIB/Edahabia) ══
 // Set CHARGILY_SECRET_KEY (test_sk_... or live_sk_...) as an env var. Never ship it to the client.
 const CHARGILY_SECRET_KEY = process.env.CHARGILY_SECRET_KEY || '';
@@ -124,6 +128,23 @@ http.createServer(async (req, res) => {
       });
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(JSON.stringify(result.data));
+    } catch (e) {
+      res.writeHead(500, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({error: e.message}));
+    }
+    return;
+  }
+
+  // ── POST /api/verify-teacher-code — checks the teacher access code server-side only ──
+  if (req.method === 'POST' && url === '/api/verify-teacher-code') {
+    try {
+      const body = await readBody(req);
+      const code = (body.code || '').trim().toUpperCase();
+      const codeBuf = Buffer.from(code, 'utf8');
+      const realBuf = Buffer.from(TEACHER_ACCESS_CODE, 'utf8');
+      const valid = codeBuf.length === realBuf.length && crypto.timingSafeEqual(codeBuf, realBuf);
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({ valid }));
     } catch (e) {
       res.writeHead(500, {'Content-Type': 'application/json'});
       res.end(JSON.stringify({error: e.message}));
