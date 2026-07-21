@@ -200,7 +200,15 @@ http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       const { planId, email } = body;
-      const amount = PLAN_PRICES[planId];
+      // Price is owner-controlled: read the live value from Firestore settings/pricing first.
+      // Falls back to the hardcoded PLAN_PRICES only if Firebase Admin isn't configured or the doc is missing.
+      let amount = PLAN_PRICES[planId];
+      if (_admin) {
+        try {
+          const doc = await _admin.firestore().collection('settings').doc('pricing').get();
+          if (doc.exists && typeof doc.data()[planId] === 'number') amount = doc.data()[planId];
+        } catch (e) { console.error('pricing lookup failed, using fallback PLAN_PRICES:', e.message); }
+      }
       if (!amount || !email) {
         res.writeHead(400, {'Content-Type': 'application/json'});
         res.end(JSON.stringify({error: 'invalid planId or email'}));

@@ -86,6 +86,23 @@ service cloud.firestore {
         && request.resource.data.added is list;
     }
 
+    // ── Owner-controlled dynamic settings (subscription pricing, etc.) ──
+    // Readable by everyone (the store needs to show live prices), writable ONLY by the app owner.
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'hananesidimoussa14@gmail.com';
+    }
+
+    // ── Store: books & summaries for sale (teacher/owner-authored, same trust model as questions/examPdfs) ──
+    match /store_books/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['title','subject','priceCoins'])
+        && request.resource.data.title is string
+        && request.resource.data.subject is string
+        && request.resource.data.priceCoins is number;
+      allow delete: if true; // TODO: restrict to the publishing teacher/owner once per-teacher Auth ships
+    }
+
     // Deny anything not explicitly matched above.
     match /{document=**} {
       allow read, write: if false;

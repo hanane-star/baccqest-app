@@ -1815,6 +1815,14 @@ select.finput{appearance:none;cursor:pointer}
 .capsule-box .auth-inp{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3);color:#E9D8FD;font-family:inherit}
 .capsule-reveal-item{background:rgba(139,92,246,.1);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#E9D8FD;text-align:right}
 
+/* ── STORE: subscriptions + books tabs ── */
+.store-subtabs{display:flex;gap:8px;margin-bottom:14px}
+.store-subtab{flex:1;text-align:center;padding:9px 6px;border-radius:12px;font-size:12px;font-weight:700;color:var(--tx2);background:var(--bg2);border:1.5px solid var(--bd);cursor:pointer;transition:all .2s}
+.store-subtab.active{color:#fff;background:linear-gradient(135deg,#6C3CE1,#8B5CF6);border-color:transparent}
+.store-row{display:flex;justify-content:space-between;font-size:12px;color:#E9D8FD;margin-bottom:8px}
+.store-row strong{color:#fff}
+.book-checkout-warn{background:rgba(239,68,68,.15);color:#FCA5A5;border-radius:10px;padding:10px;font-size:11px;text-align:center;margin-bottom:10px}
+
 /* ── SKILL TREE ── */
 .skt-subj-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
 .skt-subj-chip{background:var(--sur);border:1.5px solid var(--bd);border-radius:20px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
@@ -3390,9 +3398,24 @@ hr{border-color:rgba(212,163,97,.2)!important}
 
     <!-- STORE -->
     <div class="pane" id="sp-store">
-      <input class="store-srch" placeholder="🔍 ابحث عن كتاب..." oninput="filterBooks(this.value)">
-      <div class="sec-title">📦 الكتب والملخصات</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="books-grid"></div>
+      <div class="store-subtabs">
+        <div class="store-subtab active" data-tab="subs" onclick="storeSetTab('subs')">⭐ ترقية الحساب</div>
+        <div class="store-subtab" data-tab="books" onclick="storeSetTab('books')">📚 الكتب والملخصات</div>
+      </div>
+      <div id="store-subs-pane">
+        <div class="sec-title">⭐ ترقية الحساب والاشتراكات</div>
+        <div id="store-subs-list"></div>
+      </div>
+      <div id="store-books-pane" style="display:none">
+        <input class="store-srch" id="store-book-srch" placeholder="🔍 ابحث عن كتاب..." oninput="renderStoreBooks(this.value)">
+        <div class="sec-title">📦 الكتب والملخصات</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="store-books-grid"></div>
+      </div>
+    </div>
+
+    <!-- BOOK CHECKOUT MODAL -->
+    <div class="capsule-ov" id="book-checkout-ov">
+      <div class="capsule-box" id="book-checkout-box"></div>
     </div>
 
     <!-- PDF EXAM BANK -->
@@ -4151,7 +4174,7 @@ function initStudent(){
   const bs=document.getElementById('branch-show');if(bs&&ST.branch)bs.textContent='شعبة: '+ST.branch;
   const nb=document.getElementById('notif-badge');const unread=ST.notifs.filter(n=>n.unread).length;
   if(nb){nb.textContent=unread;nb.style.display=unread>0?'flex':'none';}
-  renderNudges();renderTodos();renderBookshelf();renderLeaderboard();renderBooks();renderSubjectPills();renderStudyPlan();renderQBank();renderCalendar();renderProfile();renderPDFBank();renderHeatmap();renderXmlTasks();
+  renderNudges();renderTodos();renderBookshelf();renderLeaderboard();renderStoreSubs();renderStoreBooks();renderSubjectPills();renderStudyPlan();renderQBank();renderCalendar();renderProfile();renderPDFBank();renderHeatmap();renderXmlTasks();
   // Library system bootstrap
   _libUpdateBookStates();
   _libInitResize();
@@ -5007,6 +5030,8 @@ function _initSyllabusSync(){
   },()=>{});
 }
 setTimeout(_initSyllabusSync,300);
+setTimeout(()=>{if(typeof _initPricingSync==='function')_initPricingSync();},300);
+setTimeout(()=>{if(typeof _initStoreBooksSync==='function')_initStoreBooksSync();},300);
 window.tqAddLesson=function(subjId,name,unit,weight){
   name=(name||'').trim();if(!name){_showToast('اكتب اسم الدرس أولاً');return;}
   if(!(typeof _fbReady!=='undefined'&&_fbReady)){_showToast('⚠️ تعذّر الاتصال بقاعدة البيانات');return;}
@@ -6672,7 +6697,7 @@ function _pzTchrSubjProgress(subjId){
 
 // ── Teacher Dashboard: Content Builder tab ──
 window.tchrTab=function(tab){
-  ['stats','videos','stds','content','questions','manage','syllabus'].forEach(t=>{
+  ['stats','videos','stds','content','questions','manage','syllabus','store'].forEach(t=>{
     const el=document.getElementById('tt-'+t);
     if(el)el.classList.toggle('on',t===tab);
   });
@@ -6684,6 +6709,7 @@ window.tchrTab=function(tab){
   else if(tab==='questions')body.innerHTML=_renderTchrQuestions();
   else if(tab==='manage')body.innerHTML=_renderTchrManage();
   else if(tab==='syllabus')body.innerHTML=_renderTchrSyllabus();
+  else if(tab==='store'){body.innerHTML=_renderTchrStore();_renderTchrStoreBooksList();}
 };
 
 /* ── التحكم بالمقرر الدراسي: إضافة/حذف دروس تنعكس فوراً على خطط كل الطلاب ── */
@@ -7199,8 +7225,117 @@ function dcrFinish(){
   showCongrats('أنهيت التحدي اليومي! 🎉',`"رفيق فخور بك — نتيجتك ${pct}%!"`,coins);
   renderDailyChallenge();
 }
-function renderBooks(f=''){document.getElementById('books-grid').innerHTML=BOOKS.filter(b=>!f||b.t.includes(f)).map(b=>`<div class="book-card" onclick="showToast('🛒 جاري الإضافة...');playSound('check')"><div class="book-cov" style="background:${b.bg}">${b.icon}</div><div style="padding:9px"><div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:2px">${b.t}</div><div style="font-size:9px;color:var(--tx2)">${b.tp}</div><div style="font-size:11px;font-weight:700;color:var(--p)">${b.p}</div></div></div>`).join('');}
-function filterBooks(v){renderBooks(v);}
+/* ═══════════════════════════════════════════════════════════
+   🛒 STORE — subscriptions (owner-priced) + real books marketplace
+   ═══════════════════════════════════════════════════════════ */
+let STORE_BOOKS=[];
+function _initStoreBooksSync(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady))return;
+  _fbDb.collection('store_books').orderBy('createdAt','desc').onSnapshot(snap=>{
+    STORE_BOOKS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(document.getElementById('sp-store')?.classList.contains('active'))renderStoreBooks();
+    if(typeof _renderTchrStoreBooksList==='function'&&document.getElementById('tt-store')?.classList.contains('on'))_renderTchrStoreBooksList();
+  },()=>{});
+}
+function storeSetTab(tab){
+  document.querySelectorAll('.store-subtab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  const subsPane=document.getElementById('store-subs-pane'),booksPane=document.getElementById('store-books-pane');
+  if(subsPane)subsPane.style.display=tab==='subs'?'block':'none';
+  if(booksPane)booksPane.style.display=tab==='books'?'block':'none';
+  if(tab==='subs')renderStoreSubs();else renderStoreBooks();
+}
+function renderStoreSubs(){
+  const wrap=document.getElementById('store-subs-list');if(!wrap)return;
+  wrap.innerHTML=PLANS.filter(p=>p.id!=='free').map(p=>`
+    <div class="plan-card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div>
+          <span class="plan-badge" style="background:${p.color};color:#fff">${p.badge}</span>
+          <div style="font-size:14px;font-weight:800;color:var(--tx);margin-top:4px">${p.label}</div>
+        </div>
+        <div style="text-align:left">
+          <div style="font-size:18px;font-weight:900;color:${p.color}">${p.price} <span style="font-size:11px">دج</span></div>
+          <div style="font-size:9px;color:var(--tx2)">${p.period}</div>
+        </div>
+      </div>
+      <ul style="margin:0 0 10px;padding-right:14px;font-size:11px;color:var(--tx2);line-height:1.8">${p.features.map(f=>`<li>${f}</li>`).join('')}</ul>
+      <button class="btn-p" style="width:100%;margin-bottom:0" onclick="PAY.plan='${p.id}';PAY.step='method';openPayment()">🚀 ترقية الآن</button>
+    </div>
+  `).join('');
+}
+function renderStoreBooks(filterText){
+  const grid=document.getElementById('store-books-grid');if(!grid)return;
+  const f=(filterText!=null?filterText:(document.getElementById('store-book-srch')?.value||'')).trim();
+  const list=STORE_BOOKS.filter(b=>!f||(b.title||'').includes(f)||(b.subjectLabel||'').includes(f));
+  grid.innerHTML=list.map(b=>{
+    const owned=_isBookOwned(b.id);
+    const cover=b.coverUrl?`<img src="${b.coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:32px">${b.icon||'📘'}</span>`;
+    return `<div class="book-card" onclick="openBookCheckout('${b.id}')">
+      <div class="book-cov" style="background:${b.coverColor||'#EDE9FF'};display:flex;align-items:center;justify-content:center;overflow:hidden">${cover}</div>
+      <div style="padding:9px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:2px">${b.title}</div>
+        <div style="font-size:9px;color:var(--tx2);margin-bottom:4px">${b.subjectLabel||''}${b.branch?' · '+b.branch:''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;font-weight:700;color:var(--p)">${owned?'✅ مملوك':'🪙 '+b.priceCoins}</span>
+          ${b.pdfUrl?`<button onclick="event.stopPropagation();previewBook('${b.id}')" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:3px 8px;font-size:9px;color:var(--tx2)">معاينة</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--tx2)">📭 لا توجد كتب متاحة بعد</div>';
+}
+function previewBook(id){
+  const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
+  if(!b.pdfUrl){showToast('⚠️ لا توجد معاينة متاحة');return;}
+  window.open(b.pdfUrl,'_blank','noopener,noreferrer');
+}
+function _ownedBooks(){try{return JSON.parse(localStorage.getItem('bq_owned_books')||'[]');}catch(e){return[];}}
+function _isBookOwned(id){return _ownedBooks().includes(id);}
+function openBookCheckout(id){
+  const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
+  const owned=_isBookOwned(id);
+  const box=document.getElementById('book-checkout-box');
+  box.innerHTML=`
+    <div class="capsule-ico">${b.icon||'📘'}</div>
+    <div class="capsule-title">${b.title}</div>
+    <div class="capsule-sub">${b.subjectLabel||''}${b.branch?' · '+b.branch:''}</div>
+    ${owned?`
+      <button class="btn-p" style="width:100%" onclick="downloadBook('${b.id}')">⬇️ تحميل الملف</button>
+    `:`
+      <div class="store-row"><span>السعر</span><strong>🪙 ${b.priceCoins}</strong></div>
+      <div class="store-row"><span>رصيدك الحالي</span><strong>${ST.coins} 🪙</strong></div>
+      ${ST.coins>=b.priceCoins
+        ?`<button class="btn-p" style="width:100%" onclick="confirmBookPurchase('${b.id}')">✅ تأكيد الشراء</button>`
+        :`<div class="book-checkout-warn">رصيدك غير كافٍ — تحتاج ${b.priceCoins-ST.coins} 🪙 إضافية</div>`
+      }
+    `}
+    <button onclick="closeBookCheckout()" style="background:none;border:none;color:rgba(230,220,250,.6);font-size:11px;margin-top:10px;width:100%;cursor:pointer">إغلاق</button>
+  `;
+  document.getElementById('book-checkout-ov').classList.add('on');
+}
+function closeBookCheckout(){document.getElementById('book-checkout-ov').classList.remove('on');}
+function confirmBookPurchase(id){
+  const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
+  if(ST.coins<b.priceCoins){showToast('⚠️ رصيد غير كافٍ');return;}
+  ST.coins-=b.priceCoins;
+  const c=document.getElementById('coins');if(c)c.textContent=ST.coins;
+  const pc=document.getElementById('prof-coins');if(pc)pc.textContent=ST.coins;
+  const lc=document.getElementById('lib-coins');if(lc)lc.textContent=ST.coins;
+  const owned=_ownedBooks();owned.push(id);localStorage.setItem('bq_owned_books',JSON.stringify(owned));
+  if(typeof _fbReady!=='undefined'&&_fbReady){
+    let session=null;try{session=JSON.parse(localStorage.getItem('bq_session')||'null');}catch(e){}
+    if(session&&session.email){
+      _fbDb.collection('students').doc(session.email).set({coins:ST.coins,ownedBooks:firebase.firestore.FieldValue.arrayUnion(id)},{merge:true}).catch(()=>{});
+    }
+  }
+  showToast('✅ تم الشراء بنجاح!');playSound('win');
+  openBookCheckout(id);
+  renderStoreBooks();
+}
+function downloadBook(id){
+  const b=STORE_BOOKS.find(x=>x.id===id);if(!b)return;
+  if(!b.pdfUrl){showToast('⚠️ الملف غير متاح بعد');return;}
+  window.open(b.pdfUrl,'_blank','noopener,noreferrer');
+}
 
 /* ═══════════════════════════════════════════════════════════
    🎓 ORIENTATION BOT — مساعد التوجيه الجامعي (بكالوريا 2026)
@@ -8163,6 +8298,18 @@ const PLANS=[
   {id:'plus',  label:'Plus',   price:900,  period:'شهرياً',    features:['أسئلة غير محدودة','رفيق غير محدود','فيديوهات الشرح','بنك الاختبارات'],color:'#6C3CE1',badge:'الأكثر شعبية'},
   {id:'pro',   label:'Pro',    price:7200, period:'سنوياً',    features:['كل مزايا Plus','تقارير تقدم مفصّلة','دعم الأستاذ المباشر','شهادة إتمام'],color:'#10B981',badge:'الأفضل قيمة'},
 ];
+/* Prices above are just the initial/fallback display value — the owner controls the real, live price
+   from لوحة المالك (settings/pricing in Firestore). Never edited from teacher UI or hardcoded client logic. */
+function _initPricingSync(){
+  if(typeof _fbReady==='undefined'||!_fbReady)return;
+  _fbDb.collection('settings').doc('pricing').onSnapshot(doc=>{
+    if(!doc.exists)return;
+    const d=doc.data();
+    PLANS.forEach(p=>{if(typeof d[p.id]==='number')p.price=d[p.id];});
+    if(document.getElementById('pay-overlay')?.classList.contains('on'))renderPayment();
+    if(document.getElementById('sp-store')?.classList.contains('active')&&typeof renderStoreSubs==='function')renderStoreSubs();
+  });
+}
 const PAY_METHODS=[
   {id:'chargily', label:'بطاقة CIB / Edahabia',icon:'💳',desc:'دفع إلكتروني فوري وآمن — تفعيل تلقائي مباشرةً'},
   {id:'baridimob',label:'BaridiMob',icon:'📱',desc:'الدفع عبر تطبيق BaridiMob (بريد الجزائر)'},
@@ -9267,6 +9414,15 @@ function _renderOwnerDash(){
     const subCounts={free:0,plus:0,pro:0};
     list.forEach(s=>{subCounts[s.sub||'free']=(subCounts[s.sub||'free']||0)+1;});
     body.innerHTML=`
+      <div class="tchr-card">
+        <div class="tchr-card-title">💰 أسعار الاشتراكات — مصدر الحقيقة الوحيد</div>
+        <p style="font-size:10px;color:rgba(200,170,100,.6);margin-bottom:10px">التعديل هنا فقط. لا يمكن لأي أستاذ أو كود واجهة تغيير هذا السعر — ينعكس فوراً في المتجر وبوابة الدفع الفعلية.</p>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label style="font-size:10px;color:rgba(200,170,100,.7)">Plus (دج/شهرياً)</label><input class="finput" type="number" id="price-plus-inp" value="${PLANS.find(p=>p.id==='plus').price}"></div>
+          <div style="flex:1"><label style="font-size:10px;color:rgba(200,170,100,.7)">Pro (دج/سنوياً)</label><input class="finput" type="number" id="price-pro-inp" value="${PLANS.find(p=>p.id==='pro').price}"></div>
+        </div>
+        <button class="btn-p" style="width:100%;margin-bottom:0" onclick="ownerSavePricing()">💾 حفظ الأسعار</button>
+      </div>
       <div class="tchr-stat-grid">
         <div class="tchr-stat"><div class="tchr-stat-val">${list.length}</div><div class="tchr-stat-lbl">إجمالي المسجّلين</div></div>
         <div class="tchr-stat"><div class="tchr-stat-val">${(subCounts.plus||0)+(subCounts.pro||0)}</div><div class="tchr-stat-lbl">مشتركون مدفوعون</div></div>
@@ -9640,6 +9796,99 @@ function _renderTchrManage(){
     <button class="vid-del" onclick="${r.onDel}">حذف</button>
   </div>`).join('')}</div>`;
 }
+function _renderTchrStore(){
+  return `
+  <div class="tchr-card">
+    <div class="tchr-card-title">📚 إضافة كتاب/ملخص جديد</div>
+    <input class="finput" id="sb-title" placeholder="عنوان الكتاب/الملخص">
+    <select class="finput" id="sb-subject">
+      ${Object.entries(LM_SUBJS).map(([id,s])=>`<option value="${id}">${s.icon} ${s.name}</option>`).join('')}
+    </select>
+    <select class="finput" id="sb-branch">
+      <option value="">كل الشعب</option>
+      ${['علوم تجريبية','رياضيات','تقني رياضي','آداب وفلسفة','لغات أجنبية','تسيير واقتصاد'].map(b=>`<option value="${b}">${b}</option>`).join('')}
+    </select>
+    <input class="finput" type="number" id="sb-price" placeholder="السعر بالكوينز 🪙" min="0">
+    <div class="drag-zone" id="sb-cover-zone" onclick="tchrPickBookCover()"><div style="font-size:20px;margin-bottom:3px">🖼️</div><span id="sb-cover-status">صورة الغلاف (اختياري)</span></div>
+    <div class="drag-zone" id="sb-pdf-zone" onclick="tchrPickBookPdf()" style="margin-top:8px"><div style="font-size:20px;margin-bottom:3px">📄</div><span id="sb-pdf-status">ملف PDF</span></div>
+    <button class="btn-p" style="width:100%;margin-top:10px;margin-bottom:0" onclick="tchrPublishBook()">🚀 نشر في المتجر</button>
+  </div>
+  <div class="tchr-card">
+    <div class="tchr-card-title">📦 الكتب المنشورة</div>
+    <div id="tchr-store-books-list"></div>
+  </div>`;
+}
+let _sbCoverUrl='',_sbPdfUrl='';
+function tchrPickBookCover(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];if(!f)return;
+    const status=document.getElementById('sb-cover-status');if(status)status.textContent='⏳ جاري الرفع...';
+    const path='storeCovers/'+Date.now()+'-'+f.name;
+    _fbStorage.ref(path).put(f).then(s=>s.ref.getDownloadURL()).then(url=>{
+      _sbCoverUrl=url;if(status)status.textContent='✅ '+f.name;
+    }).catch(e=>{if(status)status.textContent='❌ فشل الرفع';showToast('❌ '+(e.message||''));});
+  };
+  inp.click();
+}
+function tchrPickBookPdf(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];if(!f)return;
+    if(f.type!=='application/pdf'){showToast('⚠️ يرجى اختيار ملف PDF');return;}
+    const status=document.getElementById('sb-pdf-status');if(status)status.textContent='⏳ جاري الرفع...';
+    const path='storeBooks/'+Date.now()+'-'+f.name;
+    _fbStorage.ref(path).put(f).then(s=>s.ref.getDownloadURL()).then(url=>{
+      _sbPdfUrl=url;if(status)status.textContent='✅ '+f.name;
+    }).catch(e=>{if(status)status.textContent='❌ فشل الرفع';showToast('❌ '+(e.message||''));});
+  };
+  inp.click();
+}
+function tchrPublishBook(){
+  const title=(document.getElementById('sb-title')?.value||'').trim();
+  if(!title){showToast('⚠️ اكتب عنوان الكتاب');return;}
+  const subjId=document.getElementById('sb-subject')?.value;
+  const subj=LM_SUBJS[subjId];
+  const branch=document.getElementById('sb-branch')?.value||'';
+  const priceCoins=parseInt(document.getElementById('sb-price')?.value)||0;
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  const teacherName='أ. '+((typeof ST!=='undefined'&&ST.authData&&ST.authData.name)||'المعلم');
+  _fbDb.collection('store_books').add({
+    title,subject:subjId,subjectLabel:subj?subj.name:'',icon:subj?subj.icon:'📘',branch,
+    priceCoins,coverUrl:_sbCoverUrl,pdfUrl:_sbPdfUrl,teacher:teacherName,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    showToast('✅ تم نشر الكتاب في المتجر');playSound('win');
+    document.getElementById('sb-title').value='';document.getElementById('sb-price').value='';
+    _sbCoverUrl='';_sbPdfUrl='';
+    document.getElementById('sb-cover-status').textContent='صورة الغلاف (اختياري)';
+    document.getElementById('sb-pdf-status').textContent='ملف PDF';
+  }).catch(e=>showToast('❌ فشل النشر: '+(e.message||'')));
+}
+function _renderTchrStoreBooksList(){
+  const wrap=document.getElementById('tchr-store-books-list');if(!wrap)return;
+  wrap.innerHTML=STORE_BOOKS.length?STORE_BOOKS.map(b=>`<div class="vid-item">
+    <div class="vid-thumb" style="font-size:16px">${b.icon||'📘'}</div>
+    <div class="vid-info"><div class="vid-title">${b.title}</div><div class="vid-meta">${b.subjectLabel||''}${b.branch?' · '+b.branch:''} · 🪙${b.priceCoins}</div></div>
+    <button class="vid-del" onclick="tchrDeleteBook('${b.id}')">حذف</button>
+  </div>`).join(''):`<div style="text-align:center;color:rgba(200,170,100,.4);font-family:'Amiri',serif;padding:18px">لا توجد كتب منشورة بعد</div>`;
+}
+function tchrDeleteBook(id){
+  if(!confirm('حذف هذا الكتاب نهائياً؟'))return;
+  if(typeof _fbReady!=='undefined'&&_fbReady){_fbDb.collection('store_books').doc(id).delete().catch(()=>{});}
+}
+function ownerSavePricing(){
+  if(!(typeof _iAmOwner==='function'&&_iAmOwner())){showToast('🔒 هذه الميزة خاصة بالمالك فقط');return;}
+  const plus=parseInt(document.getElementById('price-plus-inp')?.value);
+  const pro=parseInt(document.getElementById('price-pro-inp')?.value);
+  if(!plus||!pro||plus<=0||pro<=0){showToast('⚠️ أدخل أسعاراً صحيحة');return;}
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  _fbDb.collection('settings').doc('pricing').set({plus,pro,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    .then(()=>{showToast('✅ تم تحديث الأسعار — ستنعكس فوراً في كل مكان');playSound('win');})
+    .catch(e=>showToast('❌ فشل الحفظ: '+(e.message||'')));
+}
 function tchrDelVideoById(id){
   if(!confirm('حذف هذا الفيديو نهائياً؟'))return;
   const vids=_getTchrVids().filter(v=>v.id!==id);_saveTchrVids(vids);
@@ -9890,6 +10139,7 @@ function tchrTogglePdfHidden(id){
     <div class="tchr-tab"    id="tt-manage"  onclick="tchrTab('manage')">🗂️ المحتوى</div>
     <div class="tchr-tab"    id="tt-content" onclick="tchrTab('content')">🗺️ المسار</div>
     <div class="tchr-tab"    id="tt-stds"    onclick="tchrTab('stds')">👥 طلاب</div>
+    <div class="tchr-tab"    id="tt-store"   onclick="tchrTab('store')">🛍️ المتجر</div>
   </div>
   <div class="tchr-body" id="tchr-body"></div>
 </div>
