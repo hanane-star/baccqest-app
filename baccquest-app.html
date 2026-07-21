@@ -1251,7 +1251,9 @@ select.finput{appearance:none;cursor:pointer}
              transform .7s cubic-bezier(.34,1.56,.64,1);
 }
 .gc-wrap.gc-home-left{left:2%;right:auto}
-.gc-wrap .gc-av{font-size:clamp(78px,22vw,140px);animation:ccBob 2.3s ease-in-out infinite;position:relative}
+.gc-wrap .gc-av{font-size:clamp(78px,22vw,140px);animation:ccBob 2.3s ease-in-out infinite;position:relative;pointer-events:auto;cursor:grab;touch-action:none}
+.gc-wrap.gc-dragging{transition:none!important}
+.gc-wrap.gc-dragging .gc-av{cursor:grabbing;animation:none!important}
 .gc-wrap .gc-av img{display:block;width:1em;height:1em;object-fit:contain;animation:gcWingFlap 1.1s ease-in-out infinite}
 @keyframes gcWingFlap{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.86)}}
 .gc-wrap.gc-focus{
@@ -7736,14 +7738,60 @@ function _gcSetEmotion(el,emotion){
   const img=el.querySelector('.gc-av img');
   if(img)img.src=_gcImageSrc(emotion);
 }
+let _gcCustomPos=null;
+try{_gcCustomPos=JSON.parse(localStorage.getItem('bq_companion_pos')||'null');}catch(e){_gcCustomPos=null;}
 function _gcGoHome(el){
   el.classList.remove('gc-focus');
-  el.classList.remove('gc-home-left'); /* both Luna and Azur live on the right */
+  el.classList.remove('gc-home-left'); /* both Luna and Azur live on the right, unless the user dragged it elsewhere */
+  if(_gcCustomPos){
+    el.style.left=_gcCustomPos.xPct+'%';el.style.top=_gcCustomPos.yPct+'%';
+    el.style.right='auto';el.style.bottom='auto';
+  }else{
+    el.style.left='';el.style.top='';el.style.right='';el.style.bottom='';
+  }
+}
+/* ── Drag-to-reposition: the user can grab the companion and move it anywhere on screen ── */
+function _gcInitDrag(){
+  const el=_gcEl();if(!el||el._gcDragInit)return;el._gcDragInit=true;
+  const av=el.querySelector('.gc-av');if(!av)return;
+  let startX=0,startY=0,startLeft=0,startTop=0,dragging=false;
+  av.addEventListener('pointerdown',e=>{
+    if(el.classList.contains('gc-focus')||el.classList.contains('gc-docked'))return;
+    const r=el.getBoundingClientRect();
+    startX=e.clientX;startY=e.clientY;startLeft=r.left;startTop=r.top;dragging=false;
+    av.setPointerCapture(e.pointerId);
+    const onMove=me=>{
+      const dx=me.clientX-startX,dy=me.clientY-startY;
+      if(!dragging&&(Math.abs(dx)>6||Math.abs(dy)>6)){dragging=true;el.classList.add('gc-dragging');}
+      if(!dragging)return;
+      const r2=el.getBoundingClientRect();
+      let newLeft=startLeft+dx,newTop=startTop+dy;
+      newLeft=Math.max(0,Math.min(window.innerWidth-r2.width,newLeft));
+      newTop=Math.max(0,Math.min(window.innerHeight-r2.height,newTop));
+      el.style.left=newLeft+'px';el.style.top=newTop+'px';el.style.right='auto';el.style.bottom='auto';
+    };
+    const onUp=ue=>{
+      av.releasePointerCapture(ue.pointerId);
+      window.removeEventListener('pointermove',onMove);
+      window.removeEventListener('pointerup',onUp);
+      el.classList.remove('gc-dragging');
+      if(dragging){
+        const r3=el.getBoundingClientRect();
+        const xPct=(r3.left/window.innerWidth)*100,yPct=(r3.top/window.innerHeight)*100;
+        _gcCustomPos={xPct,yPct};
+        localStorage.setItem('bq_companion_pos',JSON.stringify(_gcCustomPos));
+        el.style.left=xPct+'%';el.style.top=yPct+'%';
+      }
+    };
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+  });
 }
 function startCompanionAmbient(){
   const el=_gcEl();if(!el)return;
   _refreshRafiqAvatars();
   el.style.display='flex';
+  _gcInitDrag();
   if(!_gcFocused){_gcSetEmotion(el,null);_gcGoHome(el);}
 }
 function stopCompanionAmbient(){const el=_gcEl();if(el&&!_gcFocused)el.style.display='none';}
