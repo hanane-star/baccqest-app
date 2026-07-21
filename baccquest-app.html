@@ -9865,13 +9865,13 @@ const TQ_BRANCHES=[
 ];
 const TQ_YEARS=['2024','2025','2026','2027'];
 let _tqType='mcq',_tqTF=null,_tqDraftText='';
+const TQ_TYPES=[{id:'mcq',label:'اختيار من متعدد'},{id:'tf',label:'صح / خطأ'},{id:'fill',label:'إكمال الفراغ'},{id:'match',label:'بطاقات متطابقة'},{id:'open',label:'سؤال مفتوح'}];
 function _renderTchrQuestions(){
   const list=QUIZ_BANK.filter(q=>q.custom);
   return `<div class="tchr-card">
     <div class="tchr-card-title">🧩 إضافة سؤال جديد</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button class="tq-type-btn ${_tqType==='mcq'?'sel':''}" id="tq-type-mcq" onclick="tqSetType('mcq')">اختيار من متعدد</button>
-      <button class="tq-type-btn ${_tqType==='tf'?'sel':''}" id="tq-type-tf" onclick="tqSetType('tf')">صح / خطأ</button>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      ${TQ_TYPES.map(t=>`<button class="tq-type-btn ${_tqType===t.id?'sel':''}" onclick="tqSetType('${t.id}')">${t.label}</button>`).join('')}
     </div>
     <div class="auth-field"><label class="auth-lbl">نص السؤال</label><textarea class="vid-inp" id="tq-text" rows="2" placeholder="اكتب نص السؤال...">${_tqDraftText||''}</textarea></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
@@ -9889,6 +9889,15 @@ function _renderTchrQuestions(){
       <button class="tq-tf-btn ${_tqTF!=='false'?'sel':''}" id="tq-tf-true" onclick="tqSetTF('true')">✅ العبارة صحيحة</button>
       <button class="tq-tf-btn ${_tqTF==='false'?'sel':''}" id="tq-tf-false" onclick="tqSetTF('false')">❌ العبارة خاطئة</button>
     </div>
+    <div id="tq-fill-wrap" style="display:${_tqType==='fill'?'block':'none'};margin-bottom:10px">
+      <label class="auth-lbl">الإجابة الصحيحة</label>
+      <input class="vid-inp" id="tq-fill-answer" placeholder="مثال: 2x">
+    </div>
+    <div id="tq-match-wrap" style="display:${_tqType==='match'?'block':'none'};margin-bottom:10px">
+      <label class="auth-lbl">بطاقات التطابق (4 أزواج)</label>
+      ${[0,1,2,3].map(i=>`<div style="display:flex;gap:6px;margin-bottom:6px"><input class="vid-inp" placeholder="العنصر ${i+1}" id="tq-match-l-${i}" style="flex:1"><input class="vid-inp" placeholder="ما يقابله" id="tq-match-r-${i}" style="flex:1"></div>`).join('')}
+    </div>
+    ${_tqType==='open'?`<div style="font-size:11px;color:var(--tx2);margin-bottom:10px">💬 سؤال مفتوح — يكتب الطالب إجابته الحرة ويرسلها كمحاولة، دون تصحيح آلي.</div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div><label class="auth-lbl">🎉 تعبير الشخصية عند الصح</label>
       <select class="auth-inp" id="tq-emo-ok" style="background:rgba(18,6,1,.8)"><option value="joy">فرح 😄</option><option value="angry">حماس 🔥</option></select></div>
@@ -9924,19 +9933,30 @@ function tchrPublishQuestion(){
   const emoWrong=document.getElementById('tq-emo-bad').value||'sad';
   const coins=parseInt(document.getElementById('tq-coins').value)||20;
   const teacherName='أ. '+((typeof ST!=='undefined'&&ST.authData&&ST.authData.name)||'المعلم');
-  let options;
+  const TYPE_LABELS={mcq:'اختيار من متعدد',tf:'صح / خطأ',fill:'إكمال الفراغ',match:'بطاقات متطابقة',open:'سؤال مفتوح'};
+  let extra={};
   if(_tqType==='mcq'){
     const correctIdx=Array.from(document.querySelectorAll('input[name=tq-correct]')).findIndex(r=>r.checked);
-    options=[0,1,2,3].map(i=>({l:['أ','ب','ج','د'][i],t:(document.getElementById('tq-opt-'+i)?.value||'').trim(),ok:i===correctIdx})).filter(o=>o.t);
+    const options=[0,1,2,3].map(i=>({l:['أ','ب','ج','د'][i],t:(document.getElementById('tq-opt-'+i)?.value||'').trim(),ok:i===correctIdx})).filter(o=>o.t);
     if(options.length<2){alert('أدخل خيارين على الأقل');return;}
-  }else{
-    const tf=_tqTF||'true';
-    options=[{l:'أ',t:'صحيح',ok:tf==='true'},{l:'ب',t:'خطأ',ok:tf==='false'}];
+    extra={options};
+  }else if(_tqType==='tf'){
+    extra={tfAnswer:(_tqTF||'true')==='true'};
+  }else if(_tqType==='fill'){
+    const correctAnswer=(document.getElementById('tq-fill-answer')?.value||'').trim();
+    if(!correctAnswer){alert('اكتب الإجابة الصحيحة');return;}
+    extra={correctAnswer};
+  }else if(_tqType==='match'){
+    const pairs=[0,1,2,3].map(i=>({l:(document.getElementById('tq-match-l-'+i)?.value||'').trim(),r:(document.getElementById('tq-match-r-'+i)?.value||'').trim()})).filter(p=>p.l&&p.r);
+    if(pairs.length<2){alert('أدخل زوجين على الأقل');return;}
+    extra={pairs};
   }
+  const realType=_tqType==='tf'?'truefalse':_tqType;
   const newQ={
     subject:subj.id,icon:subj.icon,subjectLabel:subj.label,unit:(TQ_BRANCHES.find(b=>b.id===branch)?.label||'')+' — بكالوريا '+year,
-    type:'mcq',typeLabel:_tqType==='tf'?'صح / خطأ':'اختيار من متعدد',text:txt,difficulty:'medium',coins,teacher:teacherName,
-    branch,year,emoCorrect,emoWrong,options,custom:true,hidden:false,video:'',videoTs:0,
+    type:realType,typeLabel:TYPE_LABELS[_tqType],text:txt,difficulty:'medium',coins,teacher:teacherName,
+    branch,year,emoCorrect,emoWrong,custom:true,hidden:false,video:'',videoTs:0,
+    ...extra,
   };
   document.getElementById('tq-text').value='';_tqDraftText='';
   if(typeof _fbReady!=='undefined'&&_fbReady){
