@@ -2578,8 +2578,8 @@ hr{border-color:rgba(212,163,97,.2)!important}
 .pz-scratch-tools{display:flex;justify-content:flex-end;margin-top:6px}
 .pz-scratch-btn{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;font-size:10px;color:var(--tx2);cursor:pointer}
 /* ── Floating calculator ── */
-.pz-calc-fab{position:fixed;left:14px;bottom:90px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#6C3CE1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(108,60,225,.5);cursor:pointer;z-index:960}
-.pz-calc-modal{position:fixed;left:14px;bottom:150px;width:220px;background:var(--bg1);border:1.5px solid var(--bd2);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:970;flex-direction:column;overflow:hidden}
+.pz-nav-calc-btn{margin-inline-start:auto;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6C3CE1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex-shrink:0}
+.pz-calc-modal{position:fixed;left:14px;top:64px;width:220px;background:var(--bg1);border:1.5px solid var(--bd2);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:970;flex-direction:column;overflow:hidden}
 .pz-calc-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);font-size:11px;font-weight:800;color:var(--tx);cursor:grab;touch-action:none}
 .pz-calc-close{background:none;border:none;color:var(--tx2);font-size:13px;cursor:pointer}
 .pz-calc-screen{padding:12px 10px;text-align:left;direction:ltr;font-size:20px;font-weight:700;color:var(--tx);background:var(--bg3);word-break:break-all;min-height:30px}
@@ -3243,7 +3243,6 @@ hr{border-color:rgba(212,163,97,.2)!important}
     <!-- QUIZ — Hierarchical puzzle system -->
     <div class="pane" id="sp-quiz">
       <div id="pz-view"><!-- rendered by pzShowSubjects() --></div>
-      <div class="pz-calc-fab" id="pz-calc-fab" style="display:none" onclick="pzToggleCalc()">🧮</div>
       <div class="pz-calc-modal" id="pz-calc-modal" style="display:none">
         <div class="pz-calc-hdr" id="pz-calc-drag-handle">
           <span>🧮 آلة حاسبة</span>
@@ -4640,31 +4639,29 @@ const FEAT_DATA={
       </div>`,
   },
   store:{
-    ico:'🛒',name:'المتجر',sub:'أدوات وتعزيزات للمذاكرة',col:'#10B981',
-    tabId:null,
-    body:()=>`
+    ico:'🛒',name:'المتجر',sub:'ترقية الحساب وكتب ومذكرات رقمية',col:'#10B981',
+    tabId:'store',
+    body:()=>{
+      const plus=PLANS.find(p=>p.id==='plus'),pro=PLANS.find(p=>p.id==='pro');
+      return `
       <div class="feat-grid">
-        <div class="feat-item" onclick="closeFeat();document.querySelector('.pay-overlay')?.classList.add('on')">
-          <div class="feat-item-ico">⚡</div>
-          <div class="feat-item-lbl">تعزيز النقاط</div>
-          <div class="feat-item-sub">×2 لمدة يوم — 50 🪙</div>
+        <div class="feat-item" onclick="closeFeat();openPayment()">
+          <div class="feat-item-ico">⭐</div>
+          <div class="feat-item-lbl">Plus</div>
+          <div class="feat-item-sub">${plus?plus.price+' دج/شهرياً':''}</div>
         </div>
-        <div class="feat-item" onclick="closeFeat();document.querySelector('.pay-overlay')?.classList.add('on')">
-          <div class="feat-item-ico">🛡️</div>
-          <div class="feat-item-lbl">درع السلسلة</div>
-          <div class="feat-item-sub">حافظ على streak — 30 🪙</div>
-        </div>
-        <div class="feat-item" onclick="closeFeat();document.querySelector('.pay-overlay')?.classList.add('on')">
-          <div class="feat-item-ico">💡</div>
-          <div class="feat-item-lbl">تلميح إضافي</div>
-          <div class="feat-item-sub">x3 تلميحات — 20 🪙</div>
-        </div>
-        <div class="feat-item" onclick="closeFeat();document.querySelector('.pay-overlay')?.classList.add('on')">
+        <div class="feat-item" onclick="closeFeat();openPayment()">
           <div class="feat-item-ico">👑</div>
-          <div class="feat-item-lbl">الخطة الذهبية</div>
-          <div class="feat-item-sub">كل المحتوى — Premium</div>
+          <div class="feat-item-lbl">Pro</div>
+          <div class="feat-item-sub">${pro?pro.price+' دج/سنوياً':''}</div>
         </div>
-      </div>`,
+        <div class="feat-item" onclick="closeFeat();const tabs=document.querySelectorAll('.tab');if(tabs[8])stab('store',tabs[8]);">
+          <div class="feat-item-ico">📚</div>
+          <div class="feat-item-lbl">الكتب والملخصات</div>
+          <div class="feat-item-sub">تصفّح المتجر الكامل</div>
+        </div>
+      </div>`;
+    },
   },
   tasks:{
     ico:'📜',name:'المهام',sub:'لفافتك اليومية',col:'#EF4444',
@@ -6272,6 +6269,7 @@ function _pzRenderQuestion(subj,unit,stg){
     <span class="pz-nav-crumb" onclick="pzShowStages('${PZ.subj}','${PZ.uid}')">${unit.label.split('—')[0].trim()}</span>
     <span class="pz-nav-sep">›</span>
     <span class="pz-nav-cur">${stg.label}</span>
+    <span class="pz-nav-calc-btn" id="pz-calc-nav-btn" style="display:none" onclick="pzToggleCalc()">🧮</span>
   </div>
   <div class="pz-progress-wrap">
     <div class="pz-prog-bar"><div class="pz-prog-fill" style="width:${pct}%"></div></div>
@@ -6321,9 +6319,9 @@ function pzToggleScratch(){
 const PZ_CALC_SUBJECTS=['math','physics','sciences','civil','electrical','mechanical','methods'];
 let _calcExpr='';
 function _pzUpdateCalcVisibility(){
-  const fab=document.getElementById('pz-calc-fab');if(!fab)return;
+  const btn=document.getElementById('pz-calc-nav-btn');if(!btn)return;
   const show=PZ_CALC_SUBJECTS.includes(PZ.subj);
-  fab.style.display=show?'flex':'none';
+  btn.style.display=show?'flex':'none';
   if(!show){const m=document.getElementById('pz-calc-modal');if(m)m.style.display='none';}
 }
 const CALC_KEYS=['7','8','9','÷','sin','4','5','6','×','cos','1','2','3','−','tan','0','.','=','+','√','(',')','%','π','⌫','C'];
