@@ -1035,6 +1035,13 @@ select.finput{appearance:none;cursor:pointer}
 .fb.bad{background:var(--rl);color:#991B1B;border:1.5px solid rgba(239,68,68,.3);display:block}
 .ref-btn{background:var(--al);color:var(--a);border:1.5px solid rgba(245,158,11,.35);border-radius:9px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px;width:100%;display:none}
 .match-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.link-wrap{position:relative;display:flex;gap:14px;margin-bottom:10px}
+.link-wrap svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.link-col{flex:1;display:flex;flex-direction:column;gap:6px;position:relative;z-index:1}
+.link-item{background:var(--bg2);border:1.5px solid var(--bd);border-radius:9px;padding:8px 10px;font-size:11px;font-weight:700;color:var(--tx);cursor:pointer;text-align:center;transition:all .2s}
+.link-item.sel{border-color:var(--p);background:var(--pl)}
+.link-item.done{border-color:#10B981;background:rgba(16,185,129,.12);cursor:default}
+.link-item.bad{border-color:#EF4444;background:rgba(239,68,68,.15)}
 .mc{background:var(--p);border-radius:8px;padding:8px 4px;text-align:center;color:#fff;font-size:9px;font-weight:600;cursor:pointer;min-height:46px;display:flex;align-items:center;justify-content:center;transition:all .3s;border:2px solid transparent;line-height:1.3}
 .mc.flip{background:var(--sur);color:var(--tx);border-color:var(--p)}
 .mc.done{background:var(--sl);border-color:var(--s);color:#065F46}
@@ -7090,7 +7097,7 @@ window.pzShowTchrStages=function(subjId,uid){
 
 // ══ QUIZ BANK ══
 const QB_S=[{id:'all',icon:'📚',label:'الكل'},{id:'math',icon:'📐',label:'رياضيات'},{id:'phy',icon:'⚗️',label:'فيزياء'},{id:'hist',icon:'🗺️',label:'تاريخ'},{id:'phil',icon:'🦉',label:'فلسفة'}];
-const TC={mcq:{bg:'var(--pl)',c:'var(--p)'},fill:{bg:'var(--sl)',c:'var(--s)'},match:{bg:'var(--al)',c:'var(--a)'},truefalse:{bg:'var(--sl)',c:'var(--s)'},open:{bg:'var(--rl)',c:'var(--r)'}};
+const TC={mcq:{bg:'var(--pl)',c:'var(--p)'},fill:{bg:'var(--sl)',c:'var(--s)'},match:{bg:'var(--al)',c:'var(--a)'},truefalse:{bg:'var(--sl)',c:'var(--s)'},open:{bg:'var(--rl)',c:'var(--r)'},link:{bg:'var(--al)',c:'var(--a)'},diagram:{bg:'var(--pl)',c:'var(--p)'}};
 const DLL={easy:'🟢 سهل',medium:'🟡 متوسط',hard:'🔴 صعب'};
 function renderQBank(){document.getElementById('qb-filters').innerHTML=QB_S.map(s=>`<div class="qb-pill ${s.id===ST.qbFilter?'active':''}" onclick="setQBF('${s.id}')">${s.icon} ${s.label}</div>`).join('');const visible=QUIZ_BANK.filter(q=>!q.hidden);const fl=ST.qbFilter==='all'?visible:visible.filter(q=>q.subject===ST.qbFilter);document.getElementById('qbank-list').innerHTML=fl.map(q=>{const tc=TC[q.type]||TC.mcq;return`<div class="qbank-card" onclick="openQBModal('${q.id}')"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="font-size:18px">${q.icon}</span><div><div style="font-size:11px;font-weight:700">${q.subjectLabel} — ${q.unit}</div><div style="font-size:9px;color:var(--tx2)">✒️ ${q.teacher}</div></div></div><span style="background:${tc.bg};color:${tc.c};font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block;margin-bottom:5px">${q.typeLabel}</span><div style="font-size:12px;font-weight:600;line-height:1.6">${fmth(q.text)}</div><div class="qbank-footer"><span class="tag ${q.difficulty==='easy'?'diff-easy':q.difficulty==='medium'?'diff-med':'diff-hard'}">${DLL[q.difficulty]}</span><span style="font-size:10px;font-weight:700;color:var(--a)">🪙+${q.coins}</span><button onclick="event.stopPropagation();openQBModal('${q.id}')" style="background:var(--p);color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:10px;font-weight:700">حل ▶</button></div></div>`;}).join('')||'<div style="text-align:center;padding:28px;color:var(--tx2)">📭 لا توجد أسئلة</div>';}
 function setQBF(id){ST.qbFilter=id;renderQBank();}
@@ -7108,6 +7115,25 @@ function openQBModal(qId){const q=QUIZ_BANK.find(x=>x.id===qId);if(!q)return;QBA
   else if(q.type==='match'){const sh=[...q.pairs.flatMap(p=>[{id:'L'+p.l,text:p.l,pair:p.l,side:'L'},{id:'R'+p.l,text:p.r,pair:p.l,side:'R'}])].sort(()=>Math.random()-.5);body=`<div class="match-grid" id="qm-match">${sh.map(c=>`<div class="mc" id="mc3-${c.id}" data-id="${c.id}" data-pair="${c.pair}" data-side="${c.side}" onclick="qmFlip(this)">?</div>`).join('')}</div><div class="fb" id="qm-fb"></div><div id="qm-mscore" style="text-align:center;font-size:11px;color:var(--tx2);margin-bottom:6px"></div>`;}
   else if(q.type==='truefalse'){body=`<div class="opts" id="qm-tf-opts"><div class="opt" onclick="qmPickTF(this,true)">✅ صحيح</div><div class="opt" onclick="qmPickTF(this,false)">❌ خطأ</div></div><div class="fb" id="qm-fb"></div><div id="qm-ref-wrap" style="display:none"><button class="ref-btn" style="display:block;margin-top:6px" onclick="showVideoModal(QBA.q.video,'شرح: '+QBA.q.subjectLabel)">📹 شاهد الشرح</button></div><div class="row-btns" style="margin-top:9px"><button class="btn-p" onclick="qmCheckTF()" style="flex:1;margin-bottom:0">تأكيد</button></div>`;}
   else if(q.type==='open'){body=`<textarea class="finput" id="qm-open" rows="4" placeholder="اكتب إجابتك..."></textarea><button class="btn-p" onclick="qmSubmitOpen()" style="width:100%;margin-bottom:0">إرسال لرفيق 📤</button><div class="fb" id="qm-fb"></div>`;}
+  else if(q.type==='link'){
+    QBA.linkSelL=null;QBA.linkMatched=0;
+    const rightShuffled=q.pairs.map((p,i)=>({text:p.r,i})).sort(()=>Math.random()-.5);
+    body=`<div class="link-wrap" id="qm-link-wrap">
+      <svg id="qm-link-svg"></svg>
+      <div class="link-col" id="qm-link-left">${q.pairs.map((p,i)=>`<div class="link-item" data-i="${i}" onclick="qmPickLinkL(${i})">${p.l}</div>`).join('')}</div>
+      <div class="link-col" id="qm-link-right">${rightShuffled.map(r=>`<div class="link-item" data-ri="${r.i}" data-text="${r.text.replace(/"/g,'&quot;')}" onclick="qmPickLinkR(${r.i})">${r.text}</div>`).join('')}</div>
+    </div>
+    <div class="fb" id="qm-fb"></div>`;
+  }
+  else if(q.type==='diagram'){
+    QBA.hotspotSel=null;
+    body=`<div class="pz-map-wrap">
+      <img src="${q.imgUrl}" class="pz-map-img" alt="">
+      ${(q.hotspots||[]).map(h=>`<div class="pz-hotspot" data-id="${h.id}" style="left:${h.x}%;top:${h.y}%" onclick="qmPickHotspot(this,'${h.id}')" title="${h.label||''}"></div>`).join('')}
+    </div>
+    <div class="fb" id="qm-fb"></div>
+    <button class="btn-p" onclick="qmCheckHotspot()" style="width:100%;margin-top:8px;margin-bottom:0">تأكيد</button>`;
+  }
   const imgHtml=q.img?`<img src="${q.img}" alt="" style="width:100%;border-radius:10px;margin-bottom:11px;display:block" onerror="this.style.display='none'">`:'';
   document.getElementById('qb-modal-content').innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:17px">${q.icon}</span><button onclick="document.getElementById('qb-modal').classList.remove('on')" style="background:var(--bg2);border:1px solid var(--bd);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--tx2)">✕</button></div><div style="display:flex;gap:5px;align-items:center;margin-bottom:8px"><span style="background:${tc.bg};color:${tc.c};font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px">${q.typeLabel}</span><span class="tag ${q.difficulty==='easy'?'diff-easy':q.difficulty==='medium'?'diff-med':'diff-hard'}">${DLL[q.difficulty]}</span><span style="font-size:10px;color:var(--a);font-weight:700;margin-right:auto">🪙+${q.coins}</span></div><div style="font-size:13px;font-weight:700;line-height:1.65;color:var(--tx);margin-bottom:11px">${fmth(q.text)}</div>${imgHtml}${body}`;
   document.getElementById('qb-modal').classList.add('on');
@@ -7118,6 +7144,71 @@ function qmPickTF(el,val){if(QBA.answered)return;document.querySelectorAll('#qm-
 function qmCheckTF(){if(QBA.selOpt===null||QBA.selOpt===undefined){alert('اختر إجابة');return;}if(QBA.answered)return;QBA.answered=true;trackActivity();const q=QBA.q,opts=document.querySelectorAll('#qm-tf-opts .opt'),fb=document.getElementById('qm-fb'),ok=(QBA.selOpt===!!q.tfAnswer);const selIdx=QBA.selOpt?0:1,okIdx=q.tfAnswer?0:1;if(ok){opts[selIdx].classList.add('ok');fb.className='fb ok';fb.textContent='✅ إجابة صحيحة!';addCoins(q.coins);playSound('correct');if(typeof _bumpAnswerStat==='function')_bumpAnswerStat(true);setTimeout(()=>{document.getElementById('qb-modal').classList.remove('on');showCongrats('إجابة صحيحة! 🎯','"رفيق يحتفل!"',q.coins,true,q.emoCorrect||'joy');},400);}else{opts[selIdx].classList.add('bad');opts[okIdx].classList.add('ok');fb.className='fb bad';fb.textContent=`❌ الإجابة الصحيحة: ${q.tfAnswer?'صحيح ✅':'خطأ ❌'}`;if(q.video)document.getElementById('qm-ref-wrap').style.display='block';playSound('wrong');if(typeof _bumpAnswerStat==='function')_bumpAnswerStat(false);setTimeout(()=>checkRemediationVideo(q.id),800);}}
 function qmCheckFill(correct){const val=document.getElementById('qm-fill').value.trim().toLowerCase(),ok=correct&&(val===correct.toLowerCase()||val.includes(correct.toLowerCase()));const fb=document.getElementById('qm-fb');fb.className='fb '+(ok?'ok':'bad');fb.textContent=ok?'✅ إجابة صحيحة!':correct?'❌ الإجابة: "'+correct+'"':'⚠️ لا توجد إجابة نموذجية';if(ok){addCoins(QBA.q.coins);playSound('correct');}else playSound('wrong');QBA.answered=true;}
 function qmSubmitOpen(){const v=document.getElementById('qm-open').value.trim();if(!v)return;const fb=document.getElementById('qm-fb');fb.className='fb ok';fb.textContent='✅ تم الإرسال لرفيق!';addCoins(Math.floor(QBA.q.coins/2));playSound('check');}
+
+/* ── ربط بسهم: اختر عنصراً من اليسار ثم ما يقابله من اليمين، يُرسم خط بينهما ── */
+function qmPickLinkL(i){
+  if(QBA.answered)return;
+  const el=document.querySelector(`#qm-link-left .link-item[data-i="${i}"]`);
+  if(!el||el.classList.contains('done'))return;
+  document.querySelectorAll('#qm-link-left .link-item').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  QBA.linkSelL=i;
+}
+function qmPickLinkR(ri){
+  if(QBA.answered||QBA.linkSelL==null)return;
+  const rEl=document.querySelector(`#qm-link-right .link-item[data-ri="${ri}"]`);
+  if(!rEl||rEl.classList.contains('done'))return;
+  const q=QBA.q;const leftIdx=QBA.linkSelL;
+  const lEl=document.querySelector(`#qm-link-left .link-item[data-i="${leftIdx}"]`);
+  const correct=ri===leftIdx;
+  if(correct){
+    lEl.classList.remove('sel');lEl.classList.add('done');
+    rEl.classList.add('done');
+    _qmDrawLinkLine(lEl,rEl);
+    QBA.linkMatched=(QBA.linkMatched||0)+1;
+    QBA.linkSelL=null;
+    if(QBA.linkMatched===q.pairs.length){
+      QBA.answered=true;addCoins(q.coins);playSound('correct');
+      const fb=document.getElementById('qm-fb');fb.className='fb ok';fb.textContent='✅ أحسنت! أكملت كل الروابط الصحيحة';
+    }
+  }else{
+    lEl.classList.add('bad');rEl.classList.add('bad');
+    playSound('wrong');
+    setTimeout(()=>{lEl.classList.remove('sel','bad');rEl.classList.remove('bad');},500);
+    QBA.linkSelL=null;
+  }
+}
+function _qmDrawLinkLine(lEl,rEl){
+  const svg=document.getElementById('qm-link-svg');const wrap=document.getElementById('qm-link-wrap');
+  if(!svg||!wrap)return;
+  const wr=wrap.getBoundingClientRect(),lr=lEl.getBoundingClientRect(),rr=rEl.getBoundingClientRect();
+  const x1=lr.right-wr.left,y1=lr.top+lr.height/2-wr.top;
+  const x2=rr.left-wr.left,y2=rr.top+rr.height/2-wr.top;
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+  line.setAttribute('stroke','#10B981');line.setAttribute('stroke-width','2');
+  svg.appendChild(line);
+}
+/* ── خريطة تفاعلية: اضغط على النقطة الصحيحة على الصورة ── */
+function qmPickHotspot(el,id){
+  if(QBA.answered)return;
+  document.querySelectorAll('.pz-hotspot').forEach(h=>h.classList.remove('sel'));
+  el.classList.add('sel');
+  QBA.hotspotSel=id;
+}
+function qmCheckHotspot(){
+  if(!QBA.hotspotSel){showToast('اضغط على الموقع الصحيح أولاً');return;}
+  if(QBA.answered)return;QBA.answered=true;
+  const q=QBA.q;const ok=QBA.hotspotSel===q.correctId;
+  document.querySelectorAll('.pz-hotspot').forEach(h=>{
+    if(h.dataset.id===q.correctId)h.classList.add('ok');
+    else if(h.dataset.id===QBA.hotspotSel&&!ok)h.classList.add('bad');
+  });
+  const fb=document.getElementById('qm-fb');
+  fb.className='fb '+(ok?'ok':'bad');
+  fb.textContent=(ok?'✅ إجابة صحيحة!':'❌ '+(q.expl||'حاول مجدداً في المرة القادمة'));
+  if(ok){addCoins(q.coins);playSound('correct');}else playSound('wrong');
+}
 function qmFlip(el){if(el.classList.contains('done'))return;const pairs=QBA.q.pairs;const txt=el.dataset.side==='L'?el.dataset.pair:pairs.find(p=>p.l===el.dataset.pair)?.r;el.classList.add('flip');el.textContent=txt;if(!QBA.mSel2){QBA.mSel2=el;return;}if(QBA.mSel2.dataset.pair===el.dataset.pair&&QBA.mSel2.dataset.side!==el.dataset.side){QBA.mSel2.classList.add('done');el.classList.add('done');QBA.mMatched2.push(el.dataset.pair);QBA.mSel2=null;playSound('check');addCoins(5);document.getElementById('qm-mscore').textContent=`✅ ${QBA.mMatched2.length}/${pairs.length}`;if(QBA.mMatched2.length===pairs.length){const fb=document.getElementById('qm-fb');fb.className='fb ok';fb.textContent='🎉 جميع الأزواج!';addCoins(QBA.q.coins);playSound('win');}}else{const p=QBA.mSel2;QBA.mSel2=null;playSound('wrong');setTimeout(()=>{p.classList.remove('flip');p.textContent='?';el.classList.remove('flip');el.textContent='?';},900);}}
 
 // ══ AI CHAT ══
@@ -9865,7 +9956,8 @@ const TQ_BRANCHES=[
 ];
 const TQ_YEARS=['2024','2025','2026','2027'];
 let _tqType='mcq',_tqTF=null,_tqDraftText='';
-const TQ_TYPES=[{id:'mcq',label:'اختيار من متعدد'},{id:'tf',label:'صح / خطأ'},{id:'fill',label:'إكمال الفراغ'},{id:'match',label:'بطاقات متطابقة'},{id:'open',label:'سؤال مفتوح'}];
+const TQ_TYPES=[{id:'mcq',label:'اختيار من متعدد'},{id:'tf',label:'صح / خطأ'},{id:'fill',label:'إكمال الفراغ'},{id:'match',label:'بطاقات متطابقة'},{id:'link',label:'ربط بسهم'},{id:'diagram',label:'خريطة تفاعلية'},{id:'open',label:'سؤال مفتوح'}];
+let _tqDiagramImgUrl='',_tqHotspots=[],_tqCorrectHotspot=null;
 function _renderTchrQuestions(){
   const list=QUIZ_BANK.filter(q=>q.custom);
   return `<div class="tchr-card">
@@ -9893,9 +9985,25 @@ function _renderTchrQuestions(){
       <label class="auth-lbl">الإجابة الصحيحة</label>
       <input class="vid-inp" id="tq-fill-answer" placeholder="مثال: 2x">
     </div>
-    <div id="tq-match-wrap" style="display:${_tqType==='match'?'block':'none'};margin-bottom:10px">
-      <label class="auth-lbl">بطاقات التطابق (4 أزواج)</label>
+    <div id="tq-match-wrap" style="display:${(_tqType==='match'||_tqType==='link')?'block':'none'};margin-bottom:10px">
+      <label class="auth-lbl">${_tqType==='link'?'أزواج الربط بسهم (4 أزواج)':'بطاقات التطابق (4 أزواج)'}</label>
       ${[0,1,2,3].map(i=>`<div style="display:flex;gap:6px;margin-bottom:6px"><input class="vid-inp" placeholder="العنصر ${i+1}" id="tq-match-l-${i}" style="flex:1"><input class="vid-inp" placeholder="ما يقابله" id="tq-match-r-${i}" style="flex:1"></div>`).join('')}
+    </div>
+    <div id="tq-diagram-wrap" style="display:${_tqType==='diagram'?'block':'none'};margin-bottom:10px">
+      <label class="auth-lbl">صورة الخريطة/المخطط</label>
+      <div class="drag-zone" onclick="tqPickDiagramImage()"><div style="font-size:20px;margin-bottom:3px">🖼️</div><span id="tq-diagram-status">${_tqDiagramImgUrl?'✅ تم رفع الصورة (اضغط لتغييرها)':'اضغط لرفع صورة'}</span></div>
+      ${_tqDiagramImgUrl?`
+      <div style="font-size:10px;color:var(--tx2);margin:8px 0 4px">اضغطي على الصورة لإضافة نقطة (Hotspot):</div>
+      <div id="tq-diagram-preview" style="position:relative;cursor:crosshair" onclick="tqAddHotspotAt(event)">
+        <img src="${_tqDiagramImgUrl}" style="width:100%;border-radius:8px;display:block">
+        ${_tqHotspots.map(h=>`<div class="pz-hotspot ${_tqCorrectHotspot===h.id?'ok':''}" style="left:${h.x}%;top:${h.y}%"></div>`).join('')}
+      </div>
+      ${_tqHotspots.map(h=>`<div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <input type="radio" name="tq-correct-hotspot" ${_tqCorrectHotspot===h.id?'checked':''} onclick="tqSetCorrectHotspot('${h.id}')">
+        <input class="vid-inp" placeholder="تسمية النقطة" value="${h.label}" style="flex:1" oninput="tqSetHotspotLabel('${h.id}',this.value)">
+        <button class="path-del-btn" onclick="tqDeleteHotspot('${h.id}')">🗑️</button>
+      </div>`).join('')}
+      `:''}
     </div>
     ${_tqType==='open'?`<div style="font-size:11px;color:var(--tx2);margin-bottom:10px">💬 سؤال مفتوح — يكتب الطالب إجابته الحرة ويرسلها كمحاولة، دون تصحيح آلي.</div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -9922,6 +10030,37 @@ function tqSetTF(v){
   document.getElementById('tq-tf-true')?.classList.toggle('sel',v!=='false');
   document.getElementById('tq-tf-false')?.classList.toggle('sel',v==='false');
 }
+function _tqSaveDraft(){_tqDraftText=document.getElementById('tq-text')?.value||_tqDraftText;}
+function tqPickDiagramImage(){
+  if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0];if(!f)return;
+    const status=document.getElementById('tq-diagram-status');if(status)status.textContent='⏳ جاري الرفع...';
+    const path='questionDiagrams/'+Date.now()+'-'+f.name;
+    _fbStorage.ref(path).put(f).then(s=>s.ref.getDownloadURL()).then(url=>{
+      _tqDiagramImgUrl=url;_tqHotspots=[];_tqCorrectHotspot=null;
+      _tqSaveDraft();tchrTab('questions');
+    }).catch(e=>{if(status)status.textContent='❌ فشل الرفع';showToast('❌ '+(e.message||''));});
+  };
+  inp.click();
+}
+function tqAddHotspotAt(evt){
+  const wrap=document.getElementById('tq-diagram-preview');if(!wrap)return;
+  const r=wrap.getBoundingClientRect();
+  const x=((evt.clientX-r.left)/r.width)*100,y=((evt.clientY-r.top)/r.height)*100;
+  const id='h'+Date.now();
+  _tqHotspots.push({id,x,y,label:''});
+  if(_tqHotspots.length===1)_tqCorrectHotspot=id;
+  _tqSaveDraft();tchrTab('questions');
+}
+function tqSetHotspotLabel(id,val){const h=_tqHotspots.find(x=>x.id===id);if(h)h.label=val;}
+function tqSetCorrectHotspot(id){_tqCorrectHotspot=id;_tqSaveDraft();tchrTab('questions');}
+function tqDeleteHotspot(id){
+  _tqHotspots=_tqHotspots.filter(x=>x.id!==id);
+  if(_tqCorrectHotspot===id)_tqCorrectHotspot=_tqHotspots[0]?.id||null;
+  _tqSaveDraft();tchrTab('questions');
+}
 function tchrPublishQuestion(){
   const txt=document.getElementById('tq-text').value.trim();
   if(!txt){alert('اكتب نص السؤال');return;}
@@ -9933,7 +10072,7 @@ function tchrPublishQuestion(){
   const emoWrong=document.getElementById('tq-emo-bad').value||'sad';
   const coins=parseInt(document.getElementById('tq-coins').value)||20;
   const teacherName='أ. '+((typeof ST!=='undefined'&&ST.authData&&ST.authData.name)||'المعلم');
-  const TYPE_LABELS={mcq:'اختيار من متعدد',tf:'صح / خطأ',fill:'إكمال الفراغ',match:'بطاقات متطابقة',open:'سؤال مفتوح'};
+  const TYPE_LABELS={mcq:'اختيار من متعدد',tf:'صح / خطأ',fill:'إكمال الفراغ',match:'بطاقات متطابقة',link:'ربط بسهم',diagram:'خريطة تفاعلية',open:'سؤال مفتوح'};
   let extra={};
   if(_tqType==='mcq'){
     const correctIdx=Array.from(document.querySelectorAll('input[name=tq-correct]')).findIndex(r=>r.checked);
@@ -9946,10 +10085,15 @@ function tchrPublishQuestion(){
     const correctAnswer=(document.getElementById('tq-fill-answer')?.value||'').trim();
     if(!correctAnswer){alert('اكتب الإجابة الصحيحة');return;}
     extra={correctAnswer};
-  }else if(_tqType==='match'){
+  }else if(_tqType==='match'||_tqType==='link'){
     const pairs=[0,1,2,3].map(i=>({l:(document.getElementById('tq-match-l-'+i)?.value||'').trim(),r:(document.getElementById('tq-match-r-'+i)?.value||'').trim()})).filter(p=>p.l&&p.r);
     if(pairs.length<2){alert('أدخل زوجين على الأقل');return;}
     extra={pairs};
+  }else if(_tqType==='diagram'){
+    if(!_tqDiagramImgUrl){alert('ارفع صورة الخريطة أولاً');return;}
+    if(_tqHotspots.length<2){alert('أضف نقطتين على الأقل (واحدة صحيحة وأخرى خاطئة على الأقل)');return;}
+    if(!_tqCorrectHotspot){alert('حدد النقطة الصحيحة');return;}
+    extra={imgUrl:_tqDiagramImgUrl,hotspots:_tqHotspots.map(h=>({id:h.id,x:h.x,y:h.y,label:h.label})),correctId:_tqCorrectHotspot};
   }
   const realType=_tqType==='tf'?'truefalse':_tqType;
   const newQ={
@@ -9959,6 +10103,7 @@ function tchrPublishQuestion(){
     ...extra,
   };
   document.getElementById('tq-text').value='';_tqDraftText='';
+  if(_tqType==='diagram'){_tqDiagramImgUrl='';_tqHotspots=[];_tqCorrectHotspot=null;}
   if(typeof _fbReady!=='undefined'&&_fbReady){
     _fbDb.collection('questions').add({...newQ,createdAt:firebase.firestore.FieldValue.serverTimestamp()})
       .then(()=>{_showToast('✅ تم نشر السؤال — متزامن مع كل الأجهزة');tchrTab('questions');})
