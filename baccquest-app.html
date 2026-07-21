@@ -9991,7 +9991,12 @@ function _renderTchrQuestions(){
     </div>
     <div id="tq-diagram-wrap" style="display:${_tqType==='diagram'?'block':'none'};margin-bottom:10px">
       <label class="auth-lbl">صورة الخريطة/المخطط</label>
-      <div class="drag-zone" onclick="tqPickDiagramImage()"><div style="font-size:20px;margin-bottom:3px">🖼️</div><span id="tq-diagram-status">${_tqDiagramImgUrl?'✅ تم رفع الصورة (اضغط لتغييرها)':'اضغط لرفع صورة'}</span></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="vid-add-btn" style="flex:1" onclick="tqUseWorldMap()">🗺️ استخدام خريطة العالم الصماء الجاهزة</button>
+        <button class="vid-add-btn" style="flex:1;background:var(--bg2);color:var(--tx2)" onclick="tqPickDiagramImage()">🖼️ رفع صورة أخرى</button>
+      </div>
+      <div id="tq-diagram-status" style="font-size:10px;color:var(--tx2);margin-bottom:6px">${_tqDiagramImgUrl?'✅ الصورة الحالية: '+(_tqDiagramImgUrl.includes('world-blind-map')?'خريطة العالم الصماء':'صورة مرفوعة'):'لم تُختر صورة بعد'}</div>
+      <div style="font-size:10px;color:#FBBF24;margin-bottom:8px">✏️ اكتبي نص السؤال (مثال: "حدد موقع الجزائر") في حقل "نص السؤال" أعلى النموذج</div>
       ${_tqDiagramImgUrl?`
       <div style="font-size:10px;color:var(--tx2);margin:8px 0 4px">اضغطي على الصورة لإضافة نقطة (Hotspot):</div>
       <div id="tq-diagram-preview" style="position:relative;cursor:crosshair" onclick="tqAddHotspotAt(event)">
@@ -10031,6 +10036,11 @@ function tqSetTF(v){
   document.getElementById('tq-tf-false')?.classList.toggle('sel',v==='false');
 }
 function _tqSaveDraft(){_tqDraftText=document.getElementById('tq-text')?.value||_tqDraftText;}
+function tqUseWorldMap(){
+  _tqDiagramImgUrl='./world-blind-map.jpg';_tqHotspots=[];_tqCorrectHotspot=null;
+  _tqSaveDraft();tchrTab('questions');
+  showToast('🗺️ تم اختيار خريطة العالم — اضغطي على الصورة لوضع النقاط');
+}
 function tqPickDiagramImage(){
   if(!(typeof _fbReady!=='undefined'&&_fbReady)){showToast('⚠️ يتطلب اتصال Firebase');return;}
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
